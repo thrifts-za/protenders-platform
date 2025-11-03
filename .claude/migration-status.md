@@ -1,21 +1,21 @@
 # Migration Status Tracker
 **Real-Time Progress Tracking**
 
-> 🔄 **Last Updated:** 2025-11-03 12:00 UTC
+> 🔄 **Last Updated:** 2025-11-03 14:30 UTC
 >
-> 📊 **Overall Progress:** 83% Complete
+> 📊 **Overall Progress:** 85% Complete
 >
-> 🎯 **Current Focus:** API Route Migration - Search API Complete! (P2)
+> 🎯 **Current Focus:** API Route Migration - 2/6 Routes Complete! (P2)
 
 ---
 
 ## 📈 Progress Overview
 
 ```
-[█████████████████████████████░] 83% Complete
+[█████████████████████████████░░] 85% Complete
 
 Completed: Frontend (100%), Type System (100%), Auth (100%), Prisma (100%), Deployment Config (100%)
-In Progress: API Migration (20% - 1/6 routes)
+In Progress: API Migration (33% - 2/6 routes)
 Pending: Background Jobs (0%)
 ```
 
@@ -178,9 +178,9 @@ Pending: Background Jobs (0%)
 
 ---
 
-## Phase 4: Core API Migration ⚠️ IN PROGRESS (20% COMPLETE)
+## Phase 4: Core API Migration ⚠️ IN PROGRESS (33% COMPLETE)
 
-**Status:** ⚠️ In Progress - Search API Migrated!
+**Status:** ⚠️ In Progress - 2 Routes Migrated!
 **Started:** November 3, 2025 11:30 UTC
 **Estimated Duration:** 1-2 weeks
 
@@ -189,15 +189,15 @@ Pending: Background Jobs (0%)
 | Endpoint | Source | Target | Priority | Status | Time Est. | Actual |
 |----------|--------|--------|----------|--------|-----------|--------|
 | `/api/search` | TenderAPI | Next.js | HIGH | ✅ Complete | 3-4h | 2h |
-| `/api/tenders/[id]` | TenderAPI | Next.js | HIGH | ⏳ Not Started | 2h | - |
+| `/api/tenders/[id]` | TenderAPI | Next.js | HIGH | ✅ Complete | 2h | 1h |
 | `/api/facets` | TenderAPI | Next.js | MEDIUM | ⏳ Proxying | 2h | - |
 | `/api/admin/stats` | TenderAPI | Next.js | MEDIUM | ⏳ Not Started | 2h | - |
 | `/api/admin/jobs` | TenderAPI | Next.js | MEDIUM | ⏳ Not Started | 2h | - |
 | `/api/admin/health` | TenderAPI | Next.js | LOW | ⏳ Not Started | 1h | - |
 
-**Progress:** 1/6 routes completed (20%)
+**Progress:** 2/6 routes completed (33%)
 **Total Estimated Time:** 15-17 hours
-**Time Spent:** 2 hours
+**Time Spent:** 3 hours
 
 ### ✅ Completed: /api/search Route
 
@@ -224,6 +224,32 @@ Pending: Background Jobs (0%)
 
 **Files Created:**
 - `src/app/api/search/route.ts` (244 lines)
+
+### ✅ Completed: /api/tenders/[id] Route
+
+**Migrated:** November 3, 2025 14:30 UTC
+**Duration:** 1 hour
+
+**Implementation Details:**
+- Migrated from Express to Next.js App Router with dynamic routes
+- Query most recent OCDS release by tender ID
+- Parse and return full tender details including raw OCDS JSON
+- Error handling for invalid IDs and missing tenders (404)
+- Performance metrics in response headers
+- Test script created to verify logic with real data
+
+**Test Results:**
+```bash
+✅ Tender query successful (ocds-9t57fa-138906)
+✅ JSON parsing works correctly
+✅ Response includes: title, description, buyer, dates, raw OCDS
+✅ Error handling for 404s implemented
+✅ Performance headers included
+```
+
+**Files Created:**
+- `src/app/api/tenders/[id]/route.ts` (123 lines)
+- `scripts/test-tender-api.ts` (Test script for API logic)
 
 ### Migration Pattern
 
