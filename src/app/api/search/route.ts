@@ -1,37 +1,243 @@
-import { NextRequest, NextResponse } from "next/server";
+/**
+ * Search Tenders API Route
+ * GET /api/search
+ *
+ * Migrated from TenderAPI Express route
+ * Strategy: LOCAL-FIRST ONLY - Queries local Render PostgreSQL database directly
+ */
 
-// Use the correct backend API URL that queries our database
-const EXTERNAL_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tender-spotlight-pro.onrender.com";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
-export async function GET(req: NextRequest) {
-  const qs = req.nextUrl.searchParams.toString();
-  const url = `${EXTERNAL_BASE}/api/search${qs ? `?${qs}` : ""}`;
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-  console.log(`[Search API] Proxying to: ${url}`);
+interface SearchParams {
+  keywords?: string;
+  categories?: string[];
+  closingInDays?: number;
+  submissionMethods?: string[];
+  buyer?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  sort?: 'latest' | 'closingSoon' | 'relevance';
+  publishedSince?: string;
+  updatedSince?: string;
+}
+
+interface NormalizedTender {
+  id: string;
+  ocid?: string;
+  title: string;
+  displayTitle?: string;
+  description?: string;
+  buyerName?: string;
+  mainProcurementCategory?: string;
+  closingDate?: string;
+  submissionMethods?: string[];
+  status?: string;
+  publishedAt?: string;
+  updatedAt?: string;
+  dataQualityScore: number;
+  raw?: unknown;
+}
+
+interface SearchResponse {
+  data: NormalizedTender[];
+  total: number;
+  page: number;
+  pageSize: number;
+  meta?: {
+    total: number;
+    page: number;
+    pageSize: number;
+    dataSource?: string;
+  };
+}
+
+export async function GET(request: NextRequest) {
+  const startTime = Date.now();
 
   try {
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
+    const searchParams = request.nextUrl.searchParams;
 
-    if (!res.ok) {
-      console.error(`[Search API] Upstream error: ${res.status} ${res.statusText}`);
-      return NextResponse.json({
-        error: "Upstream error",
-        statusText: res.statusText,
-        url: url // Include URL for debugging
-      }, { status: res.status });
+    // Parse query parameters
+    const params: SearchParams = {
+      keywords: searchParams.get('keywords') || undefined,
+      categories: searchParams.getAll('categories').filter(Boolean),
+      closingInDays: searchParams.get('closingInDays') ? parseInt(searchParams.get('closingInDays')!) : undefined,
+      submissionMethods: searchParams.getAll('submissionMethods').filter(Boolean),
+      buyer: searchParams.get('buyer') || undefined,
+      status: searchParams.get('status') || undefined,
+      page: searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1,
+      pageSize: searchParams.get('pageSize') ? parseInt(searchParams.get('pageSize')!) : 20,
+      sort: (searchParams.get('sort') as 'latest' | 'closingSoon' | 'relevance') || 'latest',
+      publishedSince: searchParams.get('publishedSince') || undefined,
+      updatedSince: searchParams.get('updatedSince') || undefined,
+    };
+
+    const page = params.page || 1;
+    const pageSize = Math.min(params.pageSize || 20, 100); // Max 100 per page
+    const skip = (page - 1) * pageSize;
+
+    // Build where clause
+    const where: Prisma.OCDSReleaseWhereInput = {};
+
+    // Keywords search (searches across title, description, buyer)
+    if (params.keywords && params.keywords.trim()) {
+      const kw = params.keywords.toLowerCase();
+      where.OR = [
+        { tenderTitle: { contains: kw, mode: 'insensitive' } },
+        { tenderDescription: { contains: kw, mode: 'insensitive' } },
+        { buyerName: { contains: kw, mode: 'insensitive' } },
+      ];
     }
 
-    const data = await res.json();
-    console.log(`[Search API] Success: ${data.total || 0} tenders found`);
-    return NextResponse.json(data);
-  } catch (err) {
-    console.error(`[Search API] Proxy failed:`, err);
-    return NextResponse.json({
-      error: "Search proxy failed",
-      message: err instanceof Error ? err.message : "Unknown error"
-    }, { status: 502 });
+    // Category filter
+    if (params.categories && params.categories.length > 0) {
+      where.mainCategory = { in: params.categories };
+    }
+
+    // Freshness filters
+    if (params.publishedSince) {
+      where.publishedAt = { gte: new Date(params.publishedSince) };
+    }
+
+    if (params.updatedSince) {
+      where.updatedAt = { gte: new Date(params.updatedSince) };
+    }
+
+    // Closing date filter
+    if (params.closingInDays !== undefined && params.closingInDays !== null) {
+      const now = new Date();
+      const targetDate = new Date();
+      targetDate.setDate(now.getDate() + params.closingInDays);
+
+      where.closingAt = {
+        gte: now,
+        lte: targetDate,
+      };
+    }
+
+    // Buyer filter
+    if (params.buyer && params.buyer.trim()) {
+      where.buyerName = { contains: params.buyer, mode: 'insensitive' };
+    }
+
+    // Status filter
+    if (params.status) {
+      where.status = params.status;
+    }
+
+    // Determine sort order
+    let orderBy: Prisma.OCDSReleaseOrderByWithRelationInput[];
+    switch (params.sort) {
+      case 'closingSoon':
+        orderBy = [{ closingAt: 'asc' }, { publishedAt: 'desc' }];
+        break;
+      case 'relevance':
+        orderBy = params.keywords
+          ? [{ publishedAt: 'desc' }, { updatedAt: 'desc' }]
+          : [{ publishedAt: 'desc' }];
+        break;
+      case 'latest':
+      default:
+        orderBy = [
+          { publishedAt: 'desc' },
+          { updatedAt: 'desc' },
+          { closingAt: 'desc' },
+          { ocid: 'desc' },
+        ];
+        break;
+    }
+
+    // Execute query with pagination
+    const [releases, total] = await Promise.all([
+      prisma.oCDSRelease.findMany({
+        select: {
+          ocid: true,
+          tenderTitle: true,
+          tenderDisplayTitle: true,
+          tenderDescription: true,
+          buyerName: true,
+          mainCategory: true,
+          closingAt: true,
+          submissionMethods: true,
+          status: true,
+          publishedAt: true,
+          updatedAt: true,
+        },
+        where,
+        skip,
+        take: pageSize,
+        orderBy,
+      }),
+      prisma.oCDSRelease.count({ where }),
+    ]);
+
+    // Convert to NormalizedTender format
+    let tenders: NormalizedTender[] = releases.map((release) => ({
+      id: release.ocid,
+      ocid: release.ocid,
+      title: release.tenderTitle || release.ocid,
+      displayTitle: release.tenderDisplayTitle || undefined,
+      description: release.tenderDescription || undefined,
+      buyerName: release.buyerName || undefined,
+      mainProcurementCategory: release.mainCategory || undefined,
+      closingDate: release.closingAt?.toISOString(),
+      submissionMethods: release.submissionMethods
+        ? JSON.parse(release.submissionMethods)
+        : undefined,
+      status: release.status || undefined,
+      publishedAt: release.publishedAt?.toISOString(),
+      updatedAt: release.updatedAt?.toISOString(),
+      dataQualityScore: 85, // Default score for now
+    }));
+
+    // Post-filter submission methods (for array field compatibility)
+    if (params.submissionMethods && params.submissionMethods.length > 0) {
+      tenders = tenders.filter((tender) =>
+        tender.submissionMethods?.some((method) =>
+          params.submissionMethods!.includes(method)
+        )
+      );
+    }
+
+    const response: SearchResponse = {
+      data: tenders,
+      total,
+      page,
+      pageSize,
+      meta: {
+        total,
+        page,
+        pageSize,
+        dataSource: 'local-db',
+      },
+    };
+
+    const duration = Date.now() - startTime;
+
+    // Add custom headers
+    const headers = new Headers();
+    headers.set('X-Data-Source', 'local-db');
+    headers.set('X-Response-Time', `${duration}ms`);
+    headers.set('X-Total-Results', total.toString());
+
+    console.log(`✅ Search completed in ${duration}ms - ${total} results (page ${page}/${Math.ceil(total / pageSize)})`);
+
+    return NextResponse.json(response, { headers });
+  } catch (error) {
+    console.error('❌ Error searching tenders:', error);
+
+    return NextResponse.json(
+      {
+        error: 'Failed to search tenders',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
