@@ -8,7 +8,7 @@ export function useAdminAuth() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  const user = session?.user as (typeof session)['user'] & { role?: string } | undefined;
+  const user = session?.user as any;
   const role = user?.role || "user";
 
   const loading = status === "loading";

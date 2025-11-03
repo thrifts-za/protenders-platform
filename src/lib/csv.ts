@@ -1,6 +1,15 @@
-import { NormalizedTender } from "@/types/tender";
+export interface CSVTender {
+  id: string;
+  title: string;
+  buyerName?: string;
+  mainProcurementCategory?: string;
+  closingDate?: string;
+  status?: string;
+  submissionMethods?: string[];
+  description?: string;
+}
 
-export const exportToCSV = (tenders: NormalizedTender[], filename: string = "tenders.csv") => {
+export const exportToCSV = (tenders: CSVTender[], filename: string = "tenders.csv") => {
   const headers = [
     "ID",
     "Title",

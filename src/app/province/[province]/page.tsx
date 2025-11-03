@@ -129,20 +129,22 @@ export default async function ProvincePage({ params }: { params: Promise<{ provi
           </p>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            <div className="p-4 bg-card rounded-lg border">
-              <div className="text-sm text-muted-foreground">Population</div>
-              <div className="text-lg font-semibold">{provinceData.statistics.population}</div>
+          {provinceData.statistics && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+              <div className="p-4 bg-card rounded-lg border">
+                <div className="text-sm text-muted-foreground">Population</div>
+                <div className="text-lg font-semibold">{provinceData.statistics.population}</div>
+              </div>
+              <div className="p-4 bg-card rounded-lg border">
+                <div className="text-sm text-muted-foreground">GDP Contribution</div>
+                <div className="text-lg font-semibold">{provinceData.statistics.gdp}</div>
+              </div>
+              <div className="p-4 bg-card rounded-lg border">
+                <div className="text-sm text-muted-foreground">Capital</div>
+                <div className="text-lg font-semibold">{provinceData.capital}</div>
+              </div>
             </div>
-            <div className="p-4 bg-card rounded-lg border">
-              <div className="text-sm text-muted-foreground">GDP Contribution</div>
-              <div className="text-lg font-semibold">{provinceData.statistics.gdpContribution}</div>
-            </div>
-            <div className="p-4 bg-card rounded-lg border">
-              <div className="text-sm text-muted-foreground">Capital</div>
-              <div className="text-lg font-semibold">{provinceData.capital}</div>
-            </div>
-          </div>
+          )}
         </div>
       </header>
 
@@ -152,46 +154,52 @@ export default async function ProvincePage({ params }: { params: Promise<{ provi
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4">About {provinceData.name}</h2>
           <p className="text-lg text-muted-foreground leading-relaxed">
-            {provinceData.overview}
+            {provinceData.overview || provinceData.description}
           </p>
         </section>
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Major Departments */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Major Departments & Buyers</h2>
-            <ul className="space-y-2">
-              {provinceData.majorDepartments.map((dept, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2 text-primary">•</span>
-                  <span className="text-muted-foreground">{dept}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {provinceData.majorDepartments && provinceData.majorDepartments.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Major Departments & Buyers</h2>
+              <ul className="space-y-2">
+                {provinceData.majorDepartments.map((dept, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="mr-2 text-primary">•</span>
+                    <span className="text-muted-foreground">{dept}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {/* Key Industries */}
-          <section>
-            <h2 className="text-2xl font-bold mb-4">Key Industries & Sectors</h2>
-            <ul className="space-y-2">
-              {provinceData.keyIndustries.map((industry, index) => (
-                <li key={index} className="flex items-start">
-                  <span className="mr-2 text-primary">•</span>
-                  <span className="text-muted-foreground">{industry}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {provinceData.keyIndustries && provinceData.keyIndustries.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold mb-4">Key Industries & Sectors</h2>
+              <ul className="space-y-2">
+                {provinceData.keyIndustries.map((industry, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="mr-2 text-primary">•</span>
+                    <span className="text-muted-foreground">{industry}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
 
         {/* Tender Insights */}
-        <section className="mb-12 p-6 bg-muted/50 rounded-lg">
-          <h2 className="text-2xl font-bold mb-4">Tender Landscape Insights</h2>
-          <p className="text-muted-foreground leading-relaxed">
-            {provinceData.tenderInsights}
-          </p>
-        </section>
+        {provinceData.tenderInsights && (
+          <section className="mb-12 p-6 bg-muted/50 rounded-lg">
+            <h2 className="text-2xl font-bold mb-4">Tender Landscape Insights</h2>
+            <p className="text-muted-foreground leading-relaxed">
+              {provinceData.tenderInsights}
+            </p>
+          </section>
+        )}
 
         {/* Live Tenders in this Province */}
         <section className="mb-12">
@@ -210,27 +218,31 @@ export default async function ProvincePage({ params }: { params: Promise<{ provi
         </section>
 
         {/* Success Tip */}
-        <section className="mb-12 p-6 bg-primary/10 rounded-lg border border-primary/20">
-          <h2 className="text-2xl font-bold mb-4 text-primary">Success Tips</h2>
-          <p className="text-foreground leading-relaxed">
-            {provinceData.successTip}
-          </p>
-        </section>
+        {provinceData.successTip && (
+          <section className="mb-12 p-6 bg-primary/10 rounded-lg border border-primary/20">
+            <h2 className="text-2xl font-bold mb-4 text-primary">Success Tips</h2>
+            <p className="text-foreground leading-relaxed">
+              {provinceData.successTip}
+            </p>
+          </section>
+        )}
 
         {/* Major Cities */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-4">Major Cities</h2>
-          <div className="flex flex-wrap gap-2">
-            {provinceData.statistics.majorCities.map((city, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm"
-              >
-                {city}
-              </span>
-            ))}
-          </div>
-        </section>
+        {provinceData.statistics?.majorCities && provinceData.statistics.majorCities.length > 0 && (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold mb-4">Major Cities</h2>
+            <div className="flex flex-wrap gap-2">
+              {provinceData.statistics.majorCities.map((city, index) => (
+                <span
+                  key={index}
+                  className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm"
+                >
+                  {city}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Call to Action */}
         <section className="text-center p-8 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg">

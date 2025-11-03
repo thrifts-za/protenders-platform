@@ -208,10 +208,6 @@ export default function TenderDetailPage() {
       <div className="border-b bg-gray-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-wrap items-center gap-3">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <FileText className="h-3 w-3" />
-              Data Quality: {tender.dataQualityScore}/100
-            </Badge>
             {closingDate && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />

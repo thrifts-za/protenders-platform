@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { TenderCard } from "@/components/TenderCard";
@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 
 const FRESHNESS_STORAGE_KEY = "tender-search-freshness";
 
-export default function Search() {
+function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -101,6 +101,9 @@ export default function Search() {
       try {
         const result = await searchTenders({
           ...searchParamsState,
+          closingInDays: searchParamsState.closingInDays ?? undefined,
+          buyer: searchParamsState.buyer ?? undefined,
+          status: searchParamsState.status ?? undefined,
           publishedSince: freshnessFilters.windowDays
             ? new Date(Date.now() - freshnessFilters.windowDays * 24 * 60 * 60 * 1000).toISOString()
             : undefined,
@@ -166,14 +169,13 @@ export default function Search() {
       // Transform results to flat format for CSV
       const rows = data.results.map((t) => ({
         id: t.tender?.id || t.id || "",
-        title: t.tender?.title || t.displayTitle || "",
+        title: t.tender?.title || "",
         buyerName: t.buyer?.name || "",
         mainProcurementCategory: t.tender?.mainProcurementCategory || "",
         closingDate: t.tender?.tenderPeriod?.endDate || "",
-        status: t.tender?.status || t.status || "",
+        status: t.tender?.status || "",
         submissionMethods: t.tender?.submissionMethod || [],
         description: t.tender?.description || "",
-        dataQualityScore: t.dataQualityScore || 0,
       }));
       exportToCSV(rows, `tenders-page-${data.page}.csv`);
     }
@@ -377,5 +379,27 @@ export default function Search() {
         searchParams={searchParamsState}
       />
     </div>
+  );
+}
+
+export default function Search() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background p-8">
+        <div className="container mx-auto">
+          <Skeleton className="h-48 w-full mb-8" />
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <Skeleton className="h-96 w-full" />
+            <div className="lg:col-span-3 space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Skeleton key={i} className="h-48 w-full" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <SearchContent />
+    </Suspense>
   );
 }

@@ -4,11 +4,16 @@ export interface Province {
   description: string;
   population: number;
   capital: string;
+  overview?: string;
   keyIndustries?: string[];
+  majorDepartments?: string[];
+  tenderInsights?: string;
+  successTip?: string;
   statistics?: {
     population: string;
     gdp: string;
     tenders: string;
+    majorCities?: string[];
   };
 }
 
