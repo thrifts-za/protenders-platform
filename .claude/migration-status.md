@@ -1,21 +1,21 @@
 # Migration Status Tracker
 **Real-Time Progress Tracking**
 
-> 🔄 **Last Updated:** 2025-11-03 14:30 UTC
+> 🔄 **Last Updated:** 2025-11-03 15:00 UTC
 >
-> 📊 **Overall Progress:** 85% Complete
+> 📊 **Overall Progress:** 87% Complete
 >
-> 🎯 **Current Focus:** API Route Migration - 2/6 Routes Complete! (P2)
+> 🎯 **Current Focus:** API Route Migration - 3/6 Routes Complete! (P2)
 
 ---
 
 ## 📈 Progress Overview
 
 ```
-[█████████████████████████████░░] 85% Complete
+[█████████████████████████████░] 87% Complete
 
 Completed: Frontend (100%), Type System (100%), Auth (100%), Prisma (100%), Deployment Config (100%)
-In Progress: API Migration (33% - 2/6 routes)
+In Progress: API Migration (50% - 3/6 routes)
 Pending: Background Jobs (0%)
 ```
 
@@ -178,9 +178,9 @@ Pending: Background Jobs (0%)
 
 ---
 
-## Phase 4: Core API Migration ⚠️ IN PROGRESS (33% COMPLETE)
+## Phase 4: Core API Migration ⚠️ IN PROGRESS (50% COMPLETE)
 
-**Status:** ⚠️ In Progress - 2 Routes Migrated!
+**Status:** ⚠️ In Progress - 3 Routes Migrated!
 **Started:** November 3, 2025 11:30 UTC
 **Estimated Duration:** 1-2 weeks
 
@@ -190,14 +190,14 @@ Pending: Background Jobs (0%)
 |----------|--------|--------|----------|--------|-----------|--------|
 | `/api/search` | TenderAPI | Next.js | HIGH | ✅ Complete | 3-4h | 2h |
 | `/api/tenders/[id]` | TenderAPI | Next.js | HIGH | ✅ Complete | 2h | 1h |
-| `/api/facets` | TenderAPI | Next.js | MEDIUM | ⏳ Proxying | 2h | - |
+| `/api/facets` | TenderAPI | Next.js | MEDIUM | ✅ Complete | 2h | 1.5h |
 | `/api/admin/stats` | TenderAPI | Next.js | MEDIUM | ⏳ Not Started | 2h | - |
 | `/api/admin/jobs` | TenderAPI | Next.js | MEDIUM | ⏳ Not Started | 2h | - |
 | `/api/admin/health` | TenderAPI | Next.js | LOW | ⏳ Not Started | 1h | - |
 
-**Progress:** 2/6 routes completed (33%)
+**Progress:** 3/6 routes completed (50%)
 **Total Estimated Time:** 15-17 hours
-**Time Spent:** 3 hours
+**Time Spent:** 4.5 hours
 
 ### ✅ Completed: /api/search Route
 
@@ -250,6 +250,33 @@ Pending: Background Jobs (0%)
 **Files Created:**
 - `src/app/api/tenders/[id]/route.ts` (123 lines)
 - `scripts/test-tender-api.ts` (Test script for API logic)
+
+### ✅ Completed: /api/facets Route
+
+**Migrated:** November 3, 2025 15:00 UTC
+**Duration:** 1.5 hours
+
+**Implementation Details:**
+- Migrated from Express to Next.js App Router
+- Aggregate facet counts for filtering UI
+- Support 5 facet types: categories, buyers, submission methods, statuses, closing dates
+- Use Prisma groupBy for efficient aggregation queries
+- Parse JSON arrays for submission methods facets
+- Add label formatting helpers for better UX
+- Optional filtering support (filter facets by category, status, buyer, closingInDays)
+
+**Test Results:**
+```bash
+✅ Categories: 4 categories (services: 22,191, goods: 9,260, works: 6,585)
+✅ Buyers: Top 10 buyers (ESKOM: 4,217, ARC: 2,477, PRASA: 1,709)
+✅ Statuses: 1 status type
+✅ Closing dates: 618 tenders closing in next 7 days
+✅ Response time: 3.5s for all facets in parallel
+```
+
+**Files Created:**
+- `src/app/api/facets/route.ts` (329 lines)
+- `scripts/test-facets-api.ts` (Test script for facet aggregation)
 
 ### Migration Pattern
 

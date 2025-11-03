@@ -1,9 +1,9 @@
 # ProTenders Platform - Project Context
 **Living Document - Updated with Every Milestone**
 
-> 🔄 **Last Updated:** 2025-11-03 14:30 UTC
+> 🔄 **Last Updated:** 2025-11-03 15:00 UTC
 >
-> 📍 **Current Phase:** Core API Route Migration (P2) - 2/6 Routes Complete
+> 📍 **Current Phase:** Core API Route Migration (P2) - 3/6 Routes Complete
 >
 > 👤 **Updated By:** Claude Code (AI Assistant)
 
@@ -50,7 +50,7 @@ Status: Reference Only - DO NOT MODIFY
 
 ## 🔄 Migration Status
 
-### Current State: 85% Complete
+### Current State: 87% Complete
 
 | Component | Status | Progress | Blocker |
 |-----------|--------|----------|---------|
@@ -58,11 +58,23 @@ Status: Reference Only - DO NOT MODIFY
 | Type System | ✅ Complete | 100% | None |
 | Authentication | ✅ Complete | 100% | None |
 | Database (Prisma) | ✅ Complete | 100% | None |
-| API Routes | ⚠️ In Progress | 33% | **Next Priority** |
+| API Routes | ⚠️ In Progress | 50% | **Next Priority** |
 | Background Jobs | ⏳ Pending | 0% | Not started |
 | Deployment Config | ✅ Complete | 100% | None |
 
-### Recent Milestone: Tender Detail API Migration ✅ COMPLETE
+### Recent Milestone: Facets API Migration ✅ COMPLETE
+**Completed:** November 3, 2025 15:00 UTC
+**Duration:** 1.5 hours
+**Achievements:**
+- ✅ Migrated /api/facets from Express to Next.js
+- ✅ Facet aggregation with Prisma groupBy
+- ✅ 5 facet types: categories, buyers, submission methods, statuses, closing dates
+- ✅ Top buyers: ESKOM (4,217), ARC (2,477), PRASA (1,709)
+- ✅ 4 categories: services (22,191), goods (9,260), works (6,585)
+- ✅ Response time: 3.5s for all facets
+- ✅ 329 lines of production code
+
+### Previous Milestone: Tender Detail API Migration ✅ COMPLETE
 **Completed:** November 3, 2025 14:30 UTC
 **Duration:** 1 hour
 **Achievements:**
@@ -108,16 +120,16 @@ Status: Reference Only - DO NOT MODIFY
 
 ### Next Priority (P2)
 **Task:** Continue Migrating API Routes
-**Focus:** Medium-priority routes
+**Focus:** Admin routes
 **Priority Order:**
 1. ✅ `/api/search` - Search tender database (HIGH, 2h) - COMPLETE
 2. ✅ `/api/tenders/[id]` - Get tender details (HIGH, 1h) - COMPLETE
-3. `/api/facets` - Get search facets (MEDIUM, 2h) - NEXT
-4. `/api/admin/stats` - Admin statistics (MEDIUM, 2h)
+3. ✅ `/api/facets` - Get search facets (MEDIUM, 1.5h) - COMPLETE
+4. `/api/admin/stats` - Admin statistics (MEDIUM, 2h) - NEXT
 5. `/api/admin/jobs` - Background jobs status (MEDIUM, 2h)
 6. `/api/admin/health` - Health check (LOW, 1h)
-**Progress:** 2/6 routes complete (33%)
-**Remaining Time:** ~9 hours
+**Progress:** 3/6 routes complete (50%)
+**Remaining Time:** ~5 hours
 
 ---
 
