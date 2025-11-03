@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    console.log('=Ê Fetching admin dashboard statistics...');
+    console.log('Fetching admin dashboard statistics...');
 
     // Calculate date ranges
     const now = new Date();
@@ -168,11 +168,11 @@ export async function GET(request: NextRequest) {
     headers.set('X-Data-Source', 'local-db');
     headers.set('X-Response-Time', `${duration}ms`);
 
-    console.log(` Admin stats fetched in ${duration}ms`);
+    console.log(`Admin stats fetched in ${duration}ms`);
 
     return NextResponse.json(stats, { headers });
   } catch (error) {
-    console.error('L Error fetching admin stats:', error);
+    console.error('Error fetching admin stats:', error);
 
     return NextResponse.json(
       {

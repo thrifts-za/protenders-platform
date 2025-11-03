@@ -83,7 +83,7 @@ export default function ETLSyncPage() {
 
       if (jobsRes.ok) {
         const jobsData = await jobsRes.json();
-        setJobs(jobsData.jobs || jobsData);
+        setJobs(jobsData.recentJobs || jobsData.jobs || []);
       }
     } catch (err) {
       console.error("Failed to load data:", err);

@@ -33,14 +33,14 @@ export async function POST(request: NextRequest) {
     const cronSecret = process.env.CRON_SECRET;
 
     if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
-      console.error('L Unauthorized cron request');
+      console.error('Unauthorized cron request');
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    console.log('= Starting scheduled sync job...');
+    console.log('Starting scheduled sync job...');
 
     // Create job log entry
     const job = await prisma.jobLog.create({
@@ -73,15 +73,14 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      console.log(` Sync completed successfully in ${syncResult.duration}ms`);
-      console.log(`   =Ê Processed: ${syncResult.recordsProcessed} records`);
-      console.log(`   • Added: ${syncResult.recordsAdded}`);
-      console.log(`   {  Updated: ${syncResult.recordsUpdated}`);
+      console.log(`Sync completed successfully in ${syncResult.duration}ms`);
+      console.log(`   Processed: ${syncResult.recordsProcessed} records`);
+      console.log(`   Added: ${syncResult.recordsAdded}`);
+      console.log(`   Updated: ${syncResult.recordsUpdated}`);
 
       return NextResponse.json({
-        success: true,
-        jobId: job.id,
         ...syncResult,
+        jobId: job.id,
       });
     } catch (syncError) {
       // Update job log with failure
@@ -97,7 +96,7 @@ export async function POST(request: NextRequest) {
       throw syncError;
     }
   } catch (error) {
-    console.error('L Sync job failed:', error);
+    console.error('Sync job failed:', error);
 
     const duration = Date.now() - startTime;
 
@@ -130,8 +129,8 @@ async function performSync(): Promise<SyncResult> {
   // 3. Trigger enrichment pipeline
   // 4. Update sync state cursor
 
-  console.log('   =á Checking OCDS API for updates...');
-  console.log('   9  Sync logic placeholder - full implementation pending');
+  console.log('   Checking OCDS API for updates...');
+  console.log('   Sync logic placeholder - full implementation pending');
 
   // Get current database stats for reporting
   const totalReleases = await prisma.oCDSRelease.count();

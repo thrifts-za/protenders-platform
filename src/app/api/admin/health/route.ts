@@ -89,11 +89,11 @@ export async function GET(request: NextRequest) {
 
     const statusCode = overallStatus === 'unhealthy' ? 503 : 200;
 
-    console.log(` Health check completed in ${duration}ms - Status: ${overallStatus}`);
+    console.log(`Health check completed in ${duration}ms - Status: ${overallStatus}`);
 
     return NextResponse.json(health, { headers, status: statusCode });
   } catch (error) {
-    console.error('L Error in health check:', error);
+    console.error('Error in health check:', error);
 
     return NextResponse.json(
       {

@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const type = searchParams.get('type') || undefined;
 
-    console.log('=Ê Fetching admin job logs...');
+    console.log('Fetching admin job logs...');
 
     // Build where clause
     const where = type ? { type } : {};
@@ -111,11 +111,11 @@ export async function GET(request: NextRequest) {
     headers.set('X-Data-Source', 'local-db');
     headers.set('X-Response-Time', `${duration}ms`);
 
-    console.log(` Job logs fetched in ${duration}ms`);
+    console.log(`Job logs fetched in ${duration}ms`);
 
     return NextResponse.json(response, { headers });
   } catch (error) {
-    console.error('L Error fetching job logs:', error);
+    console.error('Error fetching job logs:', error);
 
     return NextResponse.json(
       {
