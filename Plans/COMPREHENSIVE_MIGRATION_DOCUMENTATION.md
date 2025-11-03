@@ -111,7 +111,7 @@
                                    ▼
                           ┌──────────────────┐
                           │   PostgreSQL     │
-                          │   (Supabase)     │
+                          │   (Render)       │
                           └──────────────────┘
 
 Deployment:
@@ -154,7 +154,7 @@ Deployment:
                            ▼
                   ┌──────────────────┐
                   │   PostgreSQL     │
-                  │   (Supabase)     │
+                  │   (Render)       │
                   └──────────────────┘
 
 External:
@@ -287,7 +287,7 @@ cp apps/api/prisma/seed.ts protenders-next/prisma/seed.ts
 **3.2 Configure Environment Variables**
 ```bash
 # protenders-next/.env.local
-DATABASE_URL="postgresql://user:password@host:5432/dbname"
+DATABASE_URL="postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database"
 ```
 
 **3.3 Generate Prisma Client**
@@ -1043,7 +1043,7 @@ export async function normalizeTender(tender: OCDSTender) {
 **Wednesday: Configure Prisma**
 - [ ] Copy Prisma schema to protenders-next
 - [ ] Copy migrations directory
-- [ ] Configure DATABASE_URL in `.env.local`
+- [ ] Configure DATABASE_URL in `.env.local` (Render PostgreSQL)
 - [ ] Run `npx prisma generate`
 - [ ] Create Prisma client singleton
 - [ ] Test database connection with health endpoint
@@ -1436,8 +1436,11 @@ npx prisma migrate dev
 ```bash
 # protenders-next/.env.local
 
-# Database (Supabase PostgreSQL)
-DATABASE_URL="postgresql://user:password@host:5432/dbname"
+# Database (Render PostgreSQL)
+DATABASE_URL="postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database"
+
+# Render CLI access for database:
+# render psql dpg-d41gqlmr433s73dvl3cg-a
 
 # NextAuth (generate with: openssl rand -base64 32)
 NEXTAUTH_SECRET="your-secret-key-here"
@@ -1566,7 +1569,8 @@ npx prisma generate
 **Database connection fails:**
 - Check `DATABASE_URL` in `.env.local`
 - Verify database is accessible from your network
-- Check Supabase dashboard for connection string
+- Check Render dashboard for connection string
+- Use `render psql dpg-d41gqlmr433s73dvl3cg-a` to test connection via CLI
 
 **API route returns 500 error:**
 - Check Vercel logs for error details

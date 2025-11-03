@@ -240,7 +240,7 @@ The AI system needs to be **carefully migrated** to Next.js while:
                             ▼
                   ┌──────────────────┐
                   │   PostgreSQL     │
-                  │   (Supabase)     │
+                  │   (Render)       │
                   ├──────────────────┤
                   │ • Tender Data    │
                   │ • Historical     │

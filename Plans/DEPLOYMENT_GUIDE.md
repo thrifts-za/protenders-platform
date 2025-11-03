@@ -28,7 +28,8 @@
 ProTenders is a **Next.js 15 full-stack application** that combines:
 - **Frontend**: React Server Components + Client Components
 - **Backend**: Next.js API Routes (serverless functions)
-- **Database**: PostgreSQL (Supabase/Neon/any PostgreSQL provider)
+- **Database**: PostgreSQL on Render
+- **API Backend**: Express.js on Render (https://tender-spotlight-pro.onrender.com)
 - **Cron Jobs**: Background OCDS sync (Vercel Cron or external)
 
 ### Deployment Flexibility
@@ -65,8 +66,8 @@ git --version
 Choose one or more platforms:
 - [ ] **Vercel Account** (free tier available) - https://vercel.com
 - [ ] **Railway Account** (free tier) - https://railway.app
-- [ ] **Render Account** (free tier) - https://render.com
-- [ ] **PostgreSQL Database** (Supabase/Neon/Railway/your own)
+- [x] **Render Account** (active) - https://render.com
+- [x] **PostgreSQL Database** - Render PostgreSQL (active)
 
 ### Development Setup
 
@@ -102,11 +103,16 @@ Create `.env.local` for local development and configure these in your deployment
 # ==========================================
 # DATABASE
 # ==========================================
-# PostgreSQL connection string
-DATABASE_URL="postgresql://user:password@host:5432/database"
-# Example (Supabase): postgresql://postgres.xxx:password@aws-0-region.pooler.supabase.com:5432/postgres
-# Example (Neon): postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname
-# Example (Railway): postgresql://postgres:password@containers-us-west-xxx.railway.app:5432/railway
+# PostgreSQL connection string (Render)
+DATABASE_URL="postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database"
+
+# Render CLI access for database:
+# render psql dpg-d41gqlmr433s73dvl3cg-a
+
+# Other PostgreSQL examples:
+# Supabase: postgresql://postgres.xxx:password@aws-0-region.pooler.supabase.com:5432/postgres
+# Neon: postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname
+# Railway: postgresql://postgres:password@containers-us-west-xxx.railway.app:5432/railway
 
 # ==========================================
 # NEXTAUTH (Authentication)
@@ -397,34 +403,54 @@ export async function GET(req: NextRequest) {
 
 ---
 
-## Option 3: Render
+## Option 3: Render (Currently Active)
 
-### Deployment Steps
+### Current Render Setup
 
-1. **Create Render Account**
-   - Go to https://render.com
-   - Sign up with GitHub
+**Active Services:**
+- **API Backend:** https://tender-spotlight-pro.onrender.com (Express.js)
+- **Database:** PostgreSQL on Render (dpg-d41gqlmr433s73dvl3cg-a)
+  - Connection: `postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database`
+  - CLI Access: `render psql dpg-d41gqlmr433s73dvl3cg-a`
 
-2. **Create Web Service**
+### Deployment Steps for Next.js Frontend
+
+1. **Create Web Service in Render**
    - New → Web Service
-   - Connect your GitHub repository
+   - Connect your GitHub repository (protenders-platform)
    - Settings:
      - **Build Command:** `npm install && npm run build`
      - **Start Command:** `npm start`
      - **Environment:** Node
 
-3. **Add PostgreSQL Database**
-   - New → PostgreSQL
-   - Copy internal connection string
-   - Use as `DATABASE_URL`
+2. **Use Existing PostgreSQL Database**
+   - Link to existing database: dpg-d41gqlmr433s73dvl3cg-a
+   - Connection string already configured (see above)
 
-4. **Configure Environment Variables**
+3. **Configure Environment Variables**
    - Service → Environment
-   - Add all required variables
+   - Add all required variables (use existing DATABASE_URL)
+   - Add NEXT_PUBLIC_API_BASE_URL: https://tender-spotlight-pro.onrender.com
 
-5. **Deploy**
+4. **Deploy**
    - Render auto-deploys on push
    - Get URL from dashboard
+
+### Render CLI Commands
+
+```bash
+# Login to Render
+render login
+
+# Access database via CLI
+render psql dpg-d41gqlmr433s73dvl3cg-a
+
+# View services
+render services list
+
+# View logs
+render logs --service <service-name>
+```
 
 ---
 
@@ -615,29 +641,45 @@ crontab -e
 
 ## 💾 Database Setup
 
-### Supabase (Recommended)
+### Render PostgreSQL (Currently Active)
 
-1. **Create Project**
-   - Go to https://supabase.com
-   - New Project
-   - Copy connection string
+**Current Database:**
+- **Service ID:** dpg-d41gqlmr433s73dvl3cg-a
+- **Region:** Frankfurt
+- **Connection String:**
+  ```
+  postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database
+  ```
 
-2. **Connection Pooler**
-   - Use pooler for serverless: `aws-0-region.pooler.supabase.com`
-   - Direct connection for traditional servers
+**CLI Access:**
+```bash
+# Connect to database via Render CLI
+render psql dpg-d41gqlmr433s73dvl3cg-a
 
+# Or use standard psql
+psql "postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database"
+```
+
+**Run Migrations:**
+```bash
+DATABASE_URL="postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database" npx prisma migrate deploy
+```
+
+### Alternative PostgreSQL Providers
+
+#### Supabase
+
+1. **Create Project** at https://supabase.com
+2. **Connection Pooler** - Use pooler for serverless
 3. **Run Migrations**
-   ```bash
-   DATABASE_URL="postgresql://..." npx prisma migrate deploy
-   ```
 
-### Neon (Alternative)
+#### Neon
 
 1. **Create Project** at https://neon.tech
 2. **Copy Connection String**
 3. **Run Migrations**
 
-### Railway PostgreSQL
+#### Railway PostgreSQL
 
 1. **Add Database** in Railway dashboard
 2. **Use Internal URL** (faster)
@@ -701,9 +743,12 @@ npx @sentry/wizard@latest -i nextjs
 
 ### 4. Set Up Backups
 
-**Database Backups (Supabase)**
-- Automatic backups included
-- Manual backup: Dashboard → Database → Backups
+**Database Backups (Render)**
+- Automatic backups included in paid plans
+- Manual backup via CLI:
+  ```bash
+  render psql dpg-d41gqlmr433s73dvl3cg-a -c "pg_dump" > backup.sql
+  ```
 
 **Database Backups (Self-Hosted)**
 ```bash
@@ -810,8 +855,9 @@ npm install
 **Error: "Can't reach database server"**
 - Check `DATABASE_URL` is correct
 - Verify database is accessible from deployment platform
-- Check firewall rules
-- Use connection pooler for serverless (Supabase/Neon)
+- Check firewall rules in Render dashboard
+- For Render database: ensure external connections are enabled
+- Test connection: `render psql dpg-d41gqlmr433s73dvl3cg-a`
 
 **Error: "Too many connections"**
 - Use connection pooler
@@ -878,11 +924,12 @@ npm install
 For **production ProTenders deployment**, we recommend:
 
 **Infrastructure:**
-- **Hosting:** Vercel (or any platform you prefer)
-- **Database:** Supabase PostgreSQL (with pooler)
+- **Hosting:** Vercel (for Next.js frontend)
+- **API Backend:** Render (https://tender-spotlight-pro.onrender.com)
+- **Database:** Render PostgreSQL (dpg-d41gqlmr433s73dvl3cg-a)
 - **Domain:** Custom domain with SSL
 - **Monitoring:** Vercel Analytics + Sentry
-- **Backups:** Automated database backups
+- **Backups:** Render automated backups
 
 **Configuration:**
 - **Node Version:** 18+
@@ -892,9 +939,10 @@ For **production ProTenders deployment**, we recommend:
 
 **Estimated Costs (Monthly):**
 - Vercel Pro: $20/month (optional, free tier works)
-- Supabase: $0-25/month depending on usage
+- Render API Backend: $7/month (or free tier with limitations)
+- Render PostgreSQL: $7/month (starter plan)
 - Domain: $10-15/year
-- **Total:** ~$0-50/month for small-medium traffic
+- **Total:** ~$15-35/month for small-medium traffic
 
 ---
 
@@ -902,8 +950,9 @@ For **production ProTenders deployment**, we recommend:
 
 - [Next.js Deployment Docs](https://nextjs.org/docs/deployment)
 - [Vercel Documentation](https://vercel.com/docs)
+- [Render Documentation](https://render.com/docs)
+- [Render PostgreSQL Guide](https://render.com/docs/databases)
 - [Prisma Deployment Guide](https://www.prisma.io/docs/guides/deployment)
-- [Supabase Documentation](https://supabase.com/docs)
 
 ---
 
