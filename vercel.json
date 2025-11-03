@@ -1,26 +1,10 @@
 {
   "framework": "nextjs",
   "buildCommand": "npm run build",
-  "rewrites": [
+  "crons": [
     {
-      "source": "/api/tenders/:path*",
-      "destination": "https://api.protenders.co.za/api/tenders/:path*"
-    },
-    {
-      "source": "/api/search/:path*",
-      "destination": "https://api.protenders.co.za/api/search/:path*"
-    },
-    {
-      "source": "/api/users/:path*",
-      "destination": "https://api.protenders.co.za/api/users/:path*"
-    },
-    {
-      "source": "/api/admin/:path*",
-      "destination": "https://api.protenders.co.za/api/admin/:path*"
-    },
-    {
-      "source": "/ai/:path*",
-      "destination": "https://api.protenders.co.za/ai/:path*"
+      "path": "/api/cron/sync",
+      "schedule": "0 */6 * * *"
     }
   ]
 }
