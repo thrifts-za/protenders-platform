@@ -271,15 +271,7 @@ export default function TenderDetailPage() {
         {/* Enquiries Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Enquiries</span>
-              {!contact?.email && !contact?.telephone && (
-                <Badge variant="outline" className="text-xs">
-                  <Info className="h-3 w-3 mr-1" />
-                  Not available in OCDS API
-                </Badge>
-              )}
-            </CardTitle>
+            <CardTitle>Enquiries</CardTitle>
           </CardHeader>
           <CardContent className="text-sm grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             <div>
@@ -297,7 +289,7 @@ export default function TenderDetailPage() {
             {!contact?.email && !contact?.telephone && (
               <div className="md:col-span-2 mt-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-md">
                 <p className="text-xs text-muted-foreground">
-                  Contact information is not available through the OCDS API. Please visit the{" "}
+                  For complete contact details, please visit the{" "}
                   <a
                     href={`https://www.etenders.gov.za/`}
                     target="_blank"
@@ -305,7 +297,7 @@ export default function TenderDetailPage() {
                     className="text-primary hover:underline"
                   >
                     official eTenders website
-                  </a> for complete contact details.
+                  </a>.
                 </p>
               </div>
             )}
@@ -315,13 +307,7 @@ export default function TenderDetailPage() {
         {/* Briefing Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Briefing Session</span>
-              <Badge variant="outline" className="text-xs">
-                <Info className="h-3 w-3 mr-1" />
-                Not available in OCDS API
-              </Badge>
-            </CardTitle>
+            <CardTitle>Briefing Session</CardTitle>
           </CardHeader>
           <CardContent className="text-sm grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             <div>
