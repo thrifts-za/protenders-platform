@@ -9,7 +9,10 @@
     "lint": "next lint",
     "fetch:ocds:today": "npx tsx scripts/fetch-ocds-today.ts",
     "fetch:ocds:today:enrich": "npx tsx scripts/fetch-ocds-today.ts --enrich --maxPages=1 --maxDetails=5 --maxDocTenders=3",
-    "fetch:ocds:today:scrape": "npx tsx scripts/fetch-ocds-today.ts --scrape-page --maxPages=1 --maxScrape=10"
+    "fetch:ocds:today:scrape": "npx tsx scripts/fetch-ocds-today.ts --scrape-page --maxPages=1 --maxScrape=10",
+    "backfill:save": "npx tsx scripts/backfill-ocds-save.ts",
+    "import:backfill": "npx tsx scripts/import-backfill.ts",
+    "extract:docs": "npx tsx scripts/extract-docs.ts"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^18.0.1",

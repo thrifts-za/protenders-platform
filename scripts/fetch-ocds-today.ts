@@ -145,7 +145,7 @@ function deriveTenderNumber(t: any): string | null {
   return null;
 }
 
-function addressToPlace(addr?: Release['parties'] extends (infer P)[] ? P['address'] : any): string | null {
+function addressToPlace(addr?: any): string | null {
   if (!addr) return null;
   const parts = [addr.streetAddress, addr.locality, addr.region, addr.postalCode]
     .filter(Boolean).map((s) => String(s).trim()).filter((s) => s.length > 0);
@@ -326,7 +326,7 @@ async function parseDocumentToText(url: string): Promise<string | null> {
       return (res && res.value) || null;
     }
     if (ext === '.pdf') {
-      const pdfParse = (await import('pdf-parse')).default as (b: Buffer) => Promise<{ text: string }>;
+      const pdfParse = (await import('pdf-parse' as any)).default as any;
       const res = await pdfParse(buf);
       return res.text || null;
     }
