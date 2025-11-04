@@ -55,7 +55,7 @@ export function normalizeReleaseForDB(
     mainCategory: release.tender?.mainProcurementCategory || undefined,
     closingAt: closingIso ? new Date(closingIso) : null,
     submissionMethods: null,
-    status: release.tender?.status || null,
+    status: (release.tender as any)?.status || null,
     publishedAt: publishedAtIso ? new Date(publishedAtIso) : null,
     updatedAt: updatedAtIso ? new Date(updatedAtIso) : null,
     tenderType: release.tender?.procurementMethodDetails || release.tender?.procurementMethod || null,
