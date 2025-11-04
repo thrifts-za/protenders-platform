@@ -56,8 +56,18 @@ export async function POST(request: NextRequest) {
     });
 
     try {
+      // Parse query params for backfill/windowed operation
+      const url = new URL(request.url);
+      const mode = url.searchParams.get('mode') || 'daily';
+      const fromParam = url.searchParams.get('from') || undefined; // YYYY-MM-DD
+      const toParam = url.searchParams.get('to') || undefined; // YYYY-MM-DD
+      const windowDaysParam = url.searchParams.get('windowDays');
+      const windowDays = windowDaysParam ? Math.max(1, Math.min(31, parseInt(windowDaysParam))) : 7;
+      const resultPagesParam = url.searchParams.get('batchPages');
+      const batchPages = resultPagesParam ? Math.max(1, Math.min(2, parseInt(resultPagesParam))) : 2; // API behaves better with 2 pages
+
       // Run sync logic
-      const syncResult = await performSync();
+      const syncResult = await performSync({ mode, fromParam, toParam, windowDays, batchPages });
 
       // Update job log with success
       await prisma.jobLog.update({
@@ -120,31 +130,131 @@ export async function POST(request: NextRequest) {
  *
  * For now, this demonstrates the infrastructure is working.
  */
-async function performSync(): Promise<SyncResult> {
+type SyncMode = 'daily' | 'backfill';
+
+async function performSync(options?: {
+  mode?: SyncMode;
+  fromParam?: string;
+  toParam?: string;
+  windowDays?: number;
+  batchPages?: number; // pages per batch (max 2)
+}): Promise<SyncResult> {
   const startTime = Date.now();
 
-  // Placeholder: In production, this would:
-  // 1. Fetch latest releases from OCDS API
-  // 2. Process and store new/updated tenders
-  // 3. Trigger enrichment pipeline
-  // 4. Update sync state cursor
+  const { mode = 'daily', fromParam, toParam, windowDays = 7, batchPages = 2 } = options || {};
 
-  console.log('   Checking OCDS API for updates...');
-  console.log('   Sync logic placeholder - full implementation pending');
+  // Determine date range using cursor (daily) or backfill window
+  const syncStateId = 'ocds_etenders_sa';
+  const existingState = await prisma.syncState.findUnique({ where: { id: syncStateId } });
+  const now = new Date();
+  let fromDate: Date;
+  let toDate: Date;
 
-  // Get current database stats for reporting
-  const totalReleases = await prisma.oCDSRelease.count();
+  if (mode === 'backfill') {
+    const startCursor = fromParam ? new Date(`${fromParam}T00:00:00Z`) : (existingState?.lastSyncedDate ?? new Date('2021-01-01T00:00:00Z'));
+    const endBound = toParam ? new Date(`${toParam}T23:59:59Z`) : now;
+    fromDate = startCursor;
+    const windowMs = windowDays * 24 * 60 * 60 * 1000;
+    toDate = new Date(Math.min(startCursor.getTime() + windowMs - 1, endBound.getTime()));
+  } else {
+    const defaultFrom = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    fromDate = existingState?.lastSyncedDate ?? defaultFrom;
+    toDate = now;
+  }
 
-  // Simulate processing time
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const toStr = toDate.toISOString().slice(0, 10);
+  const fromStr = fromDate.toISOString().slice(0, 10);
+
+  // Helper to fetch one page of OCDS releases
+  async function fetchReleases(page: number, pageSize: number) {
+    const base = 'https://ocds-api.etenders.gov.za/api/OCDSReleases';
+    const url = `${base}?PageNumber=${page}&PageSize=${pageSize}&dateFrom=${fromStr}&dateTo=${toStr}`;
+    const res = await fetch(url, { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
+    if (!res.ok) throw new Error(`OCDS fetch failed: ${res.status}`);
+    return res.json() as Promise<{ releases?: any[]; links?: { next?: string } }>;
+  }
+
+  let page = 1;
+  const pageSize = 100;
+  let processed = 0;
+  let added = 0;
+  let updated = 0;
+
+  const hardDeadlineMs = 280_000; // keep under 5m
+  while (Date.now() - startTime < hardDeadlineMs) {
+    let pagesThisBatch = 0;
+    let hasMore = true;
+    while (pagesThisBatch < batchPages && hasMore && Date.now() - startTime < hardDeadlineMs) {
+      const pkg = await fetchReleases(page, pageSize);
+      const releases = pkg.releases || [];
+      if (!releases.length) { hasMore = false; break; }
+
+      for (const rel of releases) {
+        const publishedAtIso: string | undefined = rel?.date;
+        const closingIso: string | undefined = rel?.tender?.tenderPeriod?.endDate;
+        const updatedAtIso: string | undefined = (rel?.tender?.documents || [])
+          .map((d: any) => d?.dateModified || d?.datePublished)
+          .filter(Boolean)
+          .sort()
+          .pop();
+
+        await prisma.oCDSRelease.upsert({
+          where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
+          update: {
+            json: JSON.stringify(rel),
+            buyerName: rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined,
+            tenderTitle: rel?.tender?.title || undefined,
+            tenderDescription: rel?.tender?.description || undefined,
+            mainCategory: rel?.tender?.mainProcurementCategory || undefined,
+            closingAt: closingIso ? new Date(closingIso) : undefined,
+            status: rel?.tender?.status || undefined,
+            publishedAt: publishedAtIso ? new Date(publishedAtIso) : undefined,
+            updatedAt: updatedAtIso ? new Date(updatedAtIso) : undefined,
+            tenderType: rel?.tender?.procurementMethodDetails || rel?.tender?.procurementMethod || undefined,
+          },
+          create: {
+            ocid: String(rel.ocid),
+            releaseId: String(rel.id),
+            date: publishedAtIso ? new Date(publishedAtIso) : new Date(),
+            tag: JSON.stringify(rel?.tag || ['compiled']),
+            json: JSON.stringify(rel),
+            buyerName: rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined,
+            tenderTitle: rel?.tender?.title || undefined,
+            tenderDescription: rel?.tender?.description || undefined,
+            mainCategory: rel?.tender?.mainProcurementCategory || undefined,
+            closingAt: closingIso ? new Date(closingIso) : undefined,
+            status: rel?.tender?.status || undefined,
+            publishedAt: publishedAtIso ? new Date(publishedAtIso) : undefined,
+            updatedAt: updatedAtIso ? new Date(updatedAtIso) : undefined,
+            tenderType: rel?.tender?.procurementMethodDetails || rel?.tender?.procurementMethod || undefined,
+          },
+        });
+        processed += 1;
+      }
+
+      hasMore = Boolean(pkg.links?.next);
+      page += 1;
+      pagesThisBatch += 1;
+    }
+
+    if (!pagesThisBatch) break;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+
+  // Update sync cursor: daily → toDate; backfill → advance past window
+  const newCursorDate = mode === 'backfill' ? new Date(Math.min(toDate.getTime() + 1000, Date.now())) : toDate;
+  await prisma.syncState.upsert({
+    where: { id: 'ocds_etenders_sa' },
+    update: { lastRunAt: new Date(), lastSuccessAt: new Date(), lastSyncedDate: newCursorDate },
+    create: { id: 'ocds_etenders_sa', lastRunAt: new Date(), lastSuccessAt: new Date(), lastSyncedDate: newCursorDate },
+  });
 
   const duration = Date.now() - startTime;
-
   return {
     success: true,
-    recordsProcessed: 0,
-    recordsAdded: 0,
-    recordsUpdated: 0,
+    recordsProcessed: processed,
+    recordsAdded: added,
+    recordsUpdated: updated,
     duration,
   };
 }
