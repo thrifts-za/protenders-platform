@@ -58,7 +58,8 @@ export async function POST(request: NextRequest) {
     try {
       // Parse query params for backfill/windowed operation
       const url = new URL(request.url);
-      const mode = url.searchParams.get('mode') || 'daily';
+      const modeParam = url.searchParams.get('mode') || 'daily';
+      const mode = (modeParam === 'backfill' ? 'backfill' : 'daily') as SyncMode;
       const fromParam = url.searchParams.get('from') || undefined; // YYYY-MM-DD
       const toParam = url.searchParams.get('to') || undefined; // YYYY-MM-DD
       const windowDaysParam = url.searchParams.get('windowDays');

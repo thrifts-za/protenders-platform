@@ -10,6 +10,8 @@ import OpportunityScoreCard from "@/components/OpportunityScoreCard";
 import { Tender } from "@/types/tender";
 import { getTenderById } from "@/lib/api";
 import { Calendar, DollarSign, FileText, Clock, Building2, Target, Star, Share2, Info } from "lucide-react";
+import StrategicAssistant from "@/components/StrategicAssistant";
+import EntrepreneurMetrics from "@/components/EntrepreneurMetrics";
 
 // Note: This is a client component. Do not export `revalidate` here.
 
@@ -464,39 +466,19 @@ export default function TenderDetailPage() {
               </div>
 
               {/* Sidebar */}
-              <div className="space-y-6">
-                {/* Contact Information */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Contact Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <Building2 className="h-5 w-5 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p className="font-medium">{tender.buyer?.name || "Government Department"}</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Contact information will be displayed here.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Call to Action */}
-                <Card className="bg-primary/10 border border-primary/20">
-                  <CardContent className="p-6">
-                    <h3 className="font-bold mb-2">Ready to bid?</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Get AI-powered insights and strategic recommendations for this opportunity.
-                    </p>
-                    <Button className="w-full">
-                      View Intelligence Dashboard
-                    </Button>
-                  </CardContent>
-                </Card>
+              <div className="sticky top-8">
+                <Tabs defaultValue="strategy" className="w-full">
+                  <TabsList className="w-full grid grid-cols-2">
+                    <TabsTrigger value="strategy" className="text-xs">Strategy</TabsTrigger>
+                    <TabsTrigger value="market" className="text-xs">Market</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="strategy" className="mt-4">
+                    <StrategicAssistant tender={tender} intel={undefined} />
+                  </TabsContent>
+                  <TabsContent value="market" className="mt-4">
+                    <EntrepreneurMetrics tender={tender} intel={undefined} />
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
           </TabsContent>

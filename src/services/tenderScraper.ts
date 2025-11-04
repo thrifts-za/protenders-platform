@@ -1,4 +1,4 @@
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 
 export interface BriefingSession {
   hasBriefing: boolean;
@@ -63,12 +63,12 @@ export async function scrapeTenderDetails(tenderId: string): Promise<TenderEnric
     const $ = cheerio.load(html);
 
     const getField = (label: string): string | undefined => {
-      const cell = $("td").filter((_, el) => $(el).text().trim().toLowerCase().startsWith(label.toLowerCase()));
+      const cell = $("td").filter((_: number, el: any) => $(el).text().trim().toLowerCase().startsWith(label.toLowerCase()));
       if (cell.length) {
         const valueCell = cell.next();
         if (valueCell && valueCell.length) return textOrUndefined(valueCell.text());
       }
-      const dt = $("dt").filter((_, el) => $(el).text().trim().toLowerCase().includes(label.toLowerCase()));
+      const dt = $("dt").filter((_: number, el: any) => $(el).text().trim().toLowerCase().includes(label.toLowerCase()));
       if (dt.length) {
         const dd = dt.next("dd").first();
         if (dd && dd.length) return textOrUndefined(dd.text());
