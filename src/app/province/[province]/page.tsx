@@ -137,7 +137,7 @@ export default async function ProvincePage({ params }: { params: Promise<{ provi
               </div>
               <div className="p-4 bg-card rounded-lg border">
                 <div className="text-sm text-muted-foreground">GDP Contribution</div>
-                <div className="text-lg font-semibold">{provinceData.statistics.gdp}</div>
+                <div className="text-lg font-semibold">{provinceData.statistics.gdpContribution}</div>
               </div>
               <div className="p-4 bg-card rounded-lg border">
                 <div className="text-sm text-muted-foreground">Capital</div>

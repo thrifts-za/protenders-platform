@@ -172,7 +172,7 @@ export default function Blog() {
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {new Date(post.publishedAt).toLocaleDateString("en-ZA", {
+                            {new Date(post.publishedDate).toLocaleDateString("en-ZA", {
                               year: "numeric",
                               month: "short",
                               day: "numeric",
@@ -180,7 +180,7 @@ export default function Blog() {
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {post.readingTime + " min read"}
+                            {post.readTime}
                           </div>
                         </div>
                       </Card>
@@ -238,7 +238,7 @@ export default function Blog() {
                               <span>By {post.author}</span>
                               <div className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {new Date(post.publishedAt).toLocaleDateString("en-ZA", {
+                                {new Date(post.publishedDate).toLocaleDateString("en-ZA", {
                                   year: "numeric",
                                   month: "short",
                                   day: "numeric",
@@ -246,7 +246,7 @@ export default function Blog() {
                               </div>
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
-                                {post.readingTime + " min read"}
+                                {post.readTime}
                               </div>
                             </div>
                             <div className="flex flex-wrap gap-2">

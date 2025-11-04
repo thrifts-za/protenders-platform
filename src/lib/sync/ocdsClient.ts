@@ -7,6 +7,7 @@ export interface OCDSRelease {
     id?: string;
     title?: string;
     description?: string;
+    status?: string;
     procurementMethod?: string;
     procurementMethodDetails?: string;
     mainProcurementCategory?: string;

@@ -15,6 +15,8 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes max execution time
 
+type SyncMode = 'daily' | 'backfill';
+
 interface SyncResult {
   success: boolean;
   recordsProcessed: number;
@@ -58,7 +60,8 @@ export async function POST(request: NextRequest) {
     try {
       // Parse query params for backfill/windowed operation
       const url = new URL(request.url);
-      const mode = url.searchParams.get('mode') || 'daily';
+      const modeParam = url.searchParams.get('mode') || 'daily';
+      const mode = (modeParam === 'backfill' ? 'backfill' : 'daily') as SyncMode;
       const fromParam = url.searchParams.get('from') || undefined; // YYYY-MM-DD
       const toParam = url.searchParams.get('to') || undefined; // YYYY-MM-DD
       const windowDaysParam = url.searchParams.get('windowDays');
@@ -130,8 +133,6 @@ export async function POST(request: NextRequest) {
  *
  * For now, this demonstrates the infrastructure is working.
  */
-type SyncMode = 'daily' | 'backfill';
-
 async function performSync(options?: {
   mode?: SyncMode;
   fromParam?: string;
