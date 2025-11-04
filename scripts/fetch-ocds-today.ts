@@ -416,6 +416,33 @@ function normalizeDelivery(delivery?: string | null): string | null {
   return s || null;
 }
 
+function enrichedFromEtenders(row: EtendersRow): Enriched {
+  const e: Enriched = { sources: {} };
+  if (row.province) { e.province = row.province; e.sources!.province = 'site.api'; }
+  const place = normalizeDelivery(row.delivery || row.briefingVenue || null);
+  if (place) { e.place = place; e.sources!.place = 'site.api'; }
+  const name = row.contactPerson || null;
+  const email = row.email || null;
+  const telephone = row.telephone || null;
+  const faxNumber = row.fax || null;
+  if (name || email || telephone || faxNumber) { e.enquiries = { name, email, telephone, faxNumber, url: null }; e.sources!.enquiries = 'site.api'; }
+  if (row.conditions) { e.specialConditions = cleanLine(row.conditions); e.sources!.specialConditions = 'site.api'; }
+  const b: NonNullable<NormalizedTender['briefing']> = {};
+  if (typeof row.briefingSession === 'boolean') b.exists = row.briefingSession;
+  if (typeof row.briefingCompulsory === 'boolean') b.compulsory = row.briefingCompulsory;
+  if (row.compulsory_briefing_session) b.dateTime = row.compulsory_briefing_session;
+  if (row.briefingVenue) {
+    b.venue = place || null;
+    const mid = row.briefingVenue.match(/meeting\s*id[:\s-]*([0-9\s]+)/i);
+    const pass = row.briefingVenue.match(/passcode[:\s-]*([A-Za-z0-9\-]+)/i);
+    if (mid) b.meetingId = cleanLine(mid[1]);
+    if (pass) b.passcode = cleanLine(pass[1]);
+  }
+  if (Object.keys(b).length) { e.briefing = b; e.sources!.briefing = 'site.api'; }
+  if (row.type && !e.tenderType) e.tenderType = row.type;
+  return e;
+}
+
 function normalizeFromEtendersRow(row: EtendersRow): NormalizedTender {
   const docs = Array.isArray(row.supportDocument) ? row.supportDocument : [];
   const documents = docs.map((d) => {
