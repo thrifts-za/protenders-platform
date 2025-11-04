@@ -50,10 +50,11 @@
                      │
                      ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              PostgreSQL Database (Supabase)                  │
+│              PostgreSQL Database (Render)                    │
 │  • OCDSRelease table (main tender data)                      │
 │  • Indexed for fast search                                   │
 │  • Full-text search enabled                                  │
+│  • Connection: dpg-d41gqlmr433s73dvl3cg-a                    │
 └─────────────────────────────────────────────────────────────┘
                      │
                      ▼
@@ -686,8 +687,9 @@ FROM=2024-01-01 TO=2024-12-31 npm run sync:run:range
 
 **Solutions:**
 1. Check `DATABASE_URL` in `.env.local`
-2. Use connection pooler (Supabase: `pooler.supabase.com`)
+2. For Render: Verify database connection using `render psql dpg-d41gqlmr433s73dvl3cg-a`
 3. Close Prisma connections properly: `await prisma.$disconnect()`
+4. Check Render dashboard for database status and connection limits
 
 ### Issue: Slow Sync Performance
 

@@ -76,7 +76,7 @@ export default {
                 id: adminData.user?.id || baseUser?.id || email,
                 email: adminData.user?.email || email,
                 name: adminData.user?.name || baseUser?.name || email.split('@')[0],
-                role: (adminData.user?.role || "admin") as const,
+                role: (adminData.user?.role || "admin") as string,
                 adminToken,
               };
             }
@@ -89,7 +89,7 @@ export default {
               id: email,
               email,
               name: email.split('@')[0],
-              role: (isAdmin ? 'admin' : 'user') as const,
+              role: (isAdmin ? 'admin' : 'user') as string,
               adminToken: isAdmin ? 'dev-admin-token' : undefined,
             };
           }
@@ -117,7 +117,6 @@ export default {
         token.name = user.name;
         token.role = user.role || "user";
         // Persist backend admin JWT for admin API calls when available
-        // @ts-expect-error dynamic field
         token.adminToken = (user as any).adminToken || token.adminToken || null;
       }
       return token;

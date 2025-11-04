@@ -5,7 +5,9 @@
 **Project:** ProTenders - South African Government Tender Intelligence Platform
 **Migration Type:** Full-Stack (Frontend + Backend)
 **Source Stack:** Vite (React) Frontend + Express.js Backend
+**Source Location:** `/Users/nkosinathindwandwe/DevOps/TenderAPI`
 **Target Stack:** Next.js 15 Full-Stack Application
+**Target Location:** `/Users/nkosinathindwandwe/DevOps/protenders-platform`
 **Current Status:** 60% Complete (Frontend mostly done, Backend pending)
 **Critical Blocker:** TypeScript compilation errors preventing production deployment
 
@@ -47,6 +49,23 @@
 ---
 
 ## Migration Purpose & Scope
+
+### Source Codebase Location
+
+**Old TenderAPI Stack:**
+- **Location:** `/Users/nkosinathindwandwe/DevOps/TenderAPI`
+- **Structure:**
+  - `apps/api/` - Express.js backend
+  - `apps/frontend/` - Vite React frontend (deprecated)
+  - `apps/api/prisma/` - Database schema and migrations
+- **Deployment:**
+  - API: Render.com (https://tender-spotlight-pro.onrender.com)
+  - Database: Render PostgreSQL (dpg-d41gqlmr433s73dvl3cg-a)
+
+**New ProTenders Platform:**
+- **Location:** `/Users/nkosinathindwandwe/DevOps/protenders-platform`
+- **Repository:** https://github.com/thrifts-za/protenders-platform
+- **Structure:** Unified Next.js 15 full-stack application
 
 ### Why This Migration?
 
@@ -111,7 +130,7 @@
                                    ▼
                           ┌──────────────────┐
                           │   PostgreSQL     │
-                          │   (Supabase)     │
+                          │   (Render)       │
                           └──────────────────┘
 
 Deployment:
@@ -154,7 +173,7 @@ Deployment:
                            ▼
                   ┌──────────────────┐
                   │   PostgreSQL     │
-                  │   (Supabase)     │
+                  │   (Render)       │
                   └──────────────────┘
 
 External:
@@ -287,7 +306,7 @@ cp apps/api/prisma/seed.ts protenders-next/prisma/seed.ts
 **3.2 Configure Environment Variables**
 ```bash
 # protenders-next/.env.local
-DATABASE_URL="postgresql://user:password@host:5432/dbname"
+DATABASE_URL="postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database"
 ```
 
 **3.3 Generate Prisma Client**
@@ -1043,7 +1062,7 @@ export async function normalizeTender(tender: OCDSTender) {
 **Wednesday: Configure Prisma**
 - [ ] Copy Prisma schema to protenders-next
 - [ ] Copy migrations directory
-- [ ] Configure DATABASE_URL in `.env.local`
+- [ ] Configure DATABASE_URL in `.env.local` (Render PostgreSQL)
 - [ ] Run `npx prisma generate`
 - [ ] Create Prisma client singleton
 - [ ] Test database connection with health endpoint
@@ -1171,12 +1190,24 @@ This section helps different tools and team members understand how to use this d
 5. Use conditional rendering for optional sections: `{data.property && <Section />}`
 
 **When migrating an API route:**
-1. Find corresponding Express route in TenderAPI
-2. Copy business logic (not Express-specific code)
-3. Convert to Next.js API route format
+1. Find corresponding Express route in TenderAPI at `/Users/nkosinathindwandwe/DevOps/TenderAPI/apps/api/src/routes/`
+2. Reference the implementation logic (not Express-specific code)
+3. Convert to Next.js API route format in `/Users/nkosinathindwandwe/DevOps/protenders-platform/src/app/api/`
 4. Use Prisma singleton from `@/lib/prisma`
 5. Add proper error handling
 6. Test with curl or Postman
+
+**Accessing the old codebase:**
+```bash
+# Navigate to old TenderAPI codebase for reference
+cd /Users/nkosinathindwandwe/DevOps/TenderAPI
+
+# View Express API routes
+ls apps/api/src/routes/
+
+# View a specific route implementation
+cat apps/api/src/routes/search.ts
+```
 
 ### For Cursor (IDE Agent)
 
@@ -1185,7 +1216,7 @@ This section helps different tools and team members understand how to use this d
 User: "Fix the TypeScript errors in category page"
 
 You should:
-1. Read /DevOps/protenders-next/Plans/VITE_TO_NEXTJS_MIGRATION.md
+1. Read /Users/nkosinathindwandwe/DevOps/protenders-platform/Plans/COMPREHENSIVE_MIGRATION_DOCUMENTATION.md
 2. Check "Outstanding Issues > TypeScript Compilation Errors"
 3. Run `npm run build` to see current errors
 4. Fix errors following patterns in "Phase 2: Type System Migration"
@@ -1195,12 +1226,18 @@ You should:
 
 **Quick Reference Commands:**
 ```bash
+# Navigate to new platform
+cd /Users/nkosinathindwandwe/DevOps/protenders-platform
+
 # Check build status
-cd /Users/nkosinathindwandwe/DevOps/protenders-next
 npm run build
 
 # Run development server
 npm run dev
+
+# Reference old codebase when needed
+cd /Users/nkosinathindwandwe/DevOps/TenderAPI
+cat apps/api/src/routes/search.ts  # Example: viewing old API route
 
 # Generate Prisma client (after schema changes)
 npx prisma generate
@@ -1212,23 +1249,41 @@ npx prisma migrate dev
 ### For Human Developers
 
 **Getting Started:**
-1. Clone both repositories:
+1. Both codebases are already on your machine:
    ```bash
-   git clone <tenderapi-repo>
-   git clone <protenders-next-repo>
+   # Old codebase (reference only)
+   cd /Users/nkosinathindwandwe/DevOps/TenderAPI
+
+   # New platform (active development)
+   cd /Users/nkosinathindwandwe/DevOps/protenders-platform
    ```
 
 2. Set up environment variables (see **Environment Variables** section)
+   ```bash
+   cd /Users/nkosinathindwandwe/DevOps/protenders-platform
+   cp .env.local.example .env.local
+   # Edit .env.local with actual values
+   ```
 
 3. Install dependencies:
    ```bash
-   cd protenders-next
+   cd /Users/nkosinathindwandwe/DevOps/protenders-platform
    npm install
    ```
 
 4. Read **Outstanding Issues** to understand current blockers
 
 5. Pick a task from **Next Steps & Timeline**
+
+**Reference the old codebase when migrating:**
+```bash
+# View old API implementation
+cd /Users/nkosinathindwandwe/DevOps/TenderAPI
+cat apps/api/src/routes/search.ts
+
+# Copy Prisma schema
+cp apps/api/prisma/schema.prisma /Users/nkosinathindwandwe/DevOps/protenders-platform/prisma/
+```
 
 **Before Starting Work:**
 - [ ] Pull latest changes
@@ -1269,7 +1324,21 @@ npx prisma migrate dev
 
 ## File Structure Reference
 
+### Source and Target Locations
+
+**Important:** The old codebase (TenderAPI) is located at:
+- **Path:** `/Users/nkosinathindwandwe/DevOps/TenderAPI`
+- **Access:** `cd /Users/nkosinathindwandwe/DevOps/TenderAPI`
+- **Purpose:** Reference implementation for migration
+
+**New platform (ProTenders) is located at:**
+- **Path:** `/Users/nkosinathindwandwe/DevOps/protenders-platform`
+- **Access:** `cd /Users/nkosinathindwandwe/DevOps/protenders-platform`
+- **Repository:** https://github.com/thrifts-za/protenders-platform
+
 ### TenderAPI (Source - Vite/Express)
+
+**Location:** `/Users/nkosinathindwandwe/DevOps/TenderAPI`
 
 ```
 /Users/nkosinathindwandwe/DevOps/TenderAPI/
@@ -1304,13 +1373,15 @@ npx prisma migrate dev
 │   │       └── ocds.ts                 # OCDS type definitions
 │   └── package.json
 └── apps/frontend/                      # Vite frontend (DEPRECATED)
-    └── (being migrated to protenders-next)
+    └── (being migrated to protenders-platform)
 ```
 
-### protenders-next (Target - Next.js Full-Stack)
+### ProTenders Platform (Target - Next.js Full-Stack)
+
+**Location:** `/Users/nkosinathindwandwe/DevOps/protenders-platform`
 
 ```
-/Users/nkosinathindwandwe/DevOps/protenders-next/
+/Users/nkosinathindwandwe/DevOps/protenders-platform/
 ├── src/
 │   ├── app/                            # Next.js App Router
 │   │   ├── layout.tsx                  # Root layout
@@ -1436,8 +1507,11 @@ npx prisma migrate dev
 ```bash
 # protenders-next/.env.local
 
-# Database (Supabase PostgreSQL)
-DATABASE_URL="postgresql://user:password@host:5432/dbname"
+# Database (Render PostgreSQL)
+DATABASE_URL="postgresql://protender_database_user:B2fmbMsc5QW03YrnRVOOQVQuawY1uBgg@dpg-d41gqlmr433s73dvl3cg-a.frankfurt-postgres.render.com/protender_database"
+
+# Render CLI access for database:
+# render psql dpg-d41gqlmr433s73dvl3cg-a
 
 # NextAuth (generate with: openssl rand -base64 32)
 NEXTAUTH_SECRET="your-secret-key-here"
@@ -1566,7 +1640,8 @@ npx prisma generate
 **Database connection fails:**
 - Check `DATABASE_URL` in `.env.local`
 - Verify database is accessible from your network
-- Check Supabase dashboard for connection string
+- Check Render dashboard for connection string
+- Use `render psql dpg-d41gqlmr433s73dvl3cg-a` to test connection via CLI
 
 **API route returns 500 error:**
 - Check Vercel logs for error details

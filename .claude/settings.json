@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "npm(install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

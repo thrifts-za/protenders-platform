@@ -21,7 +21,6 @@ export default function TenderDetailPage() {
   const id = params.id as string;
   const [tender, setTender] = useState<Tender | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     async function loadTender() {
@@ -208,10 +207,6 @@ export default function TenderDetailPage() {
       <div className="border-b bg-gray-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-wrap items-center gap-3">
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <FileText className="h-3 w-3" />
-              Data Quality: {tender.dataQualityScore}/100
-            </Badge>
             {closingDate && (
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
@@ -276,15 +271,7 @@ export default function TenderDetailPage() {
         {/* Enquiries Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Enquiries</span>
-              {!contact?.email && !contact?.telephone && (
-                <Badge variant="outline" className="text-xs">
-                  <Info className="h-3 w-3 mr-1" />
-                  Not available in OCDS API
-                </Badge>
-              )}
-            </CardTitle>
+            <CardTitle>Enquiries</CardTitle>
           </CardHeader>
           <CardContent className="text-sm grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             <div>
@@ -302,7 +289,7 @@ export default function TenderDetailPage() {
             {!contact?.email && !contact?.telephone && (
               <div className="md:col-span-2 mt-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-md">
                 <p className="text-xs text-muted-foreground">
-                  Contact information is not available through the OCDS API. Please visit the{" "}
+                  For complete contact details, please visit the{" "}
                   <a
                     href={`https://www.etenders.gov.za/`}
                     target="_blank"
@@ -310,7 +297,7 @@ export default function TenderDetailPage() {
                     className="text-primary hover:underline"
                   >
                     official eTenders website
-                  </a> for complete contact details.
+                  </a>.
                 </p>
               </div>
             )}
@@ -320,13 +307,7 @@ export default function TenderDetailPage() {
         {/* Briefing Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Briefing Session</span>
-              <Badge variant="outline" className="text-xs">
-                <Info className="h-3 w-3 mr-1" />
-                Not available in OCDS API
-              </Badge>
-            </CardTitle>
+            <CardTitle>Briefing Session</CardTitle>
           </CardHeader>
           <CardContent className="text-sm grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             <div>
@@ -382,42 +363,6 @@ export default function TenderDetailPage() {
               </ul>
             )}
       </CardContent>
-        </Card>
-
-        {/* Raw OCDS JSON */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Raw OCDS JSON</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowRaw((v)=>!v)}>
-                  {showRaw ? "Hide" : "View"}
-                </Button>
-                {showRaw && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(JSON.stringify(raw ?? tender, null, 2));
-                      } catch {}
-                    }}
-                  >
-                    Copy
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          {showRaw && (
-            <CardContent>
-              <div className="text-xs">
-                <pre className="p-3 rounded bg-muted overflow-auto max-h-[500px] whitespace-pre-wrap break-words">
-{JSON.stringify(raw ?? tender, null, 2)}
-                </pre>
-              </div>
-            </CardContent>
-          )}
         </Card>
 
         <Tabs defaultValue="overview" className="w-full">

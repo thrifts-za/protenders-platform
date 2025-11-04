@@ -65,7 +65,7 @@ export default function AdminDashboard() {
 
       if (jobsRes.ok) {
         const data = await jobsRes.json();
-        setRecentJobs(data.jobs || data);
+        setRecentJobs(data.recentJobs || data.jobs || []);
       }
     } catch (error) {
       console.error("Failed to load metrics:", error);
