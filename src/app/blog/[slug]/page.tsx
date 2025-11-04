@@ -89,7 +89,7 @@ export default function BlogPost() {
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span>
-                {new Date(post.publishedAt).toLocaleDateString("en-ZA", {
+                {new Date(post.publishedDate).toLocaleDateString("en-ZA", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -98,7 +98,7 @@ export default function BlogPost() {
             </div>
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              <span>{post.readingTime} min read</span>
+              <span>{post.readTime}</span>
             </div>
           </div>
 
@@ -203,7 +203,7 @@ export default function BlogPost() {
                     </p>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Clock className="h-3 w-3" />
-                      {relatedPost.readingTime} min read
+                      {relatedPost.readTime}
                     </div>
                   </Card>
                 </Link>
