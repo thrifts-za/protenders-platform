@@ -10,6 +10,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { enrichTenderFromEtenders } from '@/lib/enrichment/etendersEnricher';
+import { RATE_LIMIT_DELAY_MS, DEFAULT_MAX_ENRICHMENT_PER_RUN } from '@/lib/enrichment/constants';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -23,6 +25,9 @@ interface SyncResult {
   recordsAdded: number;
   recordsUpdated: number;
   duration: number;
+  enrichmentCount?: number;
+  enrichmentSuccess?: number;
+  enrichmentFailures?: number;
   error?: string;
 }
 
@@ -78,7 +83,7 @@ export async function POST(request: NextRequest) {
         data: {
           status: 'SUCCESS',
           finishedAt: new Date(),
-          note: `Processed ${syncResult.recordsProcessed} records (${syncResult.recordsAdded} added, ${syncResult.recordsUpdated} updated)`,
+          note: `Processed ${syncResult.recordsProcessed} records (${syncResult.recordsAdded} added, ${syncResult.recordsUpdated} updated)${syncResult.enrichmentCount ? `, enriched ${syncResult.enrichmentSuccess}/${syncResult.enrichmentCount} tenders` : ''}`,
           metadata: JSON.stringify({
             ...syncResult,
             source: 'vercel-cron',
@@ -144,6 +149,13 @@ async function performSync(options?: {
 
   const { mode = 'daily', fromParam, toParam, windowDays = 7, batchPages = 2 } = options || {};
 
+  // Feature flag: Enable enrichment via eTenders site API
+  const enableEnrichment = process.env.ENABLE_ENRICHMENT === 'true';
+  const maxEnrichmentPerRun = parseInt(
+    process.env.MAX_ENRICHMENT_PER_RUN || String(DEFAULT_MAX_ENRICHMENT_PER_RUN),
+    10
+  );
+
   // Determine date range using cursor (daily) or backfill window
   const syncStateId = 'ocds_etenders_sa';
   const existingState = await prisma.syncState.findUnique({ where: { id: syncStateId } });
@@ -180,6 +192,21 @@ async function performSync(options?: {
   let processed = 0;
   let added = 0;
   let updated = 0;
+  let enrichmentCount = 0;
+  let enrichmentSuccess = 0;
+  let enrichmentFailures = 0;
+
+  // Helper to derive tender number from release
+  function deriveTenderNumber(tender: any): string | null {
+    if (!tender) return null;
+    if (typeof tender.title === 'string') {
+      const title = tender.title.trim();
+      const m = title.match(/\b(RFQ|RFP|RFB|RFT|RFI|RFA|RFPQ|RFBQ|EOI)[-_\s:/]*([A-Z0-9/\.-]{3,})/i);
+      if (m) return (m[0] || title).replace(/\s+/g, '');
+    }
+    if (typeof tender.id === 'string' && tender.id.trim()) return tender.id.trim();
+    return null;
+  }
 
   const hardDeadlineMs = 280_000; // keep under 5m
   while (Date.now() - startTime < hardDeadlineMs) {
@@ -199,35 +226,65 @@ async function performSync(options?: {
           .sort()
           .pop();
 
+        // Enrichment via eTenders site API (if enabled and within limits)
+        let enrichmentData = null;
+        if (enableEnrichment && enrichmentCount < maxEnrichmentPerRun) {
+          const tenderNumber = deriveTenderNumber(rel?.tender);
+          if (tenderNumber) {
+            try {
+              enrichmentCount++;
+              enrichmentData = await enrichTenderFromEtenders(tenderNumber, RATE_LIMIT_DELAY_MS);
+              if (enrichmentData) {
+                enrichmentSuccess++;
+              } else {
+                enrichmentFailures++;
+              }
+            } catch (err) {
+              enrichmentFailures++;
+              console.error(`Enrichment failed for ${tenderNumber}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+            }
+          }
+        }
+
+        const baseData = {
+          json: JSON.stringify(rel),
+          buyerName: rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined,
+          tenderTitle: rel?.tender?.title || undefined,
+          tenderDescription: rel?.tender?.description || undefined,
+          mainCategory: rel?.tender?.mainProcurementCategory || undefined,
+          closingAt: closingIso ? new Date(closingIso) : undefined,
+          status: rel?.tender?.status || undefined,
+          publishedAt: publishedAtIso ? new Date(publishedAtIso) : undefined,
+          updatedAt: updatedAtIso ? new Date(updatedAtIso) : undefined,
+          tenderType: enrichmentData?.tenderType || rel?.tender?.procurementMethodDetails || rel?.tender?.procurementMethod || undefined,
+        };
+
+        const enrichmentFields = enrichmentData ? {
+          province: enrichmentData.province || undefined,
+          deliveryLocation: enrichmentData.deliveryLocation || undefined,
+          specialConditions: enrichmentData.specialConditions || undefined,
+          contactPerson: enrichmentData.contactPerson || undefined,
+          contactEmail: enrichmentData.contactEmail || undefined,
+          contactTelephone: enrichmentData.contactTelephone || undefined,
+          briefingDate: enrichmentData.briefingDate || undefined,
+          briefingTime: enrichmentData.briefingTime || undefined,
+          briefingVenue: enrichmentData.briefingVenue || undefined,
+          briefingMeetingLink: enrichmentData.briefingMeetingLink || undefined,
+        } : {};
+
         await prisma.oCDSRelease.upsert({
           where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
           update: {
-            json: JSON.stringify(rel),
-            buyerName: rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined,
-            tenderTitle: rel?.tender?.title || undefined,
-            tenderDescription: rel?.tender?.description || undefined,
-            mainCategory: rel?.tender?.mainProcurementCategory || undefined,
-            closingAt: closingIso ? new Date(closingIso) : undefined,
-            status: rel?.tender?.status || undefined,
-            publishedAt: publishedAtIso ? new Date(publishedAtIso) : undefined,
-            updatedAt: updatedAtIso ? new Date(updatedAtIso) : undefined,
-            tenderType: rel?.tender?.procurementMethodDetails || rel?.tender?.procurementMethod || undefined,
+            ...baseData,
+            ...enrichmentFields,
           },
           create: {
             ocid: String(rel.ocid),
             releaseId: String(rel.id),
             date: publishedAtIso ? new Date(publishedAtIso) : new Date(),
             tag: JSON.stringify(rel?.tag || ['compiled']),
-            json: JSON.stringify(rel),
-            buyerName: rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined,
-            tenderTitle: rel?.tender?.title || undefined,
-            tenderDescription: rel?.tender?.description || undefined,
-            mainCategory: rel?.tender?.mainProcurementCategory || undefined,
-            closingAt: closingIso ? new Date(closingIso) : undefined,
-            status: rel?.tender?.status || undefined,
-            publishedAt: publishedAtIso ? new Date(publishedAtIso) : undefined,
-            updatedAt: updatedAtIso ? new Date(updatedAtIso) : undefined,
-            tenderType: rel?.tender?.procurementMethodDetails || rel?.tender?.procurementMethod || undefined,
+            ...baseData,
+            ...enrichmentFields,
           },
         });
         processed += 1;
@@ -257,5 +314,8 @@ async function performSync(options?: {
     recordsAdded: added,
     recordsUpdated: updated,
     duration,
+    enrichmentCount: enableEnrichment ? enrichmentCount : undefined,
+    enrichmentSuccess: enableEnrichment ? enrichmentSuccess : undefined,
+    enrichmentFailures: enableEnrichment ? enrichmentFailures : undefined,
   };
 }
