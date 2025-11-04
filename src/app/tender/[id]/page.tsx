@@ -21,7 +21,6 @@ export default function TenderDetailPage() {
   const id = params.id as string;
   const [tender, setTender] = useState<Tender | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showRaw, setShowRaw] = useState(false);
 
   useEffect(() => {
     async function loadTender() {
@@ -378,42 +377,6 @@ export default function TenderDetailPage() {
               </ul>
             )}
       </CardContent>
-        </Card>
-
-        {/* Raw OCDS JSON */}
-        <Card className="mb-8">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Raw OCDS JSON</CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => setShowRaw((v)=>!v)}>
-                  {showRaw ? "Hide" : "View"}
-                </Button>
-                {showRaw && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(JSON.stringify(raw ?? tender, null, 2));
-                      } catch {}
-                    }}
-                  >
-                    Copy
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardHeader>
-          {showRaw && (
-            <CardContent>
-              <div className="text-xs">
-                <pre className="p-3 rounded bg-muted overflow-auto max-h-[500px] whitespace-pre-wrap break-words">
-{JSON.stringify(raw ?? tender, null, 2)}
-                </pre>
-              </div>
-            </CardContent>
-          )}
         </Card>
 
         <Tabs defaultValue="overview" className="w-full">
