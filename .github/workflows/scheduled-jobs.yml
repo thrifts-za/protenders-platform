@@ -1,0 +1,37 @@
+name: Scheduled Jobs
+
+on:
+  schedule:
+    # Incremental sync + enrichment every 30 minutes
+    - cron: "*/30 * * * *"
+    # Daily alerts at 05:00 UTC (07:00 SAST)
+    - cron: "0 5 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    if: github.event.schedule == '*/30 * * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call sync endpoint (incremental + enrichment)
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          curl -sS -X POST \
+            "$API_URL/api/cron/sync?mode=daily&incremental=1&requireEnrichment=1&secret=$CRON_SECRET" \
+            -H "Content-Type: application/json"
+
+  alerts:
+    if: github.event.schedule == '0 5 * * *' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger alerts runner
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          curl -sS -X POST "$API_URL/api/cron/alerts-run?secret=$CRON_SECRET" -H "Content-Type: application/json"
+
