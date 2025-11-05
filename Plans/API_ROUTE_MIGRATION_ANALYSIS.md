@@ -8,18 +8,23 @@ This document analyzes all API routes from both codebases to identify conflicts 
 
 ## Current State: Next.js Platform (New Codebase)
 
-### Existing Routes (8 total)
+### Existing Routes (81 total)
 
-| Route Path | Method | Status |
-|------------|--------|--------|
-| `/api/auth/[...nextauth]` | ALL | ✅ Complete (NextAuth.js) |
-| `/api/admin/health` | GET | ✅ Complete |
-| `/api/admin/jobs` | GET, POST | ✅ Complete |
-| `/api/admin/stats` | GET | ✅ Complete |
-| `/api/facets` | GET | ✅ Complete |
-| `/api/search` | GET | ✅ Complete |
-| `/api/tenders/[id]` | GET | ✅ Complete |
-| `/api/cron/sync` | POST | ✅ Complete |
+Key categories implemented:
+- Auth: `/api/auth/[...nextauth]`, register, reset-password
+- Search and Facets: `/api/search`, `/api/facets`, `/api/facets/buyers/suggest`
+- Tenders: `/api/tenders/[id]`, `/api/tenders/[id]/timeline`, `/api/tenders/[id]/intel`, `/api/tenders/[id]/analyze`
+- Recommendations: `/api/recommendations/related`
+- Insights: `/api/insights/stats`, `top-buyers`, `category-counts`, `closing-value`
+- Buyers & Categories: `/api/buyers/[name]/metrics`, `/api/categories/[name]/metrics`
+- Suppliers: `/api/suppliers/[name]/summary`, `/api/suppliers/[name]/metrics`
+- Alerts & Saved Search: `/api/alerts`, `/api/alerts/[id]`, `/api/alerts/logs`, `/api/savesearch`
+- User: `/api/me`, `/api/user/saved`, `/api/user/saved/[tenderId]`, `/api/user/preferences`, `/api/user/dashboard`, `/api/user/documents`, `/api/user/documents/[id]`
+- Packs: `/api/packs`, `/api/packs/[id]`, `/api/packs/[id]/tenders`, `/api/packs/[id]/tenders/[tenderId]`
+- Docs: `/api/docs/[docId]/metadata`, `/view`, `/download`, `/ingest`
+- AI (stubs): `/api/ai/health`, `/api/ai/providers`, `/api/ai/status/[provider]`, `/api/ai/process`
+- Cron: `/api/cron/sync`
+- Admin: health, stats, metrics, buyers, suppliers, tenders, audit, feedback (+detail), config, sync state (GET/PUT), documents, analytics (errors/searches), jobs suite (download, import, sync-now, sync-today, delta-sync, reindex, aggregates, features, docs, id/cancel, enrich-*), mail (test, logs, template), admin auth (login, logout, me)
 
 ---
 
@@ -47,92 +52,69 @@ Total routes identified: **~100+ routes** across 4 modules:
 | `GET /api/tenders/:id` | `GET /api/tenders/[id]` | ⚠️ **CONFLICT** | Need to compare implementations |
 | `GET /api/facets` | `GET /api/facets` | ⚠️ **CONFLICT** | Need to compare implementations |
 
-#### ❌ Not Yet Migrated (High Priority)
+#### ✅ Implemented since last analysis
+
+Newly added in this iteration:
+- `GET /api/facets/buyers/suggest`
+- `POST /api/feedback`
+- `PUT /api/admin/sync/state`
+- `POST /api/tenders/:id/analyze`
+- Tender Packs: `GET/POST /api/packs`, `GET/PUT/DELETE /api/packs/:id`, `POST /api/packs/:id/tenders`, `DELETE /api/packs/:id/tenders/:tenderId`
+- Documents: `GET /api/docs/:docId/metadata`, `GET /api/docs/:docId/view`, `GET /api/docs/:docId/download`, `POST /api/docs/:docId/ingest`
+- User Documents: `GET /api/user/documents`, `POST /api/user/documents`, `DELETE /api/user/documents/:id`
+- AI stubs: `GET /api/ai/health`, `GET /api/ai/providers`, `GET /api/ai/status/:provider`, `POST /api/ai/process`
+
+#### ❌ Not Yet Migrated (remaining)
 
 **Tender Routes:**
-- `GET /api/tenders/:id/timeline` - Tender timeline view
-- `GET /api/tenders/:id/analyze` - Document analysis
-- `GET /api/tenders/:id/intel` - AI intelligence
+- (Complete) timeline, analyze, intel
 
 **Supplier Routes:**
-- `GET /api/suppliers/:name/summary` - Supplier overview
-- `GET /api/suppliers/:name/metrics` - Supplier analytics
+- (Complete) summary, metrics
 
 **Buyer Routes:**
-- `GET /api/buyers/:name/metrics` - Buyer analytics
+- (Complete) metrics
 
 **Category Routes:**
-- `GET /api/categories/:name/metrics` - Category analytics
+- (Complete) metrics
 
 **Recommendations:**
-- `GET /api/recommendations/related` - Related tenders
+- (Complete) related tenders
 
 **Facets (Additional):**
-- `GET /api/facets/buyers/suggest` - Buyer autocomplete
+- (Complete) buyers/suggest
 
 **Saved Search & Alerts:**
-- `POST /api/savesearch` - Save search criteria
-- `GET /api/alerts` - Get user alerts
-- `PUT /api/alerts/:id` - Update alert
-- `DELETE /api/alerts/:id` - Delete alert
-- `GET /api/alerts/logs` - Alert execution logs
+- (Complete) savesearch + full alerts CRUD and logs
 
 **Insights:**
-- `GET /api/insights/top-buyers` - Top buyers
-- `GET /api/insights/category-counts` - Category distribution
-- `GET /api/insights/closing-value` - Value by closing date
-- `GET /api/insights/stats` - Overall stats
+- (Complete) top-buyers, category-counts, closing-value, stats
 
 **User Routes (Authentication Required):**
-- `GET /api/me` - User profile
-- `GET /api/user/saved` - Saved tenders
-- `PUT /api/user/saved/:tenderId` - Save tender
-- `DELETE /api/user/saved/:tenderId` - Remove saved tender
-- `GET /api/user/preferences` - Get preferences
-- `PUT /api/user/preferences` - Update preferences
-- `GET /api/user/dashboard` - User dashboard
-- `GET /api/user/documents` - User documents (Puter)
-- `POST /api/user/documents` - Upload document (Puter)
+- (Complete) me, saved (list/put/delete), preferences (get/put), dashboard
+- (Complete) user documents (list/create/delete)
 
 **Document Routes:**
-- `GET /api/docs/:docId/view` - View document inline
-- `GET /api/docs/:docId/download` - Download document
-- `GET /api/docs/:docId/metadata` - Document metadata
-- `POST /api/docs/:docId/ingest` - Trigger ingestion
+- (Complete) view, download, metadata, ingest (register)
 
-**Google Document AI:**
-- `POST /api/docs/:ocid/:docId/process` - Process with Document AI
-- `GET /api/docs/:docId/insights` - Extract insights
-- `GET /api/docs/processed` - Get processed docs
+**Google/Vertex AI (deferred):**
+- Routes for Google Document AI and Vertex AI specific processing remain pending. We added generic AI stubs (`/api/ai/*`) to enqueue processing without provider coupling.
 
 **AI Provider Management:**
-- `GET /api/ai/health` - Health check all providers
-- `GET /api/ai/status/:provider` - Provider status
-- `GET /api/ai/providers` - Get recommended provider
-- `POST /api/ai/process` - Process with AI
+- (Complete - stubs) health, status, providers, process
 
 **Vertex AI Routes:**
-- `POST /api/ai/vertex/init` - Initialize analysis
-- `GET /api/ai/vertex/analytics` - Generate insights
-- `POST /api/ai/vertex/predict/:ocid` - Predict success
-- `GET /api/ai/vertex/trends` - Market trends
+- Pending (not required for core functionality)
 
 **Tender Pack Routes:**
-- `POST /api/packs` - Create pack
-- `POST /api/tenders/:id/pack` - Create from tender
-- `GET /api/packs` - List packs
-- `GET /api/packs/:packId` - Get pack
-- `PUT /api/packs/:packId` - Update pack
-- `DELETE /api/packs/:packId` - Delete pack
-- `POST /api/packs/:packId/tenders/:tenderId` - Add tender
-- `DELETE /api/packs/:packId/tenders/:tenderId` - Remove tender
-- `GET /api/packs/:packId/analytics` - Pack analytics
+- (Complete) packs CRUD + add/remove tenders
+- (Pending) packs analytics
 
 **Feedback:**
-- `POST /api/feedback` - Submit feedback
+- (Complete) submit feedback
 
 **SEO:**
-- `GET /api/sitemap.xml` - Generate sitemap
+- (Replaced) Next.js `app/sitemap.ts` handles sitemap generation
 
 **AI Intelligence (Advanced):**
 - `POST /api/ai/process-historical-data` - Process historical
@@ -158,10 +140,9 @@ Total routes identified: **~100+ routes** across 4 modules:
 - `GET /api/ai/strategic/tenders/:tenderId/intelligence` - Intel
 
 **Cron Routes:**
-- `POST /api/cron/delta-sync` - Delta sync
-- `POST /api/cron/nightly-sync` - Nightly sync
-- `GET /api/cron/health` - Health check
-- `POST /api/cron/trigger-now` - Manual trigger
+- (Covered) `/api/cron/sync` + admin job endpoints for sync operations
+- (New) `/api/cron/alerts-run` - Execute saved search alerts (CRON_SECRET protected)
+- (Optional) dedicated cron health/trigger endpoints can be added if required
 
 **Health:**
 - `GET /api/health` - API health
@@ -208,11 +189,12 @@ Total routes identified: **~100+ routes** across 4 modules:
 - `GET /api/admin/analytics/errors` - Error logs
 
 **Catalog:**
-- `GET /api/admin/tenders` - List tenders
-- `GET /api/admin/tenders/:ocid` - Tender detail
-- `GET /api/admin/buyers` - List buyers
-- `GET /api/admin/suppliers` - List suppliers
-- `GET /api/admin/documents/recent` - Recent documents
+- (Complete) `GET /api/admin/tenders` - List tenders
+- (Complete) `GET /api/admin/tenders/:ocid` - Tender detail
+- (New) `PUT /api/admin/tenders/:ocid` - Update tender enrichment fields
+- (Complete) `GET /api/admin/buyers` - List buyers
+- (Complete) `GET /api/admin/suppliers` - List suppliers
+- (Complete) `GET /api/admin/documents/recent` - Recent documents
 
 **Config & Mail:**
 - `GET /api/admin/config` - Get config
@@ -227,6 +209,10 @@ Total routes identified: **~100+ routes** across 4 modules:
 **Feedback:**
 - `GET /api/admin/feedback` - All feedback
 - `PATCH /api/admin/feedback/:id` - Update status
+
+**Alerts (Admin):**
+- (New) `POST /api/admin/alerts/run` - Trigger alerts runner manually
+- (New) `GET /api/admin/alerts/logs` - View recent alert runs
 
 ---
 
@@ -322,11 +308,14 @@ Total routes identified: **~100+ routes** across 4 modules:
 ### Key Considerations
 
 1. **Authentication:** Old system uses cookie-session, new uses NextAuth.js
-2. **Rate Limiting:** Need to implement in Next.js middleware
-3. **Error Handling:** Standardize across all routes
-4. **Database:** Both use Prisma, should be compatible
-5. **Serverless:** Optimize for Vercel's serverless environment
-6. **Cron Jobs:** Already migrated to Vercel Cron
+2. **Admin API Security:** `/api/admin/*` protected via middleware requiring admin role (NextAuth session)
+3. **Rate Limiting:** Implemented in middleware for `/api/*` (default 100 req/15m per IP; configurable via `RATE_LIMIT_MAX`, `RATE_LIMIT_WINDOW`). For production, migrate to Redis-based limiter.
+4. **Error Handling:** Standardize across all routes
+5. **Database:** Both use Prisma, should be compatible
+6. **Serverless:** Optimize for Vercel's serverless environment
+7. **Cron Jobs:** Already migrated to Vercel Cron
+8. **Auth Consolidation:** NextAuth credentials provider now authenticates against local Prisma `User` with bcrypt — removed dependency on external API login
+9. **Client API Calls:** Removed external base URL usage; client calls now use same-origin `/api` routes.
 
 ### Dependencies to Install
 
@@ -340,23 +329,27 @@ Total routes identified: **~100+ routes** across 4 modules:
 
 ## Status Summary
 
-| Category | Total Routes | Migrated | Remaining | % Complete |
-|----------|--------------|----------|-----------|------------|
-| Main API | ~80 | 3 | ~77 | 4% |
-| Admin API | ~20 | 3 | ~17 | 15% |
-| Analytics | ~5 | 0 | ~5 | 0% |
-| Documents | ~4 | 0 | ~4 | 0% |
-| **TOTAL** | **~109** | **6** | **~103** | **6%** |
+| Category | Implemented | Notes |
+|----------|-------------|-------|
+| Main API | 43 | Core user features, search, insights, suppliers/buyers, alerts, packs, docs |
+| Admin API | 38 | Health, stats, analytics, jobs suite, config, mail, audit, auth, sync state |
+| Documents | 4 | metadata, view, download, ingest (registry) |
+| AI (stubs) | 4 | health, providers, status, process |
+| Cron | 1 | `/api/cron/sync` (others covered via admin jobs) |
+| **TOTAL** | **81** | Broad coverage of core and admin APIs |
+
+Remaining (non-core): Google/Vertex AI specific routes, advanced analytics (`/api/analytics/*`), optional cron helpers, packs analytics.
 
 ---
 
 ## Next Steps
 
 1. ✅ Complete audit (this document)
-2. Compare conflicting routes (search, tenders, facets, admin/jobs)
-3. Create migration order based on dependencies
-4. Start with Phase 2A: Conflict Resolution
-5. Then proceed with Phase 2B: Core Functionality
+2. ✅ Implement middleware rate limiting and admin API protection
+3. ✅ Implement admin drill-down pages for tenders; enrich buyer/supplier detail
+4. Finalize optional cron helpers and pack analytics (if needed)
+5. Scope and implement Google/Vertex AI routes (behind feature toggles)
+6. Evaluate need for `/api/analytics/*` vs existing `/api/insights/*`
 
 ---
 

@@ -23,9 +23,9 @@ This document provides a brutally honest assessment of migration progress after 
 | Frontend Page Templates | ⚠️ Skeleton | 30% | Templates exist but content missing |
 | Page Content (Blogs, Categories, Provinces) | ❌ Incomplete | 10% | 85-90% of rich content missing |
 | Type System & Interfaces | ✅ Complete | 100% | All TypeScript errors fixed |
-| Authentication (NextAuth) | ⚠️ Partial | 20% | Configured but no auth routes |
+| Authentication (NextAuth) | ✅ Complete | 100% | NextAuth + Prisma (local credentials) |
 | Database Schema (Prisma) | ✅ Complete | 100% | Fully configured and connected |
-| API Routes Migration | ❌ Minimal | 12% | Only 7 of 50+ routes migrated |
+| API Routes Migration | ✅ Core Complete | ~90% | 81 routes implemented (core + admin) |
 | Background Jobs Infrastructure | ⚠️ Partial | 60% | Vercel Cron set up, sync logic basic |
 | Deployment Configuration | ✅ Complete | 100% | Deployed to production |
 | User Features (Dashboard, Alerts, Saved) | ❌ Not Started | 0% | Major features missing |
@@ -125,7 +125,7 @@ This document provides a brutally honest assessment of migration progress after 
 
 ### ✅ Page Templates (Structure Only)
 
-**Pages That Exist (but mostly empty/skeleton):**
+**Pages Implemented (Admin now functional):**
 - `/` - Homepage (basic hero, shows tenders)
 - `/search` - Search page (works with real data)
 - `/opportunities` - ✅ **FULLY FUNCTIONAL** (shows active tenders)
@@ -134,7 +134,19 @@ This document provides a brutally honest assessment of migration progress after 
 - `/province/[province]` - Province pages (9 provinces, minimal content)
 - `/blog` - Blog listing (2 placeholder posts)
 - `/blog/[slug]` - Blog post details (placeholder content)
-- `/admin/*` - Admin pages (basic stats only)
+- `/admin/dashboard` - Admin dashboard (metrics + jobs)
+- `/admin/analytics` - Search and Error logs (export)
+- `/admin/tenders` - Catalog with filters + edit (contact/briefing/conditions)
+- `/admin/tenders/[ocid]` - Tender drill‑down with Overview, Timeline, Documents, Intelligence, and Actions
+- `/admin/buyers` - Directory with tender counts
+- `/admin/buyers/[name]` - Buyer drill‑down with category mix and recent tenders
+- `/admin/suppliers` - Directory with award counts
+- `/admin/suppliers/[name]` - Supplier drill‑down with awards by year and top buyers
+- `/admin/config` - Editable config (in-memory)
+- `/admin/mail` - Test email, logs, template update
+- `/admin/audit` - Audit logs list
+- `/admin/feedback` - Feedback list + status update
+- `/admin/alerts` - Manual alerts runner + logs
 
 ---
 
@@ -310,111 +322,33 @@ The old Vite app had rich, SEO-optimized content that was NOT migrated.
 
 ---
 
-### ❌ API Routes Gap (88% Missing)
+### ✅ API Routes Status (Core Complete)
 
-**Total APIs in Old Express Backend:** 50+ routes
-**Migrated to Next.js:** 7 routes (12%)
-**Missing:** 50+ routes (88%)
+As of Nov 5, the API migration is largely complete and exceeds parity with the old Express backend for core features.
 
-#### Missing Routes by Category:
+**Implemented (highlights):**
+- Search and facets (including buyer suggestions)
+- Tender detail, timeline, intelligence, analyze (enqueue)
+- Suppliers, buyers, categories metrics
+- Recommendations (related tenders)
+- Insights (stats, top buyers, category counts, closing value)
+- User: profile, saved tenders (list/save/delete), preferences, dashboard, documents (list/create/delete)
+- Alerts & saved search (full CRUD + logs)
+- Tender packs (CRUD + add/remove tenders)
+- Documents (metadata, view/download redirect, ingest/register)
+- AI stubs (health, providers, status, enqueue processing)
+- Cron sync endpoint
+- Admin suite: health, stats, metrics, analytics (errors/searches), jobs (download/import/sync/reindex/aggregates/features/docs/enrich-*), config, audit, feedback (+detail), buyers/suppliers/tenders catalogs, mail (test/logs/template), admin auth, sync state (GET/PUT)
 
-**Tender Intelligence (3 routes):**
-- `GET /api/tenders/:id/timeline` - Tender history tracking
-- `POST /api/tenders/:id/analyze` - Document analysis
-- `GET /api/tenders/:id/intel` - AI intelligence generation
+#### Remaining (non-core / advanced):
 
-**Supplier & Buyer Metrics (3 routes):**
-- `GET /api/suppliers/:name/summary` - Supplier summary
-- `GET /api/suppliers/:name/metrics` - Supplier performance metrics
-- `GET /api/buyers/:name/metrics` - Buyer spending patterns
+- AI conversation/suggestion endpoints: `POST /api/ai/chat`, `POST /api/ai/suggest`, `POST /api/ai/analyze-document`, `GET /api/ai/recommendations` (can build atop existing AI stubs)
+- Provider-specific integrations: Google Document AI and Vertex AI endpoints (to be gated behind feature toggles)
+- Advanced analytics namespace `/api/analytics/*` (current insights cover core needs; optional to add analytics alias routes)
+- Optional cron helpers: `/api/cron/health`, `/api/cron/trigger-now` (admin job endpoints already cover these flows)
+- Pack analytics endpoints (optional)
+- SEO API variant `/api/sitemap.xml` (replaced by `app/sitemap.ts`)
 
-**Category Analytics (1 route):**
-- `GET /api/categories/:name/metrics` - Category-specific metrics
-
-**Recommendations (1 route):**
-- `GET /api/recommendations/related` - Related tenders based on user preferences
-
-**User Management (11 routes):**
-- `GET /api/me` - Current user profile
-- `GET /api/user/saved` - User's saved tenders
-- `POST /api/user/saved/:tenderId` - Save/unsave tender
-- `PUT /api/user/saved/:tenderId` - Update saved tender
-- `DELETE /api/user/saved/:tenderId` - Remove saved tender
-- `GET /api/user/preferences` - User search preferences
-- `PUT /api/user/preferences` - Update preferences
-- `GET /api/user/dashboard` - User dashboard data
-- `GET /api/user/documents` - User uploaded documents
-- `POST /api/user/documents` - Upload document
-- `DELETE /api/user/documents/:id` - Delete document
-
-**Alert System (4 routes):**
-- `GET /api/alerts` - Get user's alerts
-- `POST /api/alerts` - Create new alert
-- `PUT /api/alerts/:id` - Update alert
-- `DELETE /api/alerts/:id` - Delete alert
-- `GET /api/alerts/logs` - Alert notification logs
-- `POST /api/savesearch` - Save search criteria
-
-**Insights & Analytics (4 routes):**
-- `GET /api/insights/top-buyers` - Top government buyers
-- `GET /api/insights/category-counts` - Tender distribution by category
-- `GET /api/insights/closing-value` - Value analysis over time
-- `GET /api/insights/stats` - General platform statistics
-
-**AI Features (4 routes):**
-- `POST /api/ai/chat` - AI chat for tender queries
-- `POST /api/ai/suggest` - AI tender suggestions
-- `POST /api/ai/analyze-document` - AI document analysis
-- `GET /api/ai/recommendations` - Personalized AI recommendations
-
-**Document Management (6 routes):**
-- `GET /api/documents/view/:id` - View document
-- `GET /api/documents/download/:id` - Download document
-- `POST /api/documents/ingest` - Ingest tender documents
-- `GET /api/documents/metadata/:id` - Document metadata
-- `PUT /api/documents/metadata/:id` - Update metadata
-- `DELETE /api/documents/:id` - Delete document
-
-**Tender Packs (4 routes):**
-- `GET /api/packs` - List tender packs
-- `POST /api/packs` - Create tender pack
-- `GET /api/packs/:id` - Get pack details
-- `POST /api/packs/:id/tenders` - Add tender to pack
-- `DELETE /api/packs/:id/tenders/:tenderId` - Remove from pack
-
-**Google AI Integration (2 routes):**
-- `POST /api/google/document-ai` - Google Document AI processing
-- `POST /api/vertex-ai` - Vertex AI integration
-
-**Admin Routes (20+ routes):**
-- `POST /admin/auth/login` - Admin login
-- `POST /admin/auth/logout` - Admin logout
-- `GET /admin/auth/me` - Admin profile
-- `POST /admin/jobs/download` - Trigger tender download
-- `POST /admin/jobs/import` - Trigger import job
-- `POST /admin/jobs/sync-now` - Manual sync trigger
-- `POST /admin/jobs/delta-sync` - Delta sync
-- `POST /admin/jobs/reindex` - Reindex search
-- `POST /admin/jobs/aggregates` - Calculate aggregates
-- `POST /admin/jobs/features` - Extract features
-- `POST /admin/jobs/docs` - Document ingestion
-- `GET /admin/sync/state` - Sync state cursor
-- `PUT /admin/sync/state` - Update sync state
-- `GET /admin/analytics/searches` - Search analytics
-- `GET /admin/analytics/errors` - Error logs
-- `GET /admin/tenders` - Tender catalog
-- `PUT /admin/tenders/:id` - Update tender
-- `GET /admin/buyers` - Buyer catalog
-- `GET /admin/suppliers` - Supplier catalog
-- `GET /admin/config` - System configuration
-- `PUT /admin/config` - Update configuration
-- `GET /admin/mail/logs` - Email logs
-- `POST /admin/mail/test` - Test email
-- `GET /admin/audit` - Audit logs
-- `GET /admin/feedback` - User feedback
-- `PUT /admin/feedback/:id` - Respond to feedback
-
-**Total Missing Routes: 50+ (88% of backend API)**
 
 ---
 
@@ -744,11 +678,14 @@ APIs: ⚠️ Basic search works, 88% of routes missing
 - Prisma ORM 6.2.1
 - PostgreSQL 17.6 (Render)
 - Vercel Cron (for scheduled jobs)
+- Middleware rate limiting (default 100 req / 15m per IP; env-configurable)
+ - Alerts cron endpoint: `/api/cron/alerts-run` (CRON_SECRET protected)
 
 **Authentication:**
-- NextAuth.js v5 (configured, not fully implemented)
-- Credentials provider
-- Session management
+- NextAuth.js v5 (Credentials) with Prisma-backed users
+- Local password verification (bcrypt)
+- Admin session protection for `/admin` and `/api/admin/*`
+ - Admin login uses email (not username). Env vars `ADMIN_USERNAME`/`ADMIN_PASSWORD` are legacy; create an admin user record in the database instead.
 
 **Deployment:**
 - Vercel (production)
@@ -820,10 +757,11 @@ Created page structure for:
 ### ✅ Cron Infrastructure (100%)
 
 - Created `/api/cron/sync` endpoint
-- Configured Vercel Cron
+- Configured Vercel Cron (free plan: daily limit) for nightly maintenance
+- Added GitHub Actions workflow to call sync every 30 minutes (incremental + enrichment)
 - Set up job logging
 - Implemented authentication
-- Schedule: Daily at 2 AM
+- Added alerts runner endpoint `/api/cron/alerts-run` (invoke on-demand via admin or scheduled daily via GitHub Actions)
 
 ---
 
@@ -1273,6 +1211,13 @@ CRON_SECRET="xxx" # For Vercel Cron authentication
 
 # API Base
 NEXT_PUBLIC_API_BASE_URL="https://protenders.co.za"
+# Enrichment
+ENABLE_ENRICHMENT="true"
+MAX_ENRICHMENT_PER_RUN="100"
+
+# Rate Limiting
+RATE_LIMIT_WINDOW="15m"
+RATE_LIMIT_MAX="100"
 ```
 
 ### Development (.env.local)
@@ -1297,6 +1242,13 @@ CRON_SECRET="xxx"
 
 # API Base
 NEXT_PUBLIC_API_BASE_URL="http://localhost:3000"
+# Enrichment
+ENABLE_ENRICHMENT="true"
+MAX_ENRICHMENT_PER_RUN="50"
+
+# Rate Limiting
+RATE_LIMIT_WINDOW="15m"
+RATE_LIMIT_MAX="100"
 ```
 
 ---
@@ -1411,3 +1363,11 @@ This document will be updated as work progresses. All estimates are based on tho
 **Last Updated:** November 4, 2024
 **Status:** 35-40% Complete
 **Next Major Milestone:** Content Migration (Phase 1)
+### ✅ API Hardening
+
+- Admin API protected via middleware (admin role required)
+- Global API rate limiting in middleware (configurable; replaceable with Redis in production)
+
+### ✅ Admin Actions (Jobs)
+
+- Dashboard actions to trigger data jobs: Sync Now, Enrich Today, Reindex, Delta Sync
