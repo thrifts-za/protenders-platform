@@ -46,8 +46,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/20 via-primary/10 to-background border-b">
-        <div className="container mx-auto px-4 py-16 md:py-24">
+      <section className="w-full bg-gradient-to-br from-primary/20 via-primary/10 to-background border-b">
+        <div className="content-container py-16 md:py-24">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
               South Africa's Premier Government Tender Portal
@@ -110,8 +110,9 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="w-full py-12">
+        <div className="content-container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="p-6 bg-card rounded-lg border text-center">
             <p className="text-3xl md:text-4xl font-bold text-primary mb-2">
               10,000+
@@ -137,10 +138,12 @@ export default function HomePage() {
             <p className="text-sm text-muted-foreground">Alerts</p>
           </div>
         </div>
+        </div>
       </section>
 
       {/* Recent Tenders */}
-      <section className="container mx-auto px-4 py-12">
+      <section className="w-full py-12">
+        <div className="content-container">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold">Recently Published Tenders</h2>
           <Link
@@ -150,7 +153,7 @@ export default function HomePage() {
             View all →
           </Link>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {loading && (
             <div className="col-span-full text-center text-muted-foreground">Loading recent tenders...</div>
           )}
@@ -240,10 +243,12 @@ export default function HomePage() {
             );
           })}
         </div>
+        </div>
       </section>
 
       {/* Browse by Province */}
-      <section className="container mx-auto px-4 py-12">
+      <section className="w-full py-12">
+        <div className="content-container">
         <h2 className="text-3xl font-bold mb-8 text-center">
           Browse Tenders by Province
         </h2>
@@ -258,11 +263,12 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+        </div>
       </section>
 
       {/* Features Section */}
-      <section className="bg-muted/30 py-16">
-        <div className="container mx-auto px-4">
+      <section className="w-full bg-muted/30 py-16">
+        <div className="content-container">
           <h2 className="text-3xl font-bold mb-12 text-center">
             Why Choose ProTenders?
           </h2>
@@ -314,7 +320,8 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="w-full py-16">
+        <div className="content-container">
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl p-8 md:p-12 text-center border">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Find Your Next Opportunity?
@@ -337,6 +344,7 @@ export default function HomePage() {
               Set Up Alerts
             </Link>
           </div>
+        </div>
         </div>
       </section>
     </div>

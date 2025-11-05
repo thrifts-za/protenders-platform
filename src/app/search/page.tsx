@@ -185,8 +185,8 @@ function SearchContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-gradient-to-br from-primary/5 via-background to-background">
-        <div className="container mx-auto px-4 py-8">
+      <header className="w-full border-b bg-gradient-to-br from-primary/5 via-background to-background">
+        <div className="content-container py-8">
           <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">
             Find Government Tenders & eTenders Across South Africa
           </h1>
@@ -252,8 +252,9 @@ function SearchContent() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="w-full py-8">
+        <div className="content-container">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <aside className="lg:col-span-1">
             <div className="sticky top-4">
               <FilterPanel onSearch={handleSearch} onSaveSearch={() => setSaveDialogOpen(true)} />
@@ -371,6 +372,7 @@ function SearchContent() {
             )}
           </main>
         </div>
+        </div>
       </div>
 
       <SaveSearchDialog
@@ -386,7 +388,7 @@ export default function Search() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-background p-8">
-        <div className="container mx-auto">
+        <div className="content-container">
           <Skeleton className="h-48 w-full mb-8" />
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <Skeleton className="h-96 w-full" />

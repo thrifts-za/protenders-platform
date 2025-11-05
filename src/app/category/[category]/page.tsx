@@ -6,8 +6,8 @@ import {
   generateCategoryServiceSchema,
   renderStructuredData,
 } from "@/lib/structured-data";
-import { searchTenders } from "@/lib/api";
-import { TenderCard } from "@/components/TenderCard";
+import { LiveTenders } from "./LiveTenders";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 // ISR: Revalidate every 12 hours (categories change less frequently than provinces)
 export const revalidate = 43200;
@@ -96,13 +96,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
     categoryData.description
   );
 
-  // Preload some live tenders for this category (server-side)
-  let liveTenders: Awaited<ReturnType<typeof searchTenders>> | null = null;
-  try {
-    liveTenders = await searchTenders({ categories: [category], page: 1, pageSize: 10 });
-  } catch {
-    liveTenders = null;
-  }
+  // Live tenders loaded client-side to avoid long SSR during static build
 
   return (
     <>
@@ -117,6 +111,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
       />
 
       <div className="min-h-screen bg-background">
+      {/* Breadcrumbs */}
+      <Breadcrumbs
+        items={[
+          { name: "Home", url: "/" },
+          { name: "Categories", url: "/categories" },
+          { name: categoryData.name, url: `/category/${category}` },
+        ]}
+      />
+      
       {/* Header Section */}
       <header className="border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="container mx-auto px-4 py-12">
@@ -145,7 +148,8 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
+      <main className="w-full py-12">
+        <div className="content-container">
         {/* Industry Overview */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold mb-4">Industry Overview</h2>
@@ -221,17 +225,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
         {/* Live Tenders for this Category */}
         <section className="mb-12">
           <h2 className="text-2xl font-bold mb-4">Current {categoryData.name} Tenders</h2>
-          {liveTenders && liveTenders.results.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {liveTenders.results.map((t) => (
-                <TenderCard key={t.ocid} tender={t} />
-              ))}
-            </div>
-          ) : (
-            <div className="p-6 bg-card border rounded-lg text-muted-foreground">
-              No live tenders found for this category right now. Try the search page to see more results.
-            </div>
-          )}
+          <LiveTenders category={category} />
         </section>
 
         {/* Success Tips */}
@@ -337,11 +331,13 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
             </a>
           </div>
         </section>
+        </div>
+        </div>
       </main>
 
       {/* Footer Note */}
-      <footer className="border-t mt-12">
-        <div className="container mx-auto px-4 py-6">
+      <footer className="w-full border-t mt-12">
+        <div className="content-container py-6">
           <p className="text-sm text-muted-foreground text-center">
             This page is automatically updated every 12 hours with the latest {categoryData.name.toLowerCase()} tender information.
             Last updated: {new Date().toLocaleDateString('en-ZA')}

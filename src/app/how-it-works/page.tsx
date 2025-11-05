@@ -203,7 +203,8 @@ export default function HowItWorks() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-16">
+      <div className="w-full py-16">
+        <div className="content-container">
         {/* Steps */}
         <div className="max-w-5xl mx-auto space-y-16">
           {steps.map((step, idx) => {
@@ -325,6 +326,7 @@ export default function HowItWorks() {
               </div>
             </div>
           </Card>
+        </div>
         </div>
       </div>
     </div>

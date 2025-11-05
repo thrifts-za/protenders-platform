@@ -12,6 +12,7 @@ import { getTenderById } from "@/lib/api";
 import { Calendar, DollarSign, FileText, Clock, Building2, Target, Star, Share2, Info } from "lucide-react";
 import StrategicAssistant from "@/components/StrategicAssistant";
 import EntrepreneurMetrics from "@/components/EntrepreneurMetrics";
+import TenderStructuredData from "@/components/tender/TenderStructuredData";
 
 // Note: This is a client component. Do not export `revalidate` here.
 
@@ -78,14 +79,20 @@ export default function TenderDetailPage() {
   };
 
   const raw: any = (tender as any)?.raw || null;
+  const enrichment: any = (tender as any)?.enrichment || raw?.__enrichment || null;
   const parties: any[] = raw?.parties || (tender as any)?.parties || [];
   const buyerParty = parties.find((p) => p?.id === tender.buyer?.id) || parties.find((p) => Array.isArray(p?.roles) && p.roles.includes("buyer"));
   const procuringEntity = raw?.tender?.procuringEntity || {};
-  const contact = buyerParty?.contactPoint || procuringEntity?.contactPoint || {};
+  const contact = {
+    name: enrichment?.contactPerson || buyerParty?.contactPoint?.name || procuringEntity?.contactPoint?.name,
+    email: enrichment?.contactEmail || buyerParty?.contactPoint?.email || procuringEntity?.contactPoint?.email,
+    telephone: enrichment?.contactTelephone || buyerParty?.contactPoint?.telephone || procuringEntity?.contactPoint?.telephone,
+    faxNumber: buyerParty?.contactPoint?.faxNumber || procuringEntity?.contactPoint?.faxNumber,
+  } as any;
 
   const tenderNumber = tender.tender?.id || raw?.tender?.id || tender.id || "—";
   const organOfState = tender.buyer?.name || procuringEntity?.name || buyerParty?.name || "—";
-  const tenderType = raw?.tender?.procurementMethodDetails || tender.tender?.procurementMethodDetails || tender.tender?.procurementMethod || "—";
+  const tenderType = enrichment?.tenderType || raw?.tender?.procurementMethodDetails || tender.tender?.procurementMethodDetails || tender.tender?.procurementMethod || "—";
 
   const findProvince = () => {
     const region = buyerParty?.address?.region || raw?.tender?.deliveryLocation?.address?.region;
@@ -99,7 +106,7 @@ export default function TenderDetailPage() {
     return found || "—";
   };
 
-  const province = findProvince();
+  const province = enrichment?.province || findProvince();
   const datePublished = fmtLongDateTime(tender.publishedAt || (tender as any).date || null);
   const closingDateTime = fmtLongDateTime(tender.tender?.tenderPeriod?.endDate || tender.closingAt || null);
 
@@ -122,13 +129,23 @@ export default function TenderDetailPage() {
     return "—";
   };
 
-  const place = findPlace();
-  const specialConditions = raw?.tender?.eligibilityCriteria || raw?.tender?.otherRequirements || "N/A";
+  const place = enrichment?.deliveryLocation || findPlace();
+  const specialConditions = enrichment?.specialConditions || raw?.tender?.eligibilityCriteria || raw?.tender?.otherRequirements || "N/A";
 
   // Get all documents from various sources
   const tenderDocuments = raw?.tender?.documents || tender.tender?.documents || [];
   const planningDocuments = raw?.planning?.documents || [];
-  const documents = [...tenderDocuments, ...planningDocuments];
+  const enrichmentDocuments = (enrichment?.documents || []) as any[];
+  // Merge and de-duplicate documents by URL (fallback to id/title)
+  const mergedDocs = [...tenderDocuments, ...planningDocuments, ...enrichmentDocuments];
+  const seenDocKeys = new Set<string>();
+  const documents = mergedDocs.filter((doc: any) => {
+    const key = String((doc?.url || doc?.id || doc?.title || '')).toLowerCase();
+    if (!key) return true;
+    if (seenDocKeys.has(key)) return false;
+    seenDocKeys.add(key);
+    return true;
+  });
 
   const formatCurrency = (amount?: number, currency?: string) => {
     if (!amount || amount === 0) return "Value not disclosed";
@@ -164,9 +181,12 @@ export default function TenderDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Structured Data for SEO */}
+      {tender && <TenderStructuredData tender={tender} />}
+      
       {/* Header */}
-      <header className="border-b bg-gradient-to-br from-primary/10 via-background to-background">
-        <div className="container mx-auto px-4 py-8">
+      <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
+        <div className="content-container py-8">
           <div className="mb-3 flex items-center gap-2">
             <span className="px-3 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full">
               {tender.tender?.mainProcurementCategory || "Tender"}
@@ -206,8 +226,8 @@ export default function TenderDetailPage() {
       </header>
 
       {/* Action Bar */}
-      <div className="border-b bg-gray-50">
-        <div className="container mx-auto px-4 py-4">
+      <div className="w-full border-b bg-gray-50 dark:bg-gray-900/50">
+        <div className="content-container py-4">
           <div className="flex flex-wrap items-center gap-3">
             {closingDate && (
               <Badge variant="secondary" className="flex items-center gap-1">
@@ -234,7 +254,8 @@ export default function TenderDetailPage() {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
+      <main className="w-full py-8">
+        <div className="content-container">
         {/* Details Section (eTenders-style) */}
         <Card className="mb-8">
           <CardHeader>
@@ -313,30 +334,30 @@ export default function TenderDetailPage() {
           </CardHeader>
           <CardContent className="text-sm grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2">
             <div>
-              <span className="font-semibold">Is there a briefing session?:</span> Unknown
+              <span className="font-semibold">Is there a briefing session?:</span> {typeof enrichment?.hasBriefing === 'boolean' ? (enrichment.hasBriefing ? 'Yes' : 'No') : (enrichment?.briefingDate || enrichment?.briefingVenue ? 'Yes' : 'Unknown')}
             </div>
             <div>
-              <span className="font-semibold">Is it compulsory?:</span> Unknown
+              <span className="font-semibold">Is it compulsory?:</span> {typeof enrichment?.briefingCompulsory === 'boolean' ? (enrichment.briefingCompulsory ? 'Yes' : 'No') : 'Unknown'}
             </div>
             <div className="md:col-span-2">
-              <span className="font-semibold">Briefing Date and Time:</span> Not disclosed
+              <span className="font-semibold">Briefing Date and Time:</span> {enrichment?.briefingDate ? fmtLongDateTime(enrichment.briefingDate) : 'Not disclosed'}
             </div>
             <div className="md:col-span-2">
-              <span className="font-semibold">Briefing Venue:</span> Not disclosed
+              <span className="font-semibold">Briefing Venue:</span> {enrichment?.briefingVenue || 'Not disclosed'}
             </div>
-            <div className="md:col-span-2 mt-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-md">
-              <p className="text-xs text-muted-foreground">
-                Briefing session information is not available through the OCDS API. Please check the tender documents or visit the{" "}
-                <a
-                  href={`https://www.etenders.gov.za/`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  official eTenders website
-                </a> for briefing details.
-              </p>
-            </div>
+            {enrichment?.briefingMeetingLink && (
+              <div className="md:col-span-2">
+                <span className="font-semibold">Meeting Link/ID:</span> {enrichment.briefingMeetingLink}
+              </div>
+            )}
+            {!enrichment?.briefingDate && !enrichment?.briefingVenue && (
+              <div className="md:col-span-2 mt-2 p-3 bg-blue-50 dark:bg-blue-950 rounded-md">
+                <p className="text-xs text-muted-foreground">
+                  Briefing session information may be available in tender documents or the
+                  <a href={`https://www.etenders.gov.za/`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline"> official eTenders website</a>.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -555,6 +576,7 @@ export default function TenderDetailPage() {
             </Card>
           </TabsContent>
       </Tabs>
+        </div>
       </main>
     </div>
   );

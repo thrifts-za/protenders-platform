@@ -46,12 +46,11 @@ export default function TenderIntelligencePage() {
         setTender(tenderData);
 
         // Fetch intelligence data
-        const intelResponse = await fetch(`/ai/tenders/${encodeURIComponent(id)}/intelligence`);
+        // Prefer local API intelligence endpoint
+        const intelResponse = await fetch(`/api/tenders/${encodeURIComponent(id)}/intel`);
         if (intelResponse.ok) {
           const intelData = await intelResponse.json();
-          if (intelData.success) {
-            setIntel(intelData.data);
-          }
+          setIntel(intelData);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load intelligence data");
@@ -91,18 +90,20 @@ export default function TenderIntelligencePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center gap-4 mb-8">
-            <Skeleton className="h-10 w-10" />
-            <div>
-              <Skeleton className="h-8 w-64 mb-2" />
-              <Skeleton className="h-4 w-32" />
+        <div className="w-full py-8">
+          <div className="content-container">
+            <div className="flex items-center gap-4 mb-8">
+              <Skeleton className="h-10 w-10" />
+              <div>
+                <Skeleton className="h-8 w-64 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
             </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-32 w-full" />
-            ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-32 w-full" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -196,7 +197,8 @@ export default function TenderIntelligencePage() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full py-8">
+        <div className="content-container">
         {/* Executive Summary Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
           <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200">
@@ -357,9 +359,9 @@ export default function TenderIntelligencePage() {
                           <div className="text-xl font-semibold">{formatCurrency(mid || 0)}</div>
                         </div>
                         <div className="p-4 bg-muted rounded-lg">
-                          <div className="text-sm text-muted-foreground">Range (Low–High)</div>
+                          <div className="text-sm text-muted-foreground">Range (Low?High)</div>
                           <div className="text-xl font-semibold">
-                            {low ? formatCurrency(low) : '—'} – {high ? formatCurrency(high) : '—'}
+                            {low ? formatCurrency(low) : '?'} ? {high ? formatCurrency(high) : '?'}
                           </div>
                         </div>
                         <div className="p-4 bg-muted rounded-lg">
@@ -498,6 +500,7 @@ export default function TenderIntelligencePage() {
             </Card>
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </div>
   );
