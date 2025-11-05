@@ -120,6 +120,10 @@ model OCDSRelease {
   briefingTime         String?   // Time of briefing session
   briefingVenue        String?   // Venue for briefing session
   briefingMeetingLink  String?   // Online meeting link for briefing
+  // Additional enrichment flags + documents
+  hasBriefing          Boolean?
+  briefingCompulsory   Boolean?
+  enrichmentDocuments  Json?
 
   // ETL metadata
   importedAt           DateTime  @default(now())
