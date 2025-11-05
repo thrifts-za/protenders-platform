@@ -155,6 +155,7 @@ export default function DashboardProfile() {
             </Link>
           </p>
         </div>
+        </div>
       </div>
     </div>
   );

@@ -75,8 +75,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
+      <header className="w-full border-b bg-card">
+        <div className="content-container py-6">
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold">
@@ -262,6 +262,7 @@ export default function Dashboard() {
             <QuickActions tenders={savedTenders} onClearAll={handleClearAll} />
             <Recommendations savedTenders={savedTenders} onSave={saveTender} />
           </div>
+        </div>
         </div>
       </div>
     </div>

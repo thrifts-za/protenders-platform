@@ -369,7 +369,8 @@ export default function TenderGlossary() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-gradient-to-br from-primary/10 via-background to-background">
-        <div className="container mx-auto px-4 py-12">
+        <div className="w-full py-12">
+          <div className="content-container">
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-6">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -408,7 +409,8 @@ export default function TenderGlossary() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="w-full py-12">
+        <div className="content-container">
         {/* Alphabet Navigation */}
         <Card className="p-6 mb-8">
           <h3 className="text-sm font-semibold mb-3 text-muted-foreground">
@@ -519,6 +521,7 @@ export default function TenderGlossary() {
             </Link>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );

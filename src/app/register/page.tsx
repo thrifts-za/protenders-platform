@@ -46,10 +46,8 @@ export default function RegisterPage() {
       // we'll just auto-login the user after "registration"
       // In production, you'd call your API to create the user first
 
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://tender-spotlight-pro.onrender.com';
-
-      // Attempt to register via API
-      const registerResponse = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      // Attempt to register via local API
+      const registerResponse = await fetch(`/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
