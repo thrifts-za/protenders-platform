@@ -21,7 +21,7 @@ export const ETENDERS_DOWNLOAD_BASE = 'https://www.etenders.gov.za/home/Download
 export const OCDS_API_BASE = process.env.OCDS_BASE_URL || 'https://ocds-api.etenders.gov.za';
 
 // Enrichment limits
-export const DEFAULT_MAX_ENRICHMENT_PER_RUN = 10;
+export const DEFAULT_MAX_ENRICHMENT_PER_RUN = 100;
 export const DEFAULT_MAX_SCRAPE_PER_DAY = 50;
 
 // Province names (South Africa)
@@ -39,4 +39,3 @@ export const SA_PROVINCES = [
 ] as const;
 
 export type SAProvince = typeof SA_PROVINCES[number];
-

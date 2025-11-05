@@ -32,13 +32,16 @@ export interface ReleasePackageResponse {
   links?: { next?: string };
 }
 
-const BASE = "https://ocds-api.etenders.gov.za/api/OCDSReleases";
+const BASE = `${(process.env.OCDS_BASE_URL || 'https://ocds-api.etenders.gov.za').replace(/\/$/, '')}/api/OCDSReleases`;
 
-async function fetchJsonWithRetry(url: string, attempts = 3): Promise<any> {
+async function fetchJsonWithRetry(url: string, attempts = 3, timeoutMs = 45000): Promise<any> {
   let lastErr: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
-      const res = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store" });
+      const controller = new AbortController();
+      const to = setTimeout(() => controller.abort(), i === 0 ? timeoutMs : Math.max(timeoutMs, 60000));
+      const res = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store", signal: controller.signal });
+      clearTimeout(to);
       if (res.ok) return res.json();
       lastErr = new Error(`HTTP ${res.status}`);
     } catch (e) {
@@ -57,5 +60,4 @@ export async function fetchReleases(
   const url = `${BASE}?PageNumber=${page}&PageSize=${pageSize}&dateFrom=${from}&dateTo=${to}`;
   return fetchJsonWithRetry(url, 3) as Promise<ReleasePackageResponse>;
 }
-
 

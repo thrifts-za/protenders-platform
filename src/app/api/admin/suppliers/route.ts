@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    // Group by supplier and count awards
+    // Group by supplier and count awards (primary source)
     const suppliersWithCounts = await prisma.awardSupplier.groupBy({
       by: ['supplierName'],
       where,
@@ -70,13 +70,39 @@ export async function GET(request: NextRequest) {
       _min: {
         createdAt: true,
       },
-    });
+    }).catch(() => [] as any[]);
+
+    // Fallback: if no AwardSupplier data, use SupplierStats (wins24m)
+    let viaSupplierStats = false;
+    let statsRows: { supplierName: string; wins24m: number }[] = [];
+    if (!suppliersWithCounts || suppliersWithCounts.length === 0) {
+      viaSupplierStats = true;
+      const stats = await prisma.supplierStats.findMany({
+        where: search
+          ? { supplierName: { contains: search, mode: 'insensitive' } }
+          : undefined,
+        orderBy: { wins24m: 'desc' },
+        take: limit + skip, // we'll paginate after mapping
+        select: { supplierName: true, wins24m: true },
+      }).catch(() => [] as any[]);
+      statsRows = stats.filter((s) => s.supplierName);
+    }
+
+    // Build working list depending on source
+    let filteredSuppliers = suppliersWithCounts as any[];
+    if (viaSupplierStats) {
+      filteredSuppliers = statsRows.map((row) => ({
+        supplierName: row.supplierName,
+        _count: { id: row.wins24m || 0 },
+        _max: { createdAt: undefined as Date | undefined },
+        _min: { createdAt: undefined as Date | undefined },
+      }));
+    }
 
     // Filter by minAwards if specified
-    let filteredSuppliers = suppliersWithCounts;
     if (minAwards !== null) {
-      filteredSuppliers = suppliersWithCounts.filter(
-        (s) => s._count.id >= minAwards
+      filteredSuppliers = filteredSuppliers.filter(
+        (s) => (s._count?.id || 0) >= minAwards
       );
     }
 
@@ -126,6 +152,7 @@ export async function GET(request: NextRequest) {
         sortBy,
         sortOrder,
       },
+      source: viaSupplierStats ? 'supplier-stats' : 'award-suppliers',
     });
   } catch (error) {
     console.error('Error fetching admin suppliers:', error);

@@ -66,6 +66,8 @@ export async function GET(request: NextRequest) {
         avgErrorsPerDay: (totalErrors / days).toFixed(1),
       },
       recentErrors: errorLogs,
+      // Back-compat alias some UIs might look for
+      errors: errorLogs,
       syncState: syncState ? {
         lastRunAt: syncState.lastRunAt?.toISOString(),
         lastSuccessAt: syncState.lastSuccessAt?.toISOString(),

@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
       uniqueUsers,
       topQueries,
       searchesByDay,
+      recentSearches,
     ] = await Promise.all([
       // Total searches in period
       prisma.searchLog.count({
@@ -52,6 +53,21 @@ export async function GET(request: NextRequest) {
           createdAt: { gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) },
         },
         select: {
+          createdAt: true,
+        },
+      }).catch(() => []),
+      // Recent search logs (for UI table)
+      prisma.searchLog.findMany({
+        where: { createdAt: { gte: since } },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        select: {
+          id: true,
+          keywords: true,
+          filters: true,
+          duration: true,
+          dataSource: true,
+          resultsCount: true,
           createdAt: true,
         },
       }).catch(() => []),
@@ -77,6 +93,9 @@ export async function GET(request: NextRequest) {
       },
       topQueries: [], // SearchLog may not have query field
       dailyTrend,
+      recentSearches,
+      // Back-compat alias some UIs might look for
+      searches: recentSearches,
       period: {
         days,
         since: since.toISOString(),

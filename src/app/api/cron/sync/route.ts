@@ -11,7 +11,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { enrichTenderFromEtenders } from '@/lib/enrichment/etendersEnricher';
-import { RATE_LIMIT_DELAY_MS, DEFAULT_MAX_ENRICHMENT_PER_RUN } from '@/lib/enrichment/constants';
+import { RATE_LIMIT_DELAY_MS, DEFAULT_MAX_ENRICHMENT_PER_RUN, OCDS_API_BASE } from '@/lib/enrichment/constants';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -29,6 +29,7 @@ interface SyncResult {
   enrichmentSuccess?: number;
   enrichmentFailures?: number;
   error?: string;
+  skippedNoEnrichment?: number;
 }
 
 export async function POST(request: NextRequest) {
@@ -38,13 +39,18 @@ export async function POST(request: NextRequest) {
     // Verify cron secret
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
+    const url = new URL(request.url);
+    const secretParam = url.searchParams.get('secret');
+    const isVercelCron = !!request.headers.get('x-vercel-cron');
 
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    const authorized =
+      (cronSecret && authHeader === `Bearer ${cronSecret}`) ||
+      (cronSecret && secretParam === cronSecret) ||
+      isVercelCron;
+
+    if (!authorized) {
       console.error('Unauthorized cron request');
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     console.log('Starting scheduled sync job...');
@@ -64,7 +70,6 @@ export async function POST(request: NextRequest) {
 
     try {
       // Parse query params for backfill/windowed operation
-      const url = new URL(request.url);
       const modeParam = url.searchParams.get('mode') || 'daily';
       const mode = (modeParam === 'backfill' ? 'backfill' : 'daily') as SyncMode;
       const fromParam = url.searchParams.get('from') || undefined; // YYYY-MM-DD
@@ -73,9 +78,27 @@ export async function POST(request: NextRequest) {
       const windowDays = windowDaysParam ? Math.max(1, Math.min(31, parseInt(windowDaysParam))) : 7;
       const resultPagesParam = url.searchParams.get('batchPages');
       const batchPages = resultPagesParam ? Math.max(1, Math.min(2, parseInt(resultPagesParam))) : 2; // API behaves better with 2 pages
+      const requireEnrichment = url.searchParams.get('requireEnrichment') === '1';
+      const incremental = url.searchParams.get('incremental') === '1';
+      const enforceWindow = url.searchParams.get('enforceWindow') === '1';
+
+      // Optional time window gating for incremental runs (8:00-16:00 SAST)
+      if (incremental && enforceWindow) {
+        const now = new Date();
+        // Africa/Johannesburg is SAST (UTC+2, no DST currently)
+        const fmt = new Intl.DateTimeFormat('en-ZA', { timeZone: 'Africa/Johannesburg', hour: '2-digit', hour12: false });
+        const hourStr = fmt.format(now);
+        const hour = parseInt(hourStr, 10);
+        if (isFinite(hour)) {
+          if (hour < 8 || hour >= 16) {
+            console.log(`⏭️  Skipping incremental sync outside window (SAST hour=${hour})`);
+            return NextResponse.json({ success: true, skipped: true, reason: 'outside_window' }, { status: 200 });
+          }
+        }
+      }
 
       // Run sync logic
-      const syncResult = await performSync({ mode, fromParam, toParam, windowDays, batchPages });
+      const syncResult = await performSync({ mode, fromParam, toParam, windowDays, batchPages, requireEnrichment });
 
       // Update job log with success
       await prisma.jobLog.update({
@@ -138,16 +161,18 @@ export async function POST(request: NextRequest) {
  *
  * For now, this demonstrates the infrastructure is working.
  */
-async function performSync(options?: {
+export async function performSync(options?: {
   mode?: SyncMode;
   fromParam?: string;
   toParam?: string;
   windowDays?: number;
   batchPages?: number; // pages per batch (max 2)
+  pageSize?: number; // releases per page (default: 100, can be increased to 2000 for fewer API calls)
+  requireEnrichment?: boolean; // if true, skip creating new rows that lack enrichment
 }): Promise<SyncResult> {
   const startTime = Date.now();
 
-  const { mode = 'daily', fromParam, toParam, windowDays = 7, batchPages = 2 } = options || {};
+  const { mode = 'daily', fromParam, toParam, windowDays = 7, batchPages = 2, pageSize = 100, requireEnrichment = false } = options || {};
 
   // Feature flag: Enable enrichment via eTenders site API
   const enableEnrichment = process.env.ENABLE_ENRICHMENT === 'true';
@@ -155,6 +180,8 @@ async function performSync(options?: {
     process.env.MAX_ENRICHMENT_PER_RUN || String(DEFAULT_MAX_ENRICHMENT_PER_RUN),
     10
   );
+
+  console.log(`🚀 Starting sync (mode: ${mode}, enrichment: ${enableEnrichment ? 'ENABLED' : 'DISABLED'}, max: ${maxEnrichmentPerRun})`);
 
   // Determine date range using cursor (daily) or backfill window
   const syncStateId = 'ocds_etenders_sa';
@@ -178,33 +205,114 @@ async function performSync(options?: {
   const toStr = toDate.toISOString().slice(0, 10);
   const fromStr = fromDate.toISOString().slice(0, 10);
 
-  // Helper to fetch one page of OCDS releases
-  async function fetchReleases(page: number, pageSize: number) {
-    const base = 'https://ocds-api.etenders.gov.za/api/OCDSReleases';
-    const url = `${base}?PageNumber=${page}&PageSize=${pageSize}&dateFrom=${fromStr}&dateTo=${toStr}`;
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' }, cache: 'no-store' });
-    if (!res.ok) throw new Error(`OCDS fetch failed: ${res.status}`);
-    return res.json() as Promise<{ releases?: any[]; links?: { next?: string } }>;
+  // Helper to fetch one page of OCDS releases with retry logic
+  // Uses provided pageSize (can be 15000 for maximum speed, matching DELTA_SYNC implementation)
+  async function fetchReleases(page: number, pageSizeParam: number, attempt = 1, maxAttempts = 3): Promise<{ releases?: any[]; links?: { next?: string } }> {
+    const base = `${(OCDS_API_BASE || 'https://ocds-api.etenders.gov.za').replace(/\/$/, '')}/api/OCDSReleases`;
+    const url = `${base}?PageNumber=${page}&PageSize=${pageSizeParam}&dateFrom=${fromStr}&dateTo=${toStr}`;
+    
+    // Increase timeout for retries (API might be slow)
+    const timeoutMs = attempt === 1 ? 45000 : 60000; // 45s first attempt, 60s retries
+    
+    try {
+      if (attempt === 1) {
+        console.log(`📡 Fetching OCDS releases (page ${page}, timeout: ${timeoutMs}ms): ${url}`);
+      } else {
+        console.log(`🔄 Retrying OCDS fetch (attempt ${attempt}/${maxAttempts}, timeout: ${timeoutMs}ms): ${url}`);
+      }
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
+      try {
+        const res = await fetch(url, { 
+          headers: { 'Accept': 'application/json' }, 
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+      
+        if (!res.ok) {
+          const errorText = await res.text().catch(() => '');
+          const errorMsg = `HTTP ${res.status} ${res.statusText}${errorText ? ` - ${errorText.substring(0, 200)}` : ''}`;
+          
+          // Retry on 5xx errors (server errors) or 429 (rate limit)
+          if ((res.status >= 500 && res.status < 600) || res.status === 429) {
+            if (attempt < maxAttempts) {
+              const retryDelay = Math.min(2000 * attempt, 15000); // Progressive backoff: 2s, 4s, 6s (max 15s)
+              console.log(`⚠️  Server error ${res.status}, retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${maxAttempts})`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+              return fetchReleases(page, pageSizeParam, attempt + 1, maxAttempts);
+            }
+          }
+          
+          throw new Error(`OCDS fetch failed: ${errorMsg}`);
+        }
+        
+        const data = await res.json();
+        console.log(`✅ Fetched ${data.releases?.length || 0} releases from page ${page}`);
+        return data as { releases?: any[]; links?: { next?: string } };
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        throw fetchErr;
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        // Handle timeout and network errors with retry
+        const isTimeout = err.name === 'AbortError' || err.message.toLowerCase().includes('timeout') || err.message.toLowerCase().includes('timed out');
+        const isNetworkError = err.message.includes('fetch') || 
+                               err.message.includes('network') || 
+                               err.message.includes('ECONNREFUSED') ||
+                               err.message.includes('ENOTFOUND') ||
+                               err.message.includes('ECONNRESET') ||
+                               err.message.includes('ETIMEDOUT');
+        
+        if ((isTimeout || isNetworkError) && attempt < maxAttempts) {
+          const retryDelay = Math.min(3000 * attempt, 15000); // Progressive backoff: 3s, 6s, 9s (max 15s)
+          console.log(`⚠️  ${isTimeout ? 'Timeout' : 'Network'} error: ${err.message}, retrying in ${retryDelay}ms... (attempt ${attempt + 1}/${maxAttempts})`);
+          await new Promise(resolve => setTimeout(resolve, retryDelay));
+          return fetchReleases(page, pageSize, attempt + 1, maxAttempts);
+        }
+        
+        if (isTimeout) {
+          throw new Error(`OCDS fetch timeout: Request exceeded ${timeoutMs}ms after ${attempt} attempts. The API may be slow or unavailable.`);
+        }
+        
+        if (isNetworkError) {
+          throw new Error(`OCDS API network error: ${err.message}. Unable to connect to the API. This usually means the API server is down or unreachable.`);
+        }
+        
+        throw new Error(`OCDS fetch error: ${err.message}`);
+      }
+      throw err;
+    }
   }
 
   let page = 1;
-  const pageSize = 100;
+  // Use provided pageSize or default to 100 (can be 15000 for maximum speed, matching DELTA_SYNC implementation)
+  const pageSizeParam = pageSize || 100;
   let processed = 0;
   let added = 0;
   let updated = 0;
   let enrichmentCount = 0;
   let enrichmentSuccess = 0;
   let enrichmentFailures = 0;
+  let skippedNoEnrichment = 0;
 
   // Helper to derive tender number from release
   function deriveTenderNumber(tender: any): string | null {
     if (!tender) return null;
     if (typeof tender.title === 'string') {
       const title = tender.title.trim();
-      const m = title.match(/\b(RFQ|RFP|RFB|RFT|RFI|RFA|RFPQ|RFBQ|EOI)[-_\s:/]*([A-Z0-9/\.-]{3,})/i);
+      // Prefix style: RFP..., RFQ...
+      let m = title.match(/\b(RFQ|RFP|RFB|RFT|RFI|RFA|RFPQ|RFBQ|EOI)[-_\s:/]*([A-Z0-9/\.-]{3,})/i);
+      if (m) return (m[0] || title).replace(/\s+/g, '');
+      // Suffix style: .../RFP, .../RFQ
+      m = title.match(/([A-Z0-9/\.-]{3,})[-_\s:/]*(RFQ|RFP|RFB|RFT|RFI|RFA|RFPQ|RFBQ|EOI)\b/i);
       if (m) return (m[0] || title).replace(/\s+/g, '');
     }
     if (typeof tender.id === 'string' && tender.id.trim()) return tender.id.trim();
+    if (typeof tender.id === 'number') return String(tender.id);
     return null;
   }
 
@@ -213,10 +321,15 @@ async function performSync(options?: {
     let pagesThisBatch = 0;
     let hasMore = true;
     while (pagesThisBatch < batchPages && hasMore && Date.now() - startTime < hardDeadlineMs) {
-      const pkg = await fetchReleases(page, pageSize);
-      const releases = pkg.releases || [];
-      if (!releases.length) { hasMore = false; break; }
-
+      try {
+        let pkg = await fetchReleases(page, pageSizeParam);
+        const releases = pkg.releases || [];
+        if (!releases.length) { 
+          console.log(`ℹ️  No releases found for page ${page}, stopping`);
+          hasMore = false; 
+          break; 
+        }
+      
       for (const rel of releases) {
         const publishedAtIso: string | undefined = rel?.date;
         const closingIso: string | undefined = rel?.tender?.tenderPeriod?.endDate;
@@ -233,16 +346,39 @@ async function performSync(options?: {
           if (tenderNumber) {
             try {
               enrichmentCount++;
-              enrichmentData = await enrichTenderFromEtenders(tenderNumber, RATE_LIMIT_DELAY_MS);
+              console.log(`🔄 [${enrichmentCount}/${maxEnrichmentPerRun}] Enriching tender: ${tenderNumber}`);
+              const buyerNameCtx = rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined;
+              const titleCtx = rel?.tender?.title || undefined;
+              const tenderIdHint = typeof rel?.tender?.id === 'string' ? rel?.tender?.id : (rel?.tender?.id != null ? String(rel?.tender?.id) : undefined);
+              enrichmentData = await enrichTenderFromEtenders(tenderNumber, RATE_LIMIT_DELAY_MS, {
+                buyerName: buyerNameCtx,
+                title: titleCtx,
+                tenderIdHint,
+              });
               if (enrichmentData) {
                 enrichmentSuccess++;
+                console.log(`✅ Enriched tender ${tenderNumber}: province=${enrichmentData.province}, contact=${enrichmentData.contactEmail || 'N/A'}`);
               } else {
                 enrichmentFailures++;
+                console.log(`⚠️  No enrichment data found for tender ${tenderNumber}`);
               }
             } catch (err) {
               enrichmentFailures++;
-              console.error(`Enrichment failed for ${tenderNumber}: ${err instanceof Error ? err.message : 'Unknown error'}`);
+              const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+              console.error(`❌ Enrichment failed for ${tenderNumber}: ${errorMsg}`);
             }
+          } else {
+            console.log(`ℹ️  No tender number found for release ${rel?.ocid}`);
+          }
+        } else if (!enableEnrichment) {
+          // Only log once per batch to avoid spam
+          if (processed === 0) {
+            console.log(`ℹ️  Enrichment disabled (ENABLE_ENRICHMENT=false)`);
+          }
+        } else if (enrichmentCount >= maxEnrichmentPerRun) {
+          // Only log once when limit is reached
+          if (enrichmentCount === maxEnrichmentPerRun) {
+            console.log(`⚠️  Enrichment limit reached (${maxEnrichmentPerRun}), skipping further enrichments`);
           }
         }
 
@@ -270,9 +406,21 @@ async function performSync(options?: {
           briefingTime: enrichmentData.briefingTime || undefined,
           briefingVenue: enrichmentData.briefingVenue || undefined,
           briefingMeetingLink: enrichmentData.briefingMeetingLink || undefined,
+          hasBriefing: typeof enrichmentData.hasBriefing === 'boolean' ? enrichmentData.hasBriefing : undefined,
+          briefingCompulsory: typeof enrichmentData.briefingCompulsory === 'boolean' ? enrichmentData.briefingCompulsory : undefined,
+          enrichmentDocuments: Array.isArray(enrichmentData.documents) ? (enrichmentData.documents as any) : undefined,
         } : {};
 
-        await prisma.oCDSRelease.upsert({
+        const existing = await prisma.oCDSRelease.findUnique({
+          where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
+        });
+        
+        // Enforce enrichment for new records when required
+        if (!existing && requireEnrichment && enableEnrichment && !enrichmentData) {
+          skippedNoEnrichment += 1;
+          console.log(`⏭️  Skipping create for ${rel?.ocid} (no enrichment, requireEnrichment=true)`);
+        } else {
+          await prisma.oCDSRelease.upsert({
           where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
           update: {
             ...baseData,
@@ -286,13 +434,168 @@ async function performSync(options?: {
             ...baseData,
             ...enrichmentFields,
           },
-        });
+          });
+          
+          if (existing) {
+          updated += 1;
+          } else {
+          added += 1;
+          }
+        }
         processed += 1;
+        
+        if (processed % 10 === 0) {
+          console.log(`📊 Progress: ${processed} processed (${added} added, ${updated} updated, ${enrichmentCount} enriched)`);
+        }
       }
 
-      hasMore = Boolean(pkg.links?.next);
-      page += 1;
-      pagesThisBatch += 1;
+        hasMore = Boolean(pkg.links?.next);
+        page += 1;
+        pagesThisBatch += 1;
+      } catch (fetchError) {
+        // If it's the first page and we get an error, fail the whole sync
+        // Otherwise, for delta/enrichment sync, be more lenient - just break and process what we have
+        // (matching DELTA_SYNC implementation)
+        if (page === 1 && pagesThisBatch === 0) {
+          console.error(`❌ Failed to fetch first page (pageSize=${pageSizeParam}): ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`);
+          // Fallback: try smaller page sizes before aborting
+          const fallbackSizes = [2000, 500, 100].filter((s) => s < pageSizeParam);
+          for (const size of fallbackSizes) {
+            try {
+              console.log(`🔁 Falling back to smaller page size (${size}) for first page...`);
+              const pkg = await fetchReleases(page, size);
+              const releases = pkg.releases || [];
+              if (!releases.length) {
+                console.log(`ℹ️  No releases found for page ${page} with pageSize=${size}, stopping`);
+                hasMore = false;
+                break;
+              }
+              // Process with the smaller page size result
+              for (const rel of releases) {
+                const publishedAtIso: string | undefined = rel?.date;
+                const closingIso: string | undefined = rel?.tender?.tenderPeriod?.endDate;
+                const updatedAtIso: string | undefined = (rel?.tender?.documents || [])
+                  .map((d: any) => d?.dateModified || d?.datePublished)
+                  .filter(Boolean)
+                  .sort()
+                  .pop();
+
+                // Enrichment via eTenders site API (if enabled and within limits)
+                let enrichmentData = null;
+                if (enableEnrichment && enrichmentCount < maxEnrichmentPerRun) {
+                  const tenderNumber = deriveTenderNumber(rel?.tender);
+                  if (tenderNumber) {
+                    try {
+                      enrichmentCount++;
+                      console.log(`🔄 [${enrichmentCount}/${maxEnrichmentPerRun}] Enriching tender: ${tenderNumber}`);
+                      enrichmentData = await enrichTenderFromEtenders(tenderNumber, RATE_LIMIT_DELAY_MS);
+                      if (enrichmentData) {
+                        enrichmentSuccess++;
+                        console.log(`✅ Enriched tender ${tenderNumber}: province=${enrichmentData.province}, contact=${enrichmentData.contactEmail || 'N/A'}`);
+                      } else {
+                        enrichmentFailures++;
+                        console.log(`⚠️  No enrichment data found for tender ${tenderNumber}`);
+                      }
+                    } catch (err) {
+                      enrichmentFailures++;
+                      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+                      console.error(`❌ Enrichment failed for ${tenderNumber}: ${errorMsg}`);
+                    }
+                  } else {
+                    console.log(`ℹ️  No tender number found for release ${rel?.ocid}`);
+                  }
+                } else if (!enableEnrichment) {
+                  if (processed === 0) {
+                    console.log(`ℹ️  Enrichment disabled (ENABLE_ENRICHMENT=false)`);
+                  }
+                } else if (enrichmentCount >= maxEnrichmentPerRun) {
+                  if (enrichmentCount === maxEnrichmentPerRun) {
+                    console.log(`⚠️  Enrichment limit reached (${maxEnrichmentPerRun}), skipping further enrichments`);
+                  }
+                }
+
+                const baseData = {
+                  json: JSON.stringify(rel),
+                  buyerName: rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined,
+                  tenderTitle: rel?.tender?.title || undefined,
+                  tenderDescription: rel?.tender?.description || undefined,
+                  mainCategory: rel?.tender?.mainProcurementCategory || undefined,
+                  closingAt: closingIso ? new Date(closingIso) : undefined,
+                  status: rel?.tender?.status || undefined,
+                  publishedAt: publishedAtIso ? new Date(publishedAtIso) : undefined,
+                  updatedAt: updatedAtIso ? new Date(updatedAtIso) : undefined,
+                  tenderType: enrichmentData?.tenderType || rel?.tender?.procurementMethodDetails || rel?.tender?.procurementMethod || undefined,
+                };
+
+                const enrichmentFields = enrichmentData ? {
+                  province: enrichmentData.province || undefined,
+                  deliveryLocation: enrichmentData.deliveryLocation || undefined,
+                  specialConditions: enrichmentData.specialConditions || undefined,
+                  contactPerson: enrichmentData.contactPerson || undefined,
+                  contactEmail: enrichmentData.contactEmail || undefined,
+                  contactTelephone: enrichmentData.contactTelephone || undefined,
+                  briefingDate: enrichmentData.briefingDate || undefined,
+                  briefingTime: enrichmentData.briefingTime || undefined,
+                  briefingVenue: enrichmentData.briefingVenue || undefined,
+                  briefingMeetingLink: enrichmentData.briefingMeetingLink || undefined,
+                } : {};
+
+                const existing = await prisma.oCDSRelease.findUnique({
+                  where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
+                });
+                
+                await prisma.oCDSRelease.upsert({
+                  where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
+                  update: {
+                    ...baseData,
+                    ...enrichmentFields,
+                  },
+                  create: {
+                    ocid: String(rel.ocid),
+                    releaseId: String(rel.id),
+                    date: publishedAtIso ? new Date(publishedAtIso) : new Date(),
+                    tag: JSON.stringify(rel?.tag || ['compiled']),
+                    ...baseData,
+                    ...enrichmentFields,
+                  },
+                });
+                
+                if (existing) {
+                  updated += 1;
+                } else {
+                  added += 1;
+                }
+                processed += 1;
+                
+                if (processed % 10 === 0) {
+                  console.log(`📊 Progress: ${processed} processed (${added} added, ${updated} updated, ${enrichmentCount} enriched)`);
+                }
+              }
+
+              // With fallback fetch, do not assume there is a next link; rely on links
+              hasMore = Boolean(pkg.links?.next);
+              page += 1;
+              pagesThisBatch += 1;
+              // Successfully processed with smaller size, continue outer loop
+              // Break out of fallback loop
+              break;
+            } catch (fallbackErr) {
+              console.error(`⚠️  Fallback with pageSize=${size} failed: ${fallbackErr instanceof Error ? fallbackErr.message : 'Unknown error'}`);
+              // Try next fallback size
+            }
+          }
+          if (pagesThisBatch === 0) {
+            console.error(`❌ All fallbacks failed for first page. Aborting sync.`);
+            throw fetchError;
+          }
+          // Continue to next iteration if fallback succeeded
+          continue;
+        }
+        console.error(`⚠️  Failed to fetch page ${page}, skipping to next batch:`, fetchError instanceof Error ? fetchError.message : 'Unknown error');
+        // For enrichment test, be lenient - process what we have
+        hasMore = false;
+        break;
+      }
     }
 
     if (!pagesThisBatch) break;
@@ -308,6 +611,15 @@ async function performSync(options?: {
   });
 
   const duration = Date.now() - startTime;
+  
+  console.log(`✅ Sync completed in ${duration}ms:`);
+  console.log(`   - Processed: ${processed} records`);
+  console.log(`   - Added: ${added}`);
+  console.log(`   - Updated: ${updated}`);
+  if (enableEnrichment) {
+    console.log(`   - Enrichment: ${enrichmentSuccess}/${enrichmentCount} successful (${enrichmentFailures} failed)`);
+  }
+  
   return {
     success: true,
     recordsProcessed: processed,
@@ -317,5 +629,6 @@ async function performSync(options?: {
     enrichmentCount: enableEnrichment ? enrichmentCount : undefined,
     enrichmentSuccess: enableEnrichment ? enrichmentSuccess : undefined,
     enrichmentFailures: enableEnrichment ? enrichmentFailures : undefined,
+    skippedNoEnrichment: requireEnrichment ? skippedNoEnrichment : undefined,
   };
 }

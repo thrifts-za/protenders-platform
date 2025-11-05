@@ -1,7 +1,5 @@
 import { SavedAlert, SearchParams, AlertFrequency } from "@/types/tender";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://tender-spotlight-pro.onrender.com';
-
 // Get user email from localStorage or use demo email
 const getUserEmail = () => {
   if (typeof window === 'undefined') return "demo@example.com";
@@ -19,7 +17,7 @@ export const saveAlert = async (
   name?: string
 ): Promise<SavedAlert> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/savesearch`, {
+    const response = await fetch(`/api/savesearch`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -71,7 +69,7 @@ export const saveAlert = async (
 export const getAlerts = async (email?: string): Promise<SavedAlert[]> => {
   try {
     const userEmail = email || getUserEmail();
-    const response = await fetch(`${API_BASE_URL}/api/alerts?userEmail=${userEmail}`);
+    const response = await fetch(`/api/alerts?userEmail=${userEmail}`);
 
     if (!response.ok) {
       throw new Error("Failed to fetch alerts");
@@ -113,7 +111,7 @@ export const toggleAlert = async (id: string): Promise<SavedAlert | null> => {
 
     const newFrequency = alert.active ? "none" : alert.frequency;
 
-    const response = await fetch(`${API_BASE_URL}/api/alerts/${id}`, {
+    const response = await fetch(`/api/alerts/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -142,7 +140,7 @@ export const toggleAlert = async (id: string): Promise<SavedAlert | null> => {
 
 export const deleteAlert = async (id: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/alerts/${id}`, {
+    const response = await fetch(`/api/alerts/${id}`, {
       method: "DELETE",
     });
 

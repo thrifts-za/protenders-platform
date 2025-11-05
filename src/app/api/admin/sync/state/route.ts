@@ -89,3 +89,64 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+/**
+ * PUT /api/admin/sync/state
+ * Update synchronization state fields
+ */
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+
+    // Upsert the sync state record with provided fields
+    const updated = await prisma.syncState.upsert({
+      where: { id: 'ocds_etenders_sa' },
+      update: {
+        lastRunAt:
+          body.lastRunAt !== undefined && body.lastRunAt !== null
+            ? new Date(body.lastRunAt)
+            : undefined,
+        lastSuccessAt:
+          body.lastSuccessAt !== undefined && body.lastSuccessAt !== null
+            ? new Date(body.lastSuccessAt)
+            : undefined,
+        lastCursor:
+          body.lastCursor !== undefined ? body.lastCursor : undefined,
+        lastSyncedDate:
+          body.lastSyncedDate !== undefined && body.lastSyncedDate !== null
+            ? new Date(body.lastSyncedDate)
+            : undefined,
+        notes: body.notes !== undefined ? body.notes : undefined,
+      },
+      create: {
+        id: 'ocds_etenders_sa',
+        lastRunAt: body.lastRunAt ? new Date(body.lastRunAt) : null,
+        lastSuccessAt: body.lastSuccessAt ? new Date(body.lastSuccessAt) : null,
+        lastCursor: body.lastCursor ?? null,
+        lastSyncedDate: body.lastSyncedDate
+          ? new Date(body.lastSyncedDate)
+          : null,
+        notes: body.notes ?? null,
+      },
+    });
+
+    return NextResponse.json({
+      id: updated.id,
+      lastRunAt: updated.lastRunAt?.toISOString() ?? null,
+      lastSuccessAt: updated.lastSuccessAt?.toISOString() ?? null,
+      lastSyncedDate: updated.lastSyncedDate?.toISOString() ?? null,
+      lastCursor: updated.lastCursor ?? null,
+      notes: updated.notes ?? null,
+      updatedAt: updated.updatedAt.toISOString(),
+    });
+  } catch (error) {
+    console.error('Error updating sync state:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to update sync state',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+}

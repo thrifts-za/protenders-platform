@@ -2,8 +2,6 @@ import { mockTenders } from "@/lib/mockData";
 import { SearchParams, SearchResponse, NormalizedTender, OpportunityFilters, InsightData, SupplierProfile, TenderTimeline } from "@/types/tender";
 import { getApiUrl } from "@/config/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://tender-spotlight-pro.onrender.com";
-
 /**
  * Search tenders using the backend API
  * Connects to apps/api/clients/ocdsClient.ts through Express endpoints
