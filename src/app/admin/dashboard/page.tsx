@@ -6,15 +6,9 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { MetricCard } from "@/components/admin/MetricCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import {
-  Database,
-  Search,
-  FileText,
-  Activity,
-  TrendingUp,
-  AlertCircle,
-} from "lucide-react";
+import { Database, Search, FileText, Activity, TrendingUp, AlertCircle, Rocket, RefreshCw } from "lucide-react";
 import dayjs from "dayjs";
 
 interface Metrics {
@@ -46,6 +40,7 @@ export default function AdminDashboard() {
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [recentJobs, setRecentJobs] = useState<RecentJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const [jobBusy, setJobBusy] = useState(false);
 
   useEffect(() => {
     loadMetrics();
@@ -71,6 +66,23 @@ export default function AdminDashboard() {
       console.error("Failed to load metrics:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const triggerJob = async (path: string, confirmText: string) => {
+    if (!window.confirm(confirmText)) return;
+    setJobBusy(true);
+    try {
+      const res = await fetch(path, { method: 'POST', headers: adminToken ? { Authorization: `Bearer ${adminToken}` } : undefined });
+      if (res.ok) {
+        await loadMetrics();
+        alert('Job triggered successfully');
+      } else {
+        const text = await res.text();
+        alert(`Failed to trigger job: ${text}`);
+      }
+    } finally {
+      setJobBusy(false);
     }
   };
 
@@ -240,6 +252,30 @@ export default function AdminDashboard() {
           <p className="text-sm text-yellow-800">
             All systems operational. Last sync completed successfully.
           </p>
+        </CardContent>
+      </Card>
+
+      {/* Job Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Rocket className="h-5 w-5" /> Job Actions</CardTitle>
+          <CardDescription>Trigger maintenance and data jobs</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => triggerJob('/api/admin/jobs/sync-now', 'Trigger sync now?')} disabled={jobBusy}>
+              <RefreshCw className="h-4 w-4 mr-2" />Sync Now
+            </Button>
+            <Button variant="outline" onClick={() => triggerJob('/api/admin/jobs/enrich-today', 'Trigger enrich today?')} disabled={jobBusy}>
+              <Rocket className="h-4 w-4 mr-2" />Enrich Today
+            </Button>
+            <Button variant="outline" onClick={() => triggerJob('/api/admin/jobs/reindex', 'Trigger reindex?')} disabled={jobBusy}>
+              <Rocket className="h-4 w-4 mr-2" />Reindex
+            </Button>
+            <Button variant="outline" onClick={() => triggerJob('/api/admin/jobs/delta-sync', 'Trigger delta sync?')} disabled={jobBusy}>
+              <Rocket className="h-4 w-4 mr-2" />Delta Sync
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
