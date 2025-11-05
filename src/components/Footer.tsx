@@ -8,26 +8,35 @@ import {
   HelpCircle,
   BookOpen,
   Mail,
-  Linkedin,
-  Twitter,
-  Facebook,
+  Building2,
+  MapPin,
 } from "lucide-react";
+import { getAllMunicipalitySlugs } from "@/data/municipalities";
+import { getAllDepartmentSlugs } from "@/data/departments";
+import { getMunicipalityBySlug } from "@/data/municipalities";
+import { getDepartmentBySlug } from "@/data/departments";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
 
+  // Get municipality and department data
+  const municipalitySlugs = getAllMunicipalitySlugs();
+  const departmentSlugs = getAllDepartmentSlugs();
+
   const footerLinks = {
     features: [
-      { label: "Search Tenders", href: "/", icon: Search },
+      { label: "Search Tenders", href: "/search", icon: Search },
       { label: "Tender Alerts", href: "/alerts", icon: Bell },
       { label: "Opportunities", href: "/opportunities", icon: TrendingUp },
-      { label: "Insights & Analytics", href: "/insights", icon: FileText },
+      { label: "Latest Tenders", href: "/latest", icon: TrendingUp },
+      { label: "Closing Soon", href: "/closing-soon", icon: Bell },
     ],
     resources: [
       { label: "How It Works", href: "/how-it-works", icon: BookOpen },
       { label: "FAQ", href: "/faq", icon: HelpCircle },
       { label: "Blog & Resources", href: "/blog", icon: BookOpen },
       { label: "Tender Glossary", href: "/glossary", icon: BookOpen },
+      { label: "About Us", href: "/about", icon: FileText },
     ],
     tenderCategories: [
       { label: "Public Sector Tenders", href: "/public-sector-tenders" },
@@ -36,10 +45,21 @@ export default function Footer() {
       { label: "Consulting Services", href: "/category/consulting" },
       { label: "Security Services", href: "/category/security-services" },
       { label: "Supply & Delivery", href: "/category/supply-and-delivery" },
-      { label: "Cleaning Services", href: "/category/cleaning-services" },
-      { label: "Catering Services", href: "/category/catering" },
-      { label: "Transport & Logistics", href: "/category/transport" },
     ],
+    municipalities: municipalitySlugs.map((slug) => {
+      const municipality = getMunicipalityBySlug(slug);
+      return {
+        label: municipality?.name || slug,
+        href: `/municipality/${slug}`,
+      };
+    }),
+    departments: departmentSlugs.map((slug) => {
+      const department = getDepartmentBySlug(slug);
+      return {
+        label: department?.name || slug,
+        href: `/department/${slug}`,
+      };
+    }),
     provinces: [
       { label: "Gauteng Tenders", href: "/province/gauteng" },
       { label: "Western Cape Tenders", href: "/province/western-cape" },
@@ -51,53 +71,15 @@ export default function Footer() {
       { label: "Free State Tenders", href: "/province/free-state" },
       { label: "Northern Cape Tenders", href: "/province/northern-cape" },
     ],
-    blogPosts: [
-      { label: "How to Submit eTenders Guide", href: "/blog/how-to-submit-etenders-south-africa-complete-guide-2025" },
-      { label: "Tender Documents Checklist", href: "/blog/tender-documents-south-africa-complete-checklist-guide-2025" },
-      { label: "How to Find Government Tenders", href: "/blog/how-to-find-government-tenders-south-africa-2025" },
-      { label: "eTenders Portal Guide", href: "/blog/understanding-etenders-portal-complete-guide" },
-      { label: "CIDB Registration Guide", href: "/blog/cidb-registration-guide-everything-you-need-to-know-2025" },
-      { label: "RFQ vs RFP Explained", href: "/blog/rfq-vs-rfp-difference-government-tenders" },
-    ],
   };
 
-  const socialLinks = [
-    { label: "LinkedIn", href: "#", icon: Linkedin },
-    { label: "Twitter", href: "#", icon: Twitter },
-    { label: "Facebook", href: "#", icon: Facebook },
-  ];
 
   return (
-    <footer className="bg-card border-t mt-auto">
-      <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
-          {/* Company Info */}
-          <div className="lg:col-span-1">
-            <h3 className="text-lg font-bold mb-4 text-primary">ProTenders</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              South Africa's premier tender intelligence platform. Find government tenders, etenders, and procurement opportunities.
-            </p>
-            <div className="flex gap-3">
-              {socialLinks.map((social) => {
-                const Icon = social.icon;
-                return (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-md hover:bg-accent transition-colors"
-                    aria-label={social.label}
-                  >
-                    <Icon className="h-4 w-4" />
-                  </a>
-                );
-              })}
-            </div>
-          </div>
-
+    <footer className="w-full bg-card border-t mt-auto">
+      <div className="content-container py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Features */}
-          <div>
+          <div className="lg:col-span-1">
             <h4 className="font-semibold mb-4">Features</h4>
             <ul className="space-y-2">
               {footerLinks.features.map((link) => {
@@ -118,8 +100,11 @@ export default function Footer() {
           </div>
 
           {/* Resources */}
-          <div>
-            <h4 className="font-semibold mb-4">Resources</h4>
+          <div className="lg:col-span-1">
+            <h4 className="font-semibold mb-4 flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              Resources
+            </h4>
             <ul className="space-y-2">
               {footerLinks.resources.map((link) => {
                 const Icon = link.icon;
@@ -139,7 +124,7 @@ export default function Footer() {
           </div>
 
           {/* Tender Categories */}
-          <div>
+          <div className="lg:col-span-1">
             <h4 className="font-semibold mb-4">Tender Categories</h4>
             <ul className="space-y-2">
               {footerLinks.tenderCategories.map((link) => (
@@ -155,11 +140,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Tenders by Province */}
-          <div>
-            <h4 className="font-semibold mb-4">Tenders by Province</h4>
+          {/* Municipalities */}
+          <div className="lg:col-span-1">
+            <h4 className="font-semibold mb-4 flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Municipalities
+            </h4>
             <ul className="space-y-2">
-              {footerLinks.provinces.map((link) => (
+              {footerLinks.municipalities.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
@@ -171,6 +159,53 @@ export default function Footer() {
               ))}
             </ul>
           </div>
+
+          {/* Departments */}
+          <div className="lg:col-span-1">
+            <h4 className="font-semibold mb-4 flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Departments
+            </h4>
+            <ul className="space-y-2">
+              {footerLinks.departments.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Provinces */}
+          <div className="lg:col-span-1">
+            <h4 className="font-semibold mb-4 flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Provinces
+            </h4>
+            <ul className="space-y-2">
+              {footerLinks.provinces.slice(0, 6).map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/provinces"
+              className="text-sm text-primary hover:underline mt-2 inline-block"
+            >
+              View all provinces →
+            </Link>
+          </div>
+
         </div>
 
         <Separator className="my-8" />
