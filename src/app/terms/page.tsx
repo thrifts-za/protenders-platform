@@ -1,8 +1,8 @@
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b">
-        <div className="container mx-auto px-4 py-12">
+      <header className="w-full border-b">
+        <div className="content-container py-12">
           <h1 className="text-4xl font-bold">Terms of Service</h1>
           <p className="text-muted-foreground mt-2">Understand how you can use our service.</p>
         </div>

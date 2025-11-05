@@ -49,8 +49,8 @@ export default function LatestTenders() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-gradient-to-br from-primary/10 via-blue-50 to-background dark:from-primary/20 dark:via-blue-950/20">
-        <div className="container mx-auto px-4 py-12">
+      <header className="w-full border-b bg-gradient-to-br from-primary/10 via-blue-50 to-background dark:from-primary/20 dark:via-blue-950/20">
+        <div className="content-container py-12">
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-6">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -122,7 +122,8 @@ export default function LatestTenders() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
+      <div className="w-full py-12">
+        <div className="content-container">
         {/* Live Update Banner */}
         <Alert className="mb-8 border-primary/20 bg-primary/5">
           <Info className="h-4 w-4 text-primary" />
@@ -235,6 +236,7 @@ export default function LatestTenders() {
             </Link>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );

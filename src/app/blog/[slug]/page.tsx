@@ -57,8 +57,8 @@ export default function BlogPost() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
+      <header className="w-full border-b bg-card">
+        <div className="content-container py-6">
           <Link href="/blog">
             <Button variant="ghost" size="sm" className="mb-4">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -69,7 +69,8 @@ export default function BlogPost() {
       </header>
 
       {/* Article */}
-      <article className="container mx-auto px-4 py-12 max-w-4xl">
+      <article className="w-full py-12">
+        <div className="content-container max-w-4xl mx-auto">
         {/* Article Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -220,6 +221,7 @@ export default function BlogPost() {
               View All Articles
             </Button>
           </Link>
+        </div>
         </div>
       </article>
     </div>

@@ -71,8 +71,9 @@ export default function Blog() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="w-full py-12">
+        <div className="content-container">
+          <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters */}
           <aside className="lg:w-64 flex-shrink-0">
             <div className="sticky top-4 space-y-6">
@@ -265,6 +266,7 @@ export default function Blog() {
               )}
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

@@ -32,8 +32,8 @@ export default function ClosingSoon() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-gradient-to-br from-red-50 via-orange-50 to-background dark:from-red-950/20 dark:via-orange-950/20">
-        <div className="container mx-auto px-4 py-12">
+      <header className="w-full border-b bg-gradient-to-br from-red-50 via-orange-50 to-background dark:from-red-950/20 dark:via-orange-950/20">
+        <div className="content-container py-12">
           <Link href="/">
             <Button variant="ghost" size="sm" className="mb-6">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -72,8 +72,9 @@ export default function ClosingSoon() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12">
-        <Alert className="mb-8 border-red-200 bg-red-50 dark:bg-red-950/20">
+      <div className="w-full py-12">
+        <div className="content-container">
+          <Alert className="mb-8 border-red-200 bg-red-50 dark:bg-red-950/20">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription>
             <span className="font-semibold">Act Fast!</span> These tenders are closing soon. Ensure you have all required documents ready.
@@ -108,6 +109,7 @@ export default function ClosingSoon() {
             </Link>
           </Card>
         )}
+        </div>
       </div>
     </div>
   );

@@ -42,7 +42,8 @@ export default function My() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full py-8">
+        <div className="content-container">
         {savedTenders.length === 0 ? (
           <div className="text-center py-12">
             <FileEdit className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
