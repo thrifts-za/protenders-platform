@@ -31,11 +31,14 @@ export async function generateMetadata({ params }: { params: Promise<{ category:
     };
   }
 
-  // Generate comprehensive keywords for this category
+  // Generate comprehensive keywords for this category including "etenders" variations
   const keywords = [
     `${categoryData.name.toLowerCase()} tenders`,
+    `${categoryData.name.toLowerCase()} etenders`,
     `${categoryData.name.toLowerCase()} tenders South Africa`,
     `${categoryData.name.toLowerCase()} tenders South Africa 2025`,
+    `etenders ${categoryData.name.toLowerCase()}`,
+    `government ${categoryData.name.toLowerCase()} etenders`,
     `${categoryData.name.toLowerCase()} RFQ`,
     `${categoryData.name.toLowerCase()} RFP`,
     `government ${categoryData.name.toLowerCase()} contracts`,
@@ -331,7 +334,6 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
             </a>
           </div>
         </section>
-        </div>
         </div>
       </main>
 

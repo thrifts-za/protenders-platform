@@ -49,6 +49,7 @@ export function extractTenderIdFromSlug(slug: string): string {
 
 /**
  * Create a full tender URL with slug
+ * Uses /tender/ path with slug from tender title
  */
 export function createTenderUrl(slug: string): string {
   return `/tender/${slug}`;

@@ -18,6 +18,7 @@ import { Calendar, FileText, Info, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { generateICS, downloadICS } from "@/utils/ics";
 import { useMemo } from "react";
+import { createTenderUrlFromTitle } from "@/lib/utils/slug";
 
 export default function Dashboard() {
   const { savedTenders, removeTender, saveTender } = useSavedTenders();
@@ -192,13 +193,15 @@ export default function Dashboard() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Upcoming Deadlines</h3>
                   <div className="space-y-3">
-                    {stats.upcomingDeadlines.map((saved) => (
+                    {stats.upcomingDeadlines.map((saved) => {
+                      const tenderUrl = createTenderUrlFromTitle(saved.tender.title, saved.tenderId);
+                      return (
                       <div
                         key={saved.tenderId}
                         className="flex items-center justify-between p-3 bg-muted rounded-lg"
                       >
                         <div className="flex-1">
-                          <Link href={`/tender/${saved.tenderId}`}>
+                          <Link href={tenderUrl}>
                             <p className="font-medium hover:text-primary cursor-pointer">
                               {saved.tender.title}
                             </p>
@@ -217,7 +220,8 @@ export default function Dashboard() {
                           Add .ics
                         </Button>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>
@@ -262,7 +266,6 @@ export default function Dashboard() {
             <QuickActions tenders={savedTenders} onClearAll={handleClearAll} />
             <Recommendations savedTenders={savedTenders} onSave={saveTender} />
           </div>
-        </div>
         </div>
       </div>
     </div>

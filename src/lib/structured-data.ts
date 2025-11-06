@@ -79,6 +79,30 @@ interface JobPosting {
   };
 }
 
+interface Article {
+  "@context": "https://schema.org";
+  "@type": "Article";
+  headline: string;
+  description: string;
+  author: {
+    "@type": "Person";
+    name: string;
+  };
+  publisher: {
+    "@type": "Organization";
+    name: string;
+    logo: {
+      "@type": "ImageObject";
+      url: string;
+    };
+  };
+  datePublished: string;
+  dateModified?: string;
+  image?: string;
+  articleBody?: string;
+  keywords?: string;
+}
+
 export function generateOrganizationSchema(): Organization {
   return {
     "@context": "https://schema.org",
@@ -204,7 +228,44 @@ export function generateJobPostingSchema(tender: any): JobPosting {
   };
 }
 
+// Article schema for blog posts
+export interface BlogPostData {
+  title: string;
+  excerpt: string;
+  author: string;
+  publishedDate: string;
+  content?: string;
+  tags?: string[];
+  slug: string;
+}
+
+export function generateArticleSchema(post: BlogPostData): Article {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.excerpt,
+    author: {
+      "@type": "Person",
+      name: post.author,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "ProTenders",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://protenders.co.za/logo.png",
+      },
+    },
+    datePublished: post.publishedDate,
+    dateModified: post.publishedDate,
+    image: "https://protenders.co.za/images/og-image.png",
+    articleBody: post.content,
+    keywords: post.tags?.join(", "),
+  };
+}
+
 // Helper to render schema in HTML
-export function renderStructuredData(data: Organization | WebSite | BreadcrumbList | Service | JobPosting): string {
+export function renderStructuredData(data: Organization | WebSite | BreadcrumbList | Service | JobPosting | Article): string {
   return JSON.stringify(data);
 }

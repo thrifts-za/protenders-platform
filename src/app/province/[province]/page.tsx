@@ -33,9 +33,13 @@ export async function generateMetadata({ params }: { params: Promise<{ province:
 
   const keywords = [
     `${provinceData.name.toLowerCase()} tenders`,
+    `${provinceData.name.toLowerCase()} etenders`,
+    `etenders ${provinceData.name.toLowerCase()}`,
     `government tenders ${provinceData.name.toLowerCase()}`,
+    `government etenders ${provinceData.name.toLowerCase()}`,
     `${provinceData.name} procurement`,
     `tenders in ${provinceData.name.toLowerCase()}`,
+    `etenders in ${provinceData.name.toLowerCase()}`,
     `${provinceData.name} RFQ`,
     `${provinceData.name} RFP`,
     ...(provinceData.keyIndustries?.map(ind => `${ind.toLowerCase()} tenders ${provinceData.name.toLowerCase()}`) || []),

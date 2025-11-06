@@ -37,17 +37,23 @@ export async function generateTenderMetadata(slugOrId: string): Promise<Metadata
 
   // Build keywords from tender data
   const keywords: string[] = [
+    'etenders',
     'government tender',
     'tender opportunity',
     'South Africa tender',
+    'government etenders',
+    'etender portal',
   ];
 
   if (release.mainCategory) {
     keywords.push(`${release.mainCategory} tenders`);
+    keywords.push(`${release.mainCategory} etenders`);
   }
 
   if (release.province) {
     keywords.push(`${release.province} tenders`);
+    keywords.push(`${release.province} etenders`);
+    keywords.push(`etenders ${release.province.toLowerCase()}`);
   }
 
   if (release.buyerName) {

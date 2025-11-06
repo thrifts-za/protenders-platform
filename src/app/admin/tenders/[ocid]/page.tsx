@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Activity, FileText, Link2, Rocket, Save, ListTree } from "lucide-react";
+import { createTenderUrlFromTitle } from "@/lib/utils/slug";
 
 type AdminTender = {
   ocid: string;
@@ -245,7 +246,7 @@ export default function AdminTenderDetailPage() {
 
                 <div className="mt-4 flex gap-2">
                   <Button onClick={save} disabled={saving}><Save className="h-4 w-4 mr-2" />Save Changes</Button>
-                  <a href={`/tender/${encodeURIComponent(ocid)}`} target="_blank" className="inline-flex items-center px-3 py-2 text-sm border rounded-md hover:bg-muted">
+                  <a href={tender?.tenderTitle ? createTenderUrlFromTitle(tender.tenderTitle, ocid) : `/tender/${encodeURIComponent(ocid)}`} target="_blank" className="inline-flex items-center px-3 py-2 text-sm border rounded-md hover:bg-muted">
                     <Link2 className="h-4 w-4 mr-2" />Open Public Page
                   </a>
                 </div>
@@ -375,7 +376,7 @@ export default function AdminTenderDetailPage() {
               <CardContent>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={analyzeDocuments}><Rocket className="h-4 w-4 mr-2" />Analyze Documents</Button>
-                  <a href={`/tender/${encodeURIComponent(ocid)}`} target="_blank" className="inline-flex items-center px-3 py-2 text-sm border rounded-md hover:bg-muted">
+                  <a href={tender?.tenderTitle ? createTenderUrlFromTitle(tender.tenderTitle, ocid) : `/tender/${encodeURIComponent(ocid)}`} target="_blank" className="inline-flex items-center px-3 py-2 text-sm border rounded-md hover:bg-muted">
                     <Link2 className="h-4 w-4 mr-2" />Open Public Page
                   </a>
                 </div>

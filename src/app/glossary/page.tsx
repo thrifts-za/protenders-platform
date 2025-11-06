@@ -407,6 +407,7 @@ export default function TenderGlossary() {
             </div>
           </div>
         </div>
+        </div>
       </header>
 
       <div className="w-full py-12">

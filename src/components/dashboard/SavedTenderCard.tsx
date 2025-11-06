@@ -7,6 +7,7 @@ import { formatDate, formatRelativeDate } from "@/lib/date";
 import { FileText, Calendar, Trash2, Tag } from "lucide-react";
 import { useIntel } from "@/hooks/useIntel";
 import { DataQualityBadge } from "@/components/DataQualityBadge";
+import { createTenderUrlFromTitle } from "@/lib/utils/slug";
 
 interface SavedTenderCardProps {
   saved: SavedTender;
@@ -17,12 +18,13 @@ interface SavedTenderCardProps {
 export const SavedTenderCard = ({ saved, onRemove, onSetReminder }: SavedTenderCardProps) => {
   const { tender } = saved;
   const { data: intel } = useIntel(tender.id);
+  const tenderUrl = createTenderUrlFromTitle(tender.title, tender.id);
 
   return (
     <Card className="p-4 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between gap-4 mb-3">
         <div className="flex-1">
-          <Link href={`/tender/${tender.id}`}>
+          <Link href={tenderUrl}>
             <h3 className="text-lg font-semibold hover:text-primary cursor-pointer mb-2">
               {tender.title}
             </h3>

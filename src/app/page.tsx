@@ -9,6 +9,7 @@ import { Calendar, DollarSign, Building2, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { searchTenders } from "@/lib/api";
 import type { TenderSearchResponse } from "@/types/tender";
+import { createTenderUrlFromTitle } from "@/lib/utils/slug";
 
 export default function HomePage() {
   const provinces = [
@@ -50,7 +51,7 @@ export default function HomePage() {
         <div className="content-container py-16 md:py-24">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-              South Africa's Premier Government Tender Portal
+              South Africa's Premier eTenders & Government Tender Portal
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8">
               Search 10,000+ government tenders, RFQs & RFPs across South
@@ -182,7 +183,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <CardTitle className="text-lg leading-tight mb-2">
-                        <Link href={`/tender/${tender.ocid}`} className="hover:text-primary transition-colors">
+                        <Link href={createTenderUrlFromTitle(title, tender.ocid)} className="hover:text-primary transition-colors">
                           {title}
                         </Link>
                       </CardTitle>
@@ -229,7 +230,7 @@ export default function HomePage() {
 
                   <div className="flex gap-2">
                     <Button asChild className="flex-1">
-                      <Link href={`/tender/${tender.ocid}`}>
+                      <Link href={createTenderUrlFromTitle(title, tender.ocid)}>
                         View Details
                       </Link>
                     </Button>

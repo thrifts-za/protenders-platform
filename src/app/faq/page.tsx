@@ -215,6 +215,7 @@ export default function FAQ() {
             </Link>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );

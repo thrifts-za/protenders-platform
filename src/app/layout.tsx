@@ -28,7 +28,15 @@ export const metadata: Metadata = {
   description:
     "Search 10,000+ government tenders, RFQs & RFPs across South Africa. AI-powered tender alerts, BEE opportunities & real-time procurement intelligence.",
   keywords: [
+    "etenders",
+    "etenders south africa",
+    "etender portal",
+    "government etenders",
+    "etenders gov za",
     "government tenders South Africa",
+    "south africa tenders",
+    "sa tenders",
+    "tenders in south africa",
     "RFQ",
     "RFP",
     "procurement opportunities",
@@ -38,6 +46,8 @@ export const metadata: Metadata = {
     "South African tenders",
     "government procurement",
     "tender portal",
+    "public sector tenders",
+    "tender opportunities south africa",
   ],
   authors: [{ name: "ProTenders" }],
   creator: "ProTenders",
@@ -95,9 +105,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  verification: {
-    google: "your-google-verification-code",
-  },
+  // Note: Add your Google Search Console verification code here
+  // Get it from: https://search.google.com/search-console
+  // verification: {
+  //   google: "your-verification-code-here",
+  // },
 };
 
 export default function RootLayout({
