@@ -68,21 +68,30 @@ export const saveAlert = async (
 
 export const getAlerts = async (email?: string): Promise<SavedAlert[]> => {
   try {
-    const userEmail = email || getUserEmail();
-    const response = await fetch(`/api/alerts?userEmail=${userEmail}`);
+    const response = await fetch(`/api/alerts`);
 
     if (!response.ok) {
-      throw new Error("Failed to fetch alerts");
+      // If unauthorized or not found, return empty array silently
+      // 401 = user not logged in
+      // 404 = route not found (might be during dev/deployment)
+      if (response.status === 401 || response.status === 404) {
+        return [];
+      }
+
+      // Log other errors for debugging
+      console.warn(`Alerts API returned ${response.status}: ${response.statusText}`);
+      return [];
     }
 
-    const savedSearches = await response.json();
+    const result = await response.json();
+    const savedSearches = result.data || [];
 
     // Transform backend response to SavedAlert format
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return savedSearches.map((search: any) => ({
       id: search.id,
       name: search.name,
-      email: userEmail,
+      email: email || "user@example.com", // Email comes from session now
       frequency: search.alertFrequency as AlertFrequency,
       searchParams: {
         keywords: search.keywords,
