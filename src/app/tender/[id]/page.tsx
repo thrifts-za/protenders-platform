@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { generateTenderMetadata } from '@/lib/utils/tender-metadata';
+import { extractTenderIdFromSlug } from '@/lib/utils/slug';
 import TenderClient from './TenderClient';
 
 // ISR: Revalidate every hour for tender pages
@@ -11,13 +12,17 @@ export const revalidate = 3600;
 /**
  * Generate metadata for tender detail pages
  * This provides SEO-optimized titles, descriptions, and keywords for each tender
+ * Handles both old OCID-only URLs and new slug-based URLs
  */
 export async function generateMetadata({
   params
 }: {
   params: Promise<{ id: string }>
 }): Promise<Metadata> {
-  const { id } = await params;
+  const { id: slug } = await params;
+
+  // Extract the actual OCID from the slug (handles both formats)
+  const id = extractTenderIdFromSlug(slug);
 
   try {
     const metadata = await generateTenderMetadata(id);

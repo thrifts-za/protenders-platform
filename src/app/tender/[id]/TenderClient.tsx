@@ -13,13 +13,16 @@ import { Calendar, DollarSign, FileText, Clock, Building2, Target, Star, Share2,
 import StrategicAssistant from "@/components/StrategicAssistant";
 import EntrepreneurMetrics from "@/components/EntrepreneurMetrics";
 import TenderStructuredData from "@/components/tender/TenderStructuredData";
+import { extractTenderIdFromSlug } from "@/lib/utils/slug";
 
 // This is the client-side interactive component for tender details
 // The server component wrapper (page.tsx) handles metadata generation
 
 export default function TenderClient() {
   const params = useParams();
-  const id = params.id as string;
+  const slug = params.id as string;
+  // Extract the actual OCID from the slug (handles both old OCID-only and new slug-based URLs)
+  const id = extractTenderIdFromSlug(slug);
   const [tender, setTender] = useState<Tender | null>(null);
   const [loading, setLoading] = useState(true);
 
