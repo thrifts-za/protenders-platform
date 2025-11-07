@@ -32,6 +32,7 @@ function transformFlatToOCDS(flatTender: Record<string, unknown>): Tender {
     updatedAt: flatTender.updatedAt as string | undefined,
     closingAt: flatTender.closingDate as string | undefined,
     status: flatTender.status as string | undefined,
+    detailedCategory: flatTender.detailedCategory as string | undefined,
     buyer: {
       id: String(flatTender.buyerId || ""),
       name: String(flatTender.buyerName || "Unknown Buyer"),
