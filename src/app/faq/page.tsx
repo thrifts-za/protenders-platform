@@ -144,7 +144,8 @@ export default function FAQ() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
+      <div className="w-full py-12">
+        <div className="content-container max-w-4xl mx-auto">
         {/* Quick Links */}
         <Card className="p-6 mb-8 bg-primary/5 border-primary/20">
           <h2 className="text-xl font-semibold mb-4">Quick Links</h2>
@@ -214,6 +215,7 @@ export default function FAQ() {
             </Link>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );

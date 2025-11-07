@@ -12,17 +12,16 @@ import type {
 
 // Base URLs
 const isServer = typeof window === "undefined";
-const PUBLIC_ORIGIN = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.protenders.co.za").replace(/\/$/, "");
-const ORIGIN_API_BASE = `${PUBLIC_ORIGIN}/api`;
+const ORIGIN_API_BASE = `/api`;
 const LOCAL_API_BASE = "/api"; // next route/proxy
-const API_BASE_URL = isServer ? ORIGIN_API_BASE : LOCAL_API_BASE;
-const AI_BASE_URL = isServer ? `${PUBLIC_ORIGIN}/ai` : "/ai";
+const API_BASE_URL = ORIGIN_API_BASE; // always same-origin
+const AI_BASE_URL = "/ai";
 
 /**
  * Transform flat API response to nested OCDS structure
  */
 function transformFlatToOCDS(flatTender: Record<string, unknown>): Tender {
-  return {
+  const t: Tender = {
     ocid: String(flatTender.id || flatTender.ocid || ""),
     id: String(flatTender.id || ""),
     date: String(flatTender.publishedAt || flatTender.date || ""),
@@ -33,6 +32,7 @@ function transformFlatToOCDS(flatTender: Record<string, unknown>): Tender {
     updatedAt: flatTender.updatedAt as string | undefined,
     closingAt: flatTender.closingDate as string | undefined,
     status: flatTender.status as string | undefined,
+    detailedCategory: flatTender.detailedCategory as string | undefined,
     buyer: {
       id: String(flatTender.buyerId || ""),
       name: String(flatTender.buyerName || "Unknown Buyer"),
@@ -55,6 +55,11 @@ function transformFlatToOCDS(flatTender: Record<string, unknown>): Tender {
       } : undefined,
     },
   };
+  // Preserve enrichment if present from local API
+  if ((flatTender as any).enrichment) {
+    (t as any).enrichment = (flatTender as any).enrichment;
+  }
+  return t;
 }
 
 /**
@@ -139,8 +144,8 @@ export async function getTenderById(id: string): Promise<Tender> {
     headers: {
       "Content-Type": "application/json",
     },
-    // Cache tender details for 1 hour
-    next: { revalidate: 3600 },
+    // Server: revalidate. Client: disable cache to always get fresh enrichment/documents.
+    ...(isServer ? { next: { revalidate: 3600 } } : { cache: 'no-store' as const }),
   });
   if (!response.ok && !isServer) {
     try {

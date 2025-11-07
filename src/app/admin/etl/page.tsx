@@ -59,11 +59,16 @@ export default function ETLSyncPage() {
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState("2025");
+  const [enrichLimit, setEnrichLimit] = useState<string>("300");
+  const [enrichWindow, setEnrichWindow] = useState<string>("1");
+  const [backfillYear, setBackfillYear] = useState("all-time");
+  const [backfillLimit, setBackfillLimit] = useState("1000");
+  const [progress, setProgress] = useState<{years?: any; generatedAt?: string} | null>(null);
 
   useEffect(() => {
     loadData();
-    // Refresh every 10 seconds
-    const interval = setInterval(loadData, 10000);
+    // Refresh every 30 seconds to reduce DB load
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -71,9 +76,10 @@ export default function ETLSyncPage() {
     try {
       setError("");
       const headers = adminToken ? { Authorization: `Bearer ${adminToken}` } : undefined;
-      const [stateRes, jobsRes] = await Promise.all([
+      const [stateRes, jobsRes, progressRes] = await Promise.all([
         fetch("/api/admin/sync/state", { headers }),
-        fetch("/api/admin/jobs?limit=50", { headers }),
+        fetch("/api/admin/jobs?limit=10", { headers }),
+        fetch("/api/admin/enrichment/progress", { headers }),
       ]);
 
       if (stateRes.ok) {
@@ -84,6 +90,11 @@ export default function ETLSyncPage() {
       if (jobsRes.ok) {
         const jobsData = await jobsRes.json();
         setJobs(jobsData.recentJobs || jobsData.jobs || []);
+      }
+
+      if (progressRes.ok) {
+        const prog = await progressRes.json();
+        setProgress(prog);
       }
     } catch (err) {
       console.error("Failed to load data:", err);
@@ -218,9 +229,9 @@ export default function ETLSyncPage() {
               )}
             </div>
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Next Scheduled Run</p>
-              <p className="font-medium">03:00 SAST (Daily)</p>
-              <p className="text-xs text-muted-foreground mt-1">Automatic nightly sync</p>
+              <p className="text-sm text-muted-foreground mb-1">Schedule</p>
+              <p className="font-medium">Every 30 minutes (GitHub Actions)</p>
+              <p className="text-xs text-muted-foreground mt-1">Incremental sync with enrichment. Vercel cron runs nightly as fallback.</p>
             </div>
           </div>
 
@@ -283,6 +294,58 @@ export default function ETLSyncPage() {
               )}
             </Button>
 
+            <div className="flex items-center gap-2 w-full">
+              <Select value={enrichLimit} onValueChange={setEnrichLimit}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">Enrich 10</SelectItem>
+                  <SelectItem value="25">Enrich 25</SelectItem>
+                  <SelectItem value="50">Enrich 50</SelectItem>
+                  <SelectItem value="100">Enrich 100</SelectItem>
+                  <SelectItem value="200">Enrich 200</SelectItem>
+                  <SelectItem value="300">Enrich 300</SelectItem>
+                  <SelectItem value="500">Enrich 500</SelectItem>
+                  <SelectItem value="1000">Enrich 1000</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={enrichWindow} onValueChange={setEnrichWindow}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Window" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Today only</SelectItem>
+                  <SelectItem value="3">Last 3 days</SelectItem>
+                  <SelectItem value="7">Last 7 days</SelectItem>
+                  <SelectItem value="14">Last 14 days</SelectItem>
+                  <SelectItem value="30">Last 30 days</SelectItem>
+                  <SelectItem value="60">Last 60 days</SelectItem>
+                  <SelectItem value="90">Last 90 days</SelectItem>
+                </SelectContent>
+              </Select>
+            <Button
+              onClick={() => triggerAction("enrich-today", { maxEnrichment: Number(enrichLimit), windowDays: Number(enrichWindow) })}
+              disabled={actionLoading === "enrich-today"}
+              variant="secondary"
+              className="flex-1"
+            >
+              {actionLoading === "enrich-today" ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Enriching...
+                </>
+              ) : (
+                <>
+                  <Activity className="h-4 w-4 mr-2" />
+                  Enrich Today
+                </>
+              )}
+            </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
             <Button
               onClick={() => triggerAction("delta-sync")}
               disabled={actionLoading === "delta-sync"}
@@ -303,9 +366,10 @@ export default function ETLSyncPage() {
             </Button>
           </div>
 
-          <div className="text-sm text-muted-foreground space-y-1">
+          <div className="text-sm text-muted-foreground space-y-1 mt-4">
             <p>• <strong>Sync Now:</strong> Full incremental sync from last checkpoint</p>
             <p>• <strong>Sync Today:</strong> Quick sync for today's releases only</p>
+            <p>• <strong>Enrich Window:</strong> Sync + enrich tenders in selected window (cap controls max enrich attempts)</p>
             <p>• <strong>Delta Sync:</strong> Test mode - sync without database writes</p>
           </div>
         </CardContent>
@@ -373,6 +437,119 @@ export default function ETLSyncPage() {
                 </>
               )}
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* All-Time Enrichment Backfill */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            All-Time Enrichment Backfill
+          </CardTitle>
+          <CardDescription>
+            Enrich historical tenders and persist all fields (province, contacts, briefing, documents)
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Progress Widget */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-2">
+            {(['2024','2025','allTime'] as const).map((key) => {
+              const row = (progress?.years || {})[key] || null;
+              const percent = row?.percent ?? 0;
+              const total = row?.total ?? 0;
+              const unenriched = row?.unenriched ?? 0;
+              return (
+                <div key={key} className="p-3 border rounded-md">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="font-semibold text-sm">{key === 'allTime' ? 'All Time' : key}</div>
+                    <div className="text-xs text-muted-foreground">{percent}%</div>
+                  </div>
+                  <div className="h-2 bg-muted rounded">
+                    <div className="h-2 bg-primary rounded" style={{ width: `${percent}%` }} />
+                  </div>
+                  <div className="mt-2 text-xs text-muted-foreground">
+                    {total > 0 ? (
+                      <>
+                        <span className="font-medium">{total - unenriched}</span> enriched of <span className="font-medium">{total}</span>
+                        {unenriched > 0 ? <span> • {unenriched} remaining</span> : null}
+                      </>
+                    ) : (
+                      <span>No data</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-3 items-end">
+            <div className="flex-1">
+              <label className="text-sm font-medium mb-2 block">Select Range</label>
+              <Select value={backfillYear} onValueChange={setBackfillYear}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-time">All Time</SelectItem>
+                  <SelectItem value="2025">2025</SelectItem>
+                  <SelectItem value="2024">2024</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Batch Size</label>
+              <Select value={backfillLimit} onValueChange={setBackfillLimit}>
+                <SelectTrigger className="w-40">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="200">200</SelectItem>
+                  <SelectItem value="500">500</SelectItem>
+                  <SelectItem value="1000">1000</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button
+              onClick={() => triggerAction("enrich-backfill", { year: backfillYear, limit: Number(backfillLimit) })}
+              disabled={actionLoading === "enrich-backfill"}
+              variant="secondary"
+            >
+              {actionLoading === "enrich-backfill" ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Backfilling...
+                </>
+              ) : (
+                <>
+                  <Activity className="h-4 w-4 mr-2" />
+                  Run Backfill
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => triggerAction("enrichment/cancel")}
+              disabled={actionLoading === "enrichment/cancel"}
+              variant="outline"
+            >
+              {actionLoading === "enrichment/cancel" ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                <>
+                  <Activity className="h-4 w-4 mr-2" />
+                  Cancel Backfill
+                </>
+              )}
+            </Button>
+          </div>
+
+          <div className="text-sm text-muted-foreground space-y-1 mt-2">
+            <p>• Runs within a 5-minute window; re-run to process remaining items.</p>
+            <p>• Safely enriches only records missing fields; existing enrichment is preserved.</p>
           </div>
         </CardContent>
       </Card>

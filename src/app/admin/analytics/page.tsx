@@ -52,12 +52,14 @@ export default function AnalyticsPage() {
 
       if (searchRes.ok) {
         const data = await searchRes.json();
-        setSearchLogs(data.searches || data);
+        const arr = Array.isArray(data) ? data : (data.recentSearches || data.searches || []);
+        setSearchLogs(Array.isArray(arr) ? arr : []);
       }
 
       if (errorRes.ok) {
         const data = await errorRes.json();
-        setErrorLogs(data.errors || data);
+        const arr = Array.isArray(data) ? data : (data.recentErrors || data.errors || []);
+        setErrorLogs(Array.isArray(arr) ? arr : []);
       }
     } catch (error) {
       console.error("Failed to load logs:", error);

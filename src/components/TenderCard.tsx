@@ -5,6 +5,7 @@ import { DataQualityBadge } from "@/components/DataQualityBadge";
 import VerificationBadge from "@/components/VerificationBadge";
 import { Calendar, Building2, Tag, Clock } from "lucide-react";
 import { formatDate as fmtDate, formatRelativeDate, getDaysUntilClose } from "@/lib/date";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 import type { Tender } from "@/types/tender";
 
 interface TenderCardProps {
@@ -16,6 +17,7 @@ export function TenderCard({ tender }: TenderCardProps) {
   const description = tender.tender?.description || "";
   const buyerName = tender.buyer?.name || "";
   const category = tender.tender?.mainProcurementCategory || "";
+  const detailedCategory = tender.detailedCategory;
   const publishedAt = tender.publishedAt || tender.date;
   const updatedAt = tender.updatedAt;
   const closingDate = tender.tender?.tenderPeriod?.endDate;
@@ -35,8 +37,11 @@ export function TenderCard({ tender }: TenderCardProps) {
   const isOrange = daysUntilClose !== null && daysUntilClose > 10 && daysUntilClose <= 20;
   const isGreen = daysUntilClose !== null && daysUntilClose > 20;
 
+  // Generate tender URL with description for better SEO (falls back to title if no description)
+  const tenderUrl = createTenderUrlFromTitleAndDescription(title, description, tender.ocid);
+
   return (
-    <Link href={`/tender/${tender.ocid}`} target="_blank" rel="noopener noreferrer">
+    <Link href={tenderUrl} target="_blank" rel="noopener noreferrer">
       <Card className={`p-6 hover:shadow-lg transition-shadow cursor-pointer mb-3 ${
         isRed ? "bg-red-50/30" : isOrange ? "bg-orange-50/30" : isGreen ? "bg-green-50/30" : ""
       }`}>
@@ -63,12 +68,19 @@ export function TenderCard({ tender }: TenderCardProps) {
                 <span>{buyerName}</span>
               </div>
             )}
-            {category && (
+            {detailedCategory ? (
+              <div className="flex items-center gap-1 text-xs">
+                <Tag className="h-3 w-3" />
+                <Badge variant="secondary" className="text-xs font-normal">
+                  {detailedCategory}
+                </Badge>
+              </div>
+            ) : category ? (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Tag className="h-3 w-3" />
                 <span className="capitalize">{category}</span>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Timestamps */}

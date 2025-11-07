@@ -120,6 +120,11 @@ model OCDSRelease {
   briefingTime         String?   // Time of briefing session
   briefingVenue        String?   // Venue for briefing session
   briefingMeetingLink  String?   // Online meeting link for briefing
+  // Additional enrichment flags + documents
+  hasBriefing          Boolean?
+  briefingCompulsory   Boolean?
+  detailedCategory     String?   // Detailed category from eTenders website (91 categories)
+  enrichmentDocuments  Json?
 
   // ETL metadata
   importedAt           DateTime  @default(now())
@@ -137,6 +142,7 @@ model OCDSRelease {
   @@index([province])
   @@index([tenderType])
   @@index([enquiryDeadline])
+  @@index([detailedCategory])
   // Composite indexes for common query patterns (performance optimization)
   @@index([publishedAt(sort: Desc), mainCategory])
   @@index([status, closingAt(sort: Desc)])

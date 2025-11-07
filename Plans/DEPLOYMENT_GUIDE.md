@@ -430,7 +430,7 @@ export async function GET(req: NextRequest) {
 3. **Configure Environment Variables**
    - Service → Environment
    - Add all required variables (use existing DATABASE_URL)
-   - Add NEXT_PUBLIC_API_BASE_URL: https://tender-spotlight-pro.onrender.com
+   - NEXT_PUBLIC_API_BASE_URL is not required for v2; client/API calls use same-origin (`/api`). If you keep it, set to your site origin (e.g., https://protenders.co.za).
 
 4. **Deploy**
    - Render auto-deploys on push
@@ -451,6 +451,25 @@ render services list
 # View logs
 render logs --service <service-name>
 ```
+
+---
+
+## Create Admin User (Email-based)
+
+For v2, admin login uses email/password stored in the `User` table (Prisma). Use the helper script to create or update an admin:
+
+```bash
+# Ensure DATABASE_URL is set in your environment (.env.local or shell)
+
+npm run create:admin -- --email "admin@protenders.co.za" --password "<STRONG_PASSWORD>" --name "Admin"
+
+# Example (provided by team):
+npm run create:admin -- --email "admin@protenders.co.za" --password "Nkosi@980105*()" --name "Admin"
+```
+
+Notes:
+- This script upserts the user, sets role to `ADMIN`, and (re)hashes the password with bcrypt.
+- You can run it locally (pointed to production DB) or via any secure environment that has access to the database.
 
 ---
 

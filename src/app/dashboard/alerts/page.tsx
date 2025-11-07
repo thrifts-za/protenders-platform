@@ -63,8 +63,8 @@ export default function DashboardAlerts() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
+      <header className="w-full border-b bg-card">
+        <div className="content-container py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold">Alert Center</h1>
@@ -79,7 +79,8 @@ export default function DashboardAlerts() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="w-full py-8">
+        <div className="content-container max-w-4xl mx-auto">
         {isGuest && (
           <Alert className="mb-6">
             <Info className="h-4 w-4" />
@@ -252,6 +253,7 @@ export default function DashboardAlerts() {
               </Card>
             ))
           )}
+        </div>
         </div>
       </div>
     </div>

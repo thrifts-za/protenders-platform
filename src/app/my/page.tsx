@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/date";
 import { Trash2, FileEdit, Check, Tag as TagIcon } from "lucide-react";
 import Link from "next/link";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 export default function My() {
   const { savedTenders, removeTender, updateTags, updateNotes, toggleSubmitted } = useSavedTenders();
@@ -42,7 +43,8 @@ export default function My() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full py-8">
+        <div className="content-container">
         {savedTenders.length === 0 ? (
           <div className="text-center py-12">
             <FileEdit className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
@@ -56,11 +58,13 @@ export default function My() {
           </div>
         ) : (
           <div className="space-y-4">
-            {savedTenders.map((saved) => (
+            {savedTenders.map((saved) => {
+              const tenderUrl = createTenderUrlFromTitleAndDescription(saved.tender.title, saved.tender.description, saved.tenderId);
+              return (
               <div key={saved.tenderId} className="bg-card border rounded-lg p-6">
                 <div className="flex items-start justify-between gap-4 mb-4">
                   <div className="flex-1">
-                    <Link href={`/tender/${saved.tenderId}`}>
+                    <Link href={tenderUrl}>
                       <h3 className="text-xl font-semibold hover:text-primary cursor-pointer mb-2">
                         {saved.tender.title}
                       </h3>
@@ -201,9 +205,11 @@ export default function My() {
                   </Button>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

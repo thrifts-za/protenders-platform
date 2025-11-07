@@ -18,6 +18,7 @@ import { Calendar, FileText, Info, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { generateICS, downloadICS } from "@/utils/ics";
 import { useMemo } from "react";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 export default function Dashboard() {
   const { savedTenders, removeTender, saveTender } = useSavedTenders();
@@ -75,8 +76,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6">
+      <header className="w-full border-b bg-card">
+        <div className="content-container py-6">
           <div className="flex items-start justify-between">
             <div>
               <h1 className="text-3xl font-bold">
@@ -192,13 +193,15 @@ export default function Dashboard() {
                 <CardContent className="p-6">
                   <h3 className="text-lg font-semibold mb-4">Upcoming Deadlines</h3>
                   <div className="space-y-3">
-                    {stats.upcomingDeadlines.map((saved) => (
+                    {stats.upcomingDeadlines.map((saved) => {
+                      const tenderUrl = createTenderUrlFromTitleAndDescription(saved.tender.title, saved.tender.description, saved.tenderId);
+                      return (
                       <div
                         key={saved.tenderId}
                         className="flex items-center justify-between p-3 bg-muted rounded-lg"
                       >
                         <div className="flex-1">
-                          <Link href={`/tender/${saved.tenderId}`}>
+                          <Link href={tenderUrl}>
                             <p className="font-medium hover:text-primary cursor-pointer">
                               {saved.tender.title}
                             </p>
@@ -217,7 +220,8 @@ export default function Dashboard() {
                           Add .ics
                         </Button>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>

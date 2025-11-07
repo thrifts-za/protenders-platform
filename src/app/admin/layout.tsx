@@ -20,6 +20,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useState } from "react";
 
 const navigation = [
@@ -29,6 +30,8 @@ const navigation = [
   { name: "Tenders", href: "/admin/tenders", icon: FolderOpen },
   { name: "Buyers", href: "/admin/buyers", icon: Building2 },
   { name: "Suppliers", href: "/admin/suppliers", icon: Users },
+  { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Alerts", href: "/admin/alerts", icon: Bell },
   { name: "Config", href: "/admin/config", icon: Settings },
   { name: "Mail", href: "/admin/mail", icon: Mail },
   { name: "Audit Logs", href: "/admin/audit", icon: FileText },

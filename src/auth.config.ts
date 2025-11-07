@@ -2,8 +2,7 @@ import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://tender-spotlight-pro.onrender.com';
+import { prisma } from "@/lib/prisma";
 
 // User type
 export type User = {
@@ -41,62 +40,41 @@ export default {
             };
           }
 
-          // Primary user login (non-admin)
-          const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          }).catch(() => null);
+          // Primary user login (local, Prisma)
+          const user = await prisma.user.findUnique({ where: { email } });
 
-          let baseUser: any = null;
-          if (response && response.ok) {
-            try {
-              const user = await response.json();
-              baseUser = {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role || "user",
-              } as const;
-            } catch {}
+          if (!user || !user.password) {
+            // Fallback: Allow any email/password for development if no user exists
+            if (process.env.NODE_ENV === 'development') {
+              const isAdmin = email.toLowerCase().includes('admin');
+              return {
+                id: email,
+                email,
+                name: email.split('@')[0],
+                role: (isAdmin ? 'admin' : 'user') as string,
+                adminToken: isAdmin ? 'dev-admin-token' : undefined,
+              } as any;
+            }
+            return null;
           }
 
-          // Attempt admin login to obtain backend JWT (if user is admin)
-          let adminToken: string | null = null;
+          const ok = await bcrypt.compare(password, user.password);
+          if (!ok) return null;
+          // Update last login timestamp (best-effort)
           try {
-            const adminRes = await fetch(`${API_BASE_URL}/api/admin/auth/login`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ email, password }),
-            });
-            if (adminRes.ok) {
-              const adminData = await adminRes.json();
-              adminToken = adminData.token;
-              baseUser = {
-                id: adminData.user?.id || baseUser?.id || email,
-                email: adminData.user?.email || email,
-                name: adminData.user?.name || baseUser?.name || email.split('@')[0],
-                role: (adminData.user?.role || "admin") as string,
-                adminToken,
-              };
-            }
+            await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
           } catch {}
 
-          // Fallback: Allow any email/password for development
-          if (process.env.NODE_ENV === 'development') {
-            const isAdmin = email.toLowerCase().includes('admin');
-            return {
-              id: email,
-              email,
-              name: email.split('@')[0],
-              role: (isAdmin ? 'admin' : 'user') as string,
-              adminToken: isAdmin ? 'dev-admin-token' : undefined,
-            };
-          }
-
-          // Return whichever user we got, preferring admin if available
-          if (baseUser) return baseUser as any;
-          return null;
+          // Return NextAuth user object
+          const result: any = {
+            id: user.id,
+            email: user.email,
+            name: user.name || user.email.split('@')[0],
+            role: (user.role?.toLowerCase() === 'admin' ? 'admin' : 'user') as string,
+          };
+          // Preserve adminToken compatibility for existing admin pages (not required by middleware)
+          if (result.role === 'admin') result.adminToken = 'admin-session';
+          return result;
         } catch (error) {
           console.error("Auth error:", error);
           return null;

@@ -9,6 +9,7 @@ import { Calendar, DollarSign, Building2, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { searchTenders } from "@/lib/api";
 import type { TenderSearchResponse } from "@/types/tender";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 export default function HomePage() {
   const provinces = [
@@ -46,11 +47,11 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary/20 via-primary/10 to-background border-b">
-        <div className="container mx-auto px-4 py-16 md:py-24">
+      <section className="w-full bg-gradient-to-br from-primary/20 via-primary/10 to-background border-b">
+        <div className="content-container py-16 md:py-24">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-              South Africa's Premier Government Tender Portal
+              South Africa's Premier eTenders & Government Tender Portal
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8">
               Search 10,000+ government tenders, RFQs & RFPs across South
@@ -110,8 +111,9 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="w-full py-12">
+        <div className="content-container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="p-6 bg-card rounded-lg border text-center">
             <p className="text-3xl md:text-4xl font-bold text-primary mb-2">
               10,000+
@@ -137,10 +139,12 @@ export default function HomePage() {
             <p className="text-sm text-muted-foreground">Alerts</p>
           </div>
         </div>
+        </div>
       </section>
 
       {/* Recent Tenders */}
-      <section className="container mx-auto px-4 py-12">
+      <section className="w-full py-12">
+        <div className="content-container">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-bold">Recently Published Tenders</h2>
           <Link
@@ -150,7 +154,7 @@ export default function HomePage() {
             View all →
           </Link>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {loading && (
             <div className="col-span-full text-center text-muted-foreground">Loading recent tenders...</div>
           )}
@@ -179,7 +183,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <CardTitle className="text-lg leading-tight mb-2">
-                        <Link href={`/tender/${tender.ocid}`} className="hover:text-primary transition-colors">
+                        <Link href={createTenderUrlFromTitleAndDescription(title, description, tender.ocid)} className="hover:text-primary transition-colors">
                           {title}
                         </Link>
                       </CardTitle>
@@ -226,7 +230,7 @@ export default function HomePage() {
 
                   <div className="flex gap-2">
                     <Button asChild className="flex-1">
-                      <Link href={`/tender/${tender.ocid}`}>
+                      <Link href={createTenderUrlFromTitleAndDescription(title, description, tender.ocid)}>
                         View Details
                       </Link>
                     </Button>
@@ -240,10 +244,155 @@ export default function HomePage() {
             );
           })}
         </div>
+        </div>
+      </section>
+
+      {/* eTenders Portal Section */}
+      <section className="w-full py-12 bg-primary/5">
+        <div className="content-container">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">
+              Explore Government eTenders Portal
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Find government eTenders across all South African provinces and categories.
+              Access procurement opportunities from national departments, municipalities, and state-owned enterprises.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Hub Card */}
+            <Link href="/etenders">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🏛️</span>
+                    eTenders Portal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Browse all government eTenders across South Africa. Search by province, category, and department.
+                  </p>
+                  <Badge className="bg-primary/10 text-primary">
+                    All 9 Provinces
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Top Provincial eTenders */}
+            <Link href="/etenders/gauteng">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🏙️</span>
+                    Gauteng eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Find government tenders in Gauteng. Search opportunities from Johannesburg, Pretoria, and surrounding municipalities.
+                  </p>
+                  <Badge className="bg-green-100 text-green-800">
+                    High Volume
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/etenders/kwazulu-natal">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🌊</span>
+                    KwaZulu-Natal eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Discover KZN government tenders. Access procurement opportunities from Durban, Pietermaritzburg, and provincial departments.
+                  </p>
+                  <Badge className="bg-blue-100 text-blue-800">
+                    Active Tenders
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Top Category eTenders */}
+            <Link href="/etenders/category/security-services">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🔒</span>
+                    Security eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Find security services tenders across South Africa. Guarding, access control, surveillance opportunities.
+                  </p>
+                  <Badge className="bg-amber-100 text-amber-800">
+                    1,900+ Monthly Searches
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/etenders/category/cleaning-services">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🧹</span>
+                    Cleaning eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Browse cleaning services tenders nationwide. Office cleaning, sanitation, and hygiene services.
+                  </p>
+                  <Badge className="bg-purple-100 text-purple-800">
+                    1,000+ Monthly Searches
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/etenders/category/construction">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🏗️</span>
+                    Construction eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Access construction and infrastructure tenders. Building, roads, civil engineering projects.
+                  </p>
+                  <Badge className="bg-orange-100 text-orange-800">
+                    High Value Projects
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
+          <div className="text-center mt-8">
+            <Link
+              href="/etenders"
+              className="inline-flex items-center gap-2 text-primary hover:underline font-semibold"
+            >
+              View All Provincial & Category eTenders →
+            </Link>
+          </div>
+        </div>
       </section>
 
       {/* Browse by Province */}
-      <section className="container mx-auto px-4 py-12">
+      <section className="w-full py-12">
+        <div className="content-container">
         <h2 className="text-3xl font-bold mb-8 text-center">
           Browse Tenders by Province
         </h2>
@@ -258,11 +407,12 @@ export default function HomePage() {
             </Link>
           ))}
         </div>
+        </div>
       </section>
 
       {/* Features Section */}
-      <section className="bg-muted/30 py-16">
-        <div className="container mx-auto px-4">
+      <section className="w-full bg-muted/30 py-16">
+        <div className="content-container">
           <h2 className="text-3xl font-bold mb-12 text-center">
             Why Choose ProTenders?
           </h2>
@@ -314,7 +464,8 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="container mx-auto px-4 py-16">
+      <section className="w-full py-16">
+        <div className="content-container">
         <div className="max-w-3xl mx-auto bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl p-8 md:p-12 text-center border">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             Ready to Find Your Next Opportunity?
@@ -337,6 +488,7 @@ export default function HomePage() {
               Set Up Alerts
             </Link>
           </div>
+        </div>
         </div>
       </section>
     </div>

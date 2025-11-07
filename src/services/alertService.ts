@@ -1,7 +1,5 @@
 import { SavedAlert, SearchParams, AlertFrequency } from "@/types/tender";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://tender-spotlight-pro.onrender.com';
-
 // Get user email from localStorage or use demo email
 const getUserEmail = () => {
   if (typeof window === 'undefined') return "demo@example.com";
@@ -19,7 +17,7 @@ export const saveAlert = async (
   name?: string
 ): Promise<SavedAlert> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/savesearch`, {
+    const response = await fetch(`/api/savesearch`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -70,21 +68,30 @@ export const saveAlert = async (
 
 export const getAlerts = async (email?: string): Promise<SavedAlert[]> => {
   try {
-    const userEmail = email || getUserEmail();
-    const response = await fetch(`${API_BASE_URL}/api/alerts?userEmail=${userEmail}`);
+    const response = await fetch(`/api/alerts`);
 
     if (!response.ok) {
-      throw new Error("Failed to fetch alerts");
+      // If unauthorized or not found, return empty array silently
+      // 401 = user not logged in
+      // 404 = route not found (might be during dev/deployment)
+      if (response.status === 401 || response.status === 404) {
+        return [];
+      }
+
+      // Log other errors for debugging
+      console.warn(`Alerts API returned ${response.status}: ${response.statusText}`);
+      return [];
     }
 
-    const savedSearches = await response.json();
+    const result = await response.json();
+    const savedSearches = result.data || [];
 
     // Transform backend response to SavedAlert format
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return savedSearches.map((search: any) => ({
       id: search.id,
       name: search.name,
-      email: userEmail,
+      email: email || "user@example.com", // Email comes from session now
       frequency: search.alertFrequency as AlertFrequency,
       searchParams: {
         keywords: search.keywords,
@@ -113,7 +120,7 @@ export const toggleAlert = async (id: string): Promise<SavedAlert | null> => {
 
     const newFrequency = alert.active ? "none" : alert.frequency;
 
-    const response = await fetch(`${API_BASE_URL}/api/alerts/${id}`, {
+    const response = await fetch(`/api/alerts/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -142,7 +149,7 @@ export const toggleAlert = async (id: string): Promise<SavedAlert | null> => {
 
 export const deleteAlert = async (id: string): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/alerts/${id}`, {
+    const response = await fetch(`/api/alerts/${id}`, {
       method: "DELETE",
     });
 

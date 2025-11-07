@@ -77,7 +77,8 @@ export default function Alerts() {
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="w-full py-8">
+        <div className="content-container">
         {isLoading ? (
           <Card className="p-12 text-center">
             <p className="text-muted-foreground">Loading alerts...</p>
@@ -155,6 +156,7 @@ export default function Alerts() {
             ))}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

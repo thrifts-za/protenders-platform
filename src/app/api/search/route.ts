@@ -35,6 +35,7 @@ interface NormalizedTender {
   description?: string;
   buyerName?: string;
   mainProcurementCategory?: string;
+  detailedCategory?: string;
   closingDate?: string;
   submissionMethods?: string[];
   status?: string;
@@ -163,6 +164,7 @@ export async function GET(request: NextRequest) {
           tenderDescription: true,
           buyerName: true,
           mainCategory: true,
+          detailedCategory: true,
           closingAt: true,
           submissionMethods: true,
           status: true,
@@ -186,6 +188,7 @@ export async function GET(request: NextRequest) {
       description: release.tenderDescription || undefined,
       buyerName: release.buyerName || undefined,
       mainProcurementCategory: release.mainCategory || undefined,
+      detailedCategory: release.detailedCategory || undefined,
       closingDate: release.closingAt?.toISOString(),
       submissionMethods: release.submissionMethods
         ? JSON.parse(release.submissionMethods)

@@ -111,7 +111,8 @@ export default function Workspace() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="w-full py-8">
+        <div className="content-container space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -300,6 +301,7 @@ export default function Workspace() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );

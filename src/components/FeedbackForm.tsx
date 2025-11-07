@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/components/ui/use-toast";
 import { MessageSquare, Lightbulb, Bug, Sparkles } from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://tender-spotlight-pro.onrender.com';
 
 interface FeedbackFormProps {
   onSuccess?: () => void;
@@ -52,7 +51,7 @@ export function FeedbackForm({ onSuccess, onCancel, showCancel = false }: Feedba
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/feedback`, {
+      const response = await fetch(`/api/feedback`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

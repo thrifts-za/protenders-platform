@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { Calendar, Building2, Bookmark } from "lucide-react";
 import { formatDate, formatRelativeDate } from "@/lib/date";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 interface RecommendationsProps {
   savedTenders: SavedTender[];
@@ -68,9 +69,11 @@ export const Recommendations = ({ savedTenders, onSave }: RecommendationsProps) 
         <CardTitle>Recommended for You</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {recommendations.map((tender: NormalizedTender) => (
+        {recommendations.map((tender: NormalizedTender) => {
+          const tenderUrl = createTenderUrlFromTitleAndDescription(tender.title, tender.description, tender.id);
+          return (
           <div key={tender.id} className="border rounded-lg p-4 space-y-3">
-            <Link href={`/tender/${tender.id}`}>
+            <Link href={tenderUrl}>
               <h4 className="font-medium hover:text-primary cursor-pointer line-clamp-2">
                 {tender.title}
               </h4>
@@ -107,7 +110,8 @@ export const Recommendations = ({ savedTenders, onSave }: RecommendationsProps) 
               Save
             </Button>
           </div>
-        ))}
+          )
+        })}
       </CardContent>
     </Card>
   );
