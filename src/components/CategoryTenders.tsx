@@ -24,11 +24,27 @@ export default function CategoryTenders({ categoryId, categoryName, limit = 6 }:
     let cancelled = false;
     (async () => {
       try {
+        // Map internal category IDs to search keywords
+        // Since the database only has generic categories (services, goods, works),
+        // we use keyword search to find relevant tenders
+        const categoryKeywordMap: Record<string, string> = {
+          'cleaning-services': 'cleaning',
+          'security-services': 'security',
+          'construction': 'construction',
+          'it-services': 'IT software hardware technology',
+          'consulting': 'consulting advisory',
+          'healthcare': 'medical health',
+          'catering': 'catering food',
+          'transport': 'transport logistics',
+        };
+
+        const searchKeyword = categoryKeywordMap[categoryId] || categoryId;
+
         const res = await searchTenders({
           page: 1,
           pageSize: limit,
           sort: "latest",
-          categories: [categoryId] // API expects an array
+          q: searchKeyword, // Use keyword search instead of category filter
         });
         if (!cancelled) setTenders(res);
       } catch (error) {

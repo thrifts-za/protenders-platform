@@ -23,11 +23,12 @@ export default function ProvincialTenders({ provinceName, limit = 6 }: Provincia
     let cancelled = false;
     (async () => {
       try {
+        // Use keyword search with province name since the API doesn't have a province filter yet
         const res = await searchTenders({
           page: 1,
           pageSize: limit,
           sort: "latest",
-          province: provinceName
+          q: provinceName // Search for tenders mentioning the province
         });
         if (!cancelled) setTenders(res);
       } catch (error) {
