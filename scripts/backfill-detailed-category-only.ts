@@ -32,7 +32,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
 import { PrismaClient } from '@prisma/client';
-import { queryEtendersByTenderNo } from '../src/lib/enrichment/etendersEnricher';
+import { enrichTenderFromEtenders } from '../src/lib/enrichment/etendersEnricher';
 import { RATE_LIMIT_DELAY_ETENDERS_MS } from '../src/lib/enrichment/constants';
 
 const prisma = new PrismaClient();
@@ -242,8 +242,8 @@ async function backfillDetailedCategory() {
         // Derive tender number
         const tenderNumber = deriveTenderNumber(raw) || record.tenderTitle || record.ocid;
 
-        // Query eTenders API
-        const etendersRow = await queryEtendersByTenderNo(
+        // Query eTenders API with full hybrid search
+        const enrichment = await enrichTenderFromEtenders(
           tenderNumber,
           options.delay,
           {
@@ -253,8 +253,8 @@ async function backfillDetailedCategory() {
           }
         );
 
-        if (etendersRow?.category?.trim()) {
-          const category = etendersRow.category.trim();
+        if (enrichment?.detailedCategory?.trim()) {
+          const category = enrichment.detailedCategory.trim();
 
           if (!options.dryRun) {
             // Update only the detailedCategory field
