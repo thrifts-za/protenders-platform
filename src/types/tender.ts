@@ -23,6 +23,7 @@ export interface Tender {
   updatedAt?: string;
   closingAt?: string;
   status?: string;
+  detailedCategory?: string; // Detailed category from eTenders enrichment (91 categories)
 }
 
 export interface TenderDetails {

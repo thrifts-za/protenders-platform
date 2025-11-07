@@ -188,10 +188,16 @@ export default function TenderClient() {
       {/* Header */}
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="content-container py-8">
-          <div className="mb-3 flex items-center gap-2">
-            <span className="px-3 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full">
-              {tender.tender?.mainProcurementCategory || "Tender"}
-            </span>
+          <div className="mb-3 flex items-center gap-2 flex-wrap">
+            {tender.detailedCategory ? (
+              <span className="px-3 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full">
+                {tender.detailedCategory}
+              </span>
+            ) : (
+              <span className="px-3 py-1 text-xs font-medium bg-primary/20 text-primary rounded-full">
+                {tender.tender?.mainProcurementCategory || "Tender"}
+              </span>
+            )}
             <span
               className={`px-3 py-1 text-xs font-medium rounded-full ${
                 tender.tender?.status === "active"

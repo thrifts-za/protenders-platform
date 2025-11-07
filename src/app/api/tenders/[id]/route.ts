@@ -22,6 +22,7 @@ interface NormalizedTender {
   description?: string;
   buyerName?: string;
   mainProcurementCategory?: string;
+  detailedCategory?: string;
   closingDate?: string;
   submissionMethods?: string[];
   status?: string;
@@ -181,6 +182,7 @@ export async function GET(
       description: release.tenderDescription || undefined,
       buyerName: release.buyerName || undefined,
       mainProcurementCategory: release.mainCategory || undefined,
+      detailedCategory: release.detailedCategory || undefined,
       closingDate: release.closingAt?.toISOString(),
       submissionMethods: release.submissionMethods
         ? JSON.parse(release.submissionMethods)

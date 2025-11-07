@@ -17,6 +17,7 @@ export function TenderCard({ tender }: TenderCardProps) {
   const description = tender.tender?.description || "";
   const buyerName = tender.buyer?.name || "";
   const category = tender.tender?.mainProcurementCategory || "";
+  const detailedCategory = tender.detailedCategory;
   const publishedAt = tender.publishedAt || tender.date;
   const updatedAt = tender.updatedAt;
   const closingDate = tender.tender?.tenderPeriod?.endDate;
@@ -67,12 +68,19 @@ export function TenderCard({ tender }: TenderCardProps) {
                 <span>{buyerName}</span>
               </div>
             )}
-            {category && (
+            {detailedCategory ? (
+              <div className="flex items-center gap-1 text-xs">
+                <Tag className="h-3 w-3" />
+                <Badge variant="secondary" className="text-xs font-normal">
+                  {detailedCategory}
+                </Badge>
+              </div>
+            ) : category ? (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Tag className="h-3 w-3" />
                 <span className="capitalize">{category}</span>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Timestamps */}
