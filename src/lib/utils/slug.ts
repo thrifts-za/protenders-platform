@@ -31,11 +31,19 @@ export function generateSlug(text: string): string {
  * - "LB198" + "ocds-9t57fa-139481" -> "lb198-ocds-9t57fa-139481"
  */
 export function generateTenderSlug(titleOrDescription: string, id: string): string {
-  const slug = generateSlug(titleOrDescription);
+  let slug = generateSlug(titleOrDescription);
+
   // If slug is empty or too short, use only ID
   if (!slug || slug.length < 2) {
     return id;
   }
+
+  // Limit description slug to 80 chars to leave room for OCID (typically ~25 chars)
+  // This ensures total URL length stays reasonable (under 120 chars total)
+  if (slug.length > 80) {
+    slug = slug.slice(0, 80).replace(/-+$/, ''); // Remove trailing hyphens after truncation
+  }
+
   // Always combine slug with ID for uniqueness and SEO
   return `${slug}-${id}`;
 }
