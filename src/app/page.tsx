@@ -9,7 +9,7 @@ import { Calendar, DollarSign, Building2, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { searchTenders } from "@/lib/api";
 import type { TenderSearchResponse } from "@/types/tender";
-import { createTenderUrlFromTitle } from "@/lib/utils/slug";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 export default function HomePage() {
   const provinces = [
@@ -183,7 +183,7 @@ export default function HomePage() {
                         )}
                       </div>
                       <CardTitle className="text-lg leading-tight mb-2">
-                        <Link href={createTenderUrlFromTitle(title, tender.ocid)} className="hover:text-primary transition-colors">
+                        <Link href={createTenderUrlFromTitleAndDescription(title, description, tender.ocid)} className="hover:text-primary transition-colors">
                           {title}
                         </Link>
                       </CardTitle>
@@ -230,7 +230,7 @@ export default function HomePage() {
 
                   <div className="flex gap-2">
                     <Button asChild className="flex-1">
-                      <Link href={createTenderUrlFromTitle(title, tender.ocid)}>
+                      <Link href={createTenderUrlFromTitleAndDescription(title, description, tender.ocid)}>
                         View Details
                       </Link>
                     </Button>
@@ -244,6 +244,149 @@ export default function HomePage() {
             );
           })}
         </div>
+        </div>
+      </section>
+
+      {/* eTenders Portal Section */}
+      <section className="w-full py-12 bg-primary/5">
+        <div className="content-container">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">
+              Explore Government eTenders Portal
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Find government eTenders across all South African provinces and categories.
+              Access procurement opportunities from national departments, municipalities, and state-owned enterprises.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Hub Card */}
+            <Link href="/etenders">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🏛️</span>
+                    eTenders Portal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Browse all government eTenders across South Africa. Search by province, category, and department.
+                  </p>
+                  <Badge className="bg-primary/10 text-primary">
+                    All 9 Provinces
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Top Provincial eTenders */}
+            <Link href="/etenders/gauteng">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🏙️</span>
+                    Gauteng eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Find government tenders in Gauteng. Search opportunities from Johannesburg, Pretoria, and surrounding municipalities.
+                  </p>
+                  <Badge className="bg-green-100 text-green-800">
+                    High Volume
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/etenders/kwazulu-natal">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🌊</span>
+                    KwaZulu-Natal eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Discover KZN government tenders. Access procurement opportunities from Durban, Pietermaritzburg, and provincial departments.
+                  </p>
+                  <Badge className="bg-blue-100 text-blue-800">
+                    Active Tenders
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Top Category eTenders */}
+            <Link href="/etenders/category/security-services">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🔒</span>
+                    Security eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Find security services tenders across South Africa. Guarding, access control, surveillance opportunities.
+                  </p>
+                  <Badge className="bg-amber-100 text-amber-800">
+                    1,900+ Monthly Searches
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/etenders/category/cleaning-services">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🧹</span>
+                    Cleaning eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Browse cleaning services tenders nationwide. Office cleaning, sanitation, and hygiene services.
+                  </p>
+                  <Badge className="bg-purple-100 text-purple-800">
+                    1,000+ Monthly Searches
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/etenders/category/construction">
+              <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 group-hover:text-primary transition-colors">
+                    <span className="text-2xl">🏗️</span>
+                    Construction eTenders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Access construction and infrastructure tenders. Building, roads, civil engineering projects.
+                  </p>
+                  <Badge className="bg-orange-100 text-orange-800">
+                    High Value Projects
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+
+          <div className="text-center mt-8">
+            <Link
+              href="/etenders"
+              className="inline-flex items-center gap-2 text-primary hover:underline font-semibold"
+            >
+              View All Provincial & Category eTenders →
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -1,10 +1,11 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { provinces } from '@/data/provinces';
+import { categories } from '@/data/categories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, ArrowRight, Building2, FileText, Search } from 'lucide-react';
+import { MapPin, ArrowRight, Building2, FileText, Search, Briefcase } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'eTenders South Africa | Find Government Tenders by Province 2025',
@@ -179,6 +180,48 @@ export default function ETendersHubPage() {
                             )}
                           </div>
                         </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Category eTenders */}
+          <div className="mb-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">Browse eTenders by Category</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Find government tenders in your industry. Filter by business sector to discover relevant
+                procurement opportunities.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {[
+                { name: 'Security', slug: 'security-services', volume: '1,900+ monthly searches', icon: '🔒' },
+                { name: 'Cleaning', slug: 'cleaning-services', volume: '1,000+ monthly searches', icon: '🧹' },
+                { name: 'Construction', slug: 'construction', volume: '590+ monthly searches', icon: '🏗️' },
+                { name: 'IT Services', slug: 'it-services', volume: 'High demand', icon: '💻' },
+                { name: 'Consulting', slug: 'consulting', volume: 'Professional services', icon: '📊' },
+                { name: 'Supply & Delivery', slug: 'supply-and-delivery', volume: 'Goods & equipment', icon: '📦' },
+              ].map((category) => (
+                <Link key={category.slug} href={`/etenders/category/${category.slug}`}>
+                  <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                    <CardContent className="pt-6">
+                      <div className="text-center">
+                        <div className="text-4xl mb-3">{category.icon}</div>
+                        <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors">
+                          {category.name} eTenders
+                        </h3>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {category.volume}
+                        </p>
+                        <Button variant="ghost" size="sm" className="w-full">
+                          View {category.name} Tenders
+                          <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-all" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>

@@ -18,7 +18,7 @@ import { Calendar, FileText, Info, Bell } from "lucide-react";
 import { toast } from "sonner";
 import { generateICS, downloadICS } from "@/utils/ics";
 import { useMemo } from "react";
-import { createTenderUrlFromTitle } from "@/lib/utils/slug";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 export default function Dashboard() {
   const { savedTenders, removeTender, saveTender } = useSavedTenders();
@@ -194,7 +194,7 @@ export default function Dashboard() {
                   <h3 className="text-lg font-semibold mb-4">Upcoming Deadlines</h3>
                   <div className="space-y-3">
                     {stats.upcomingDeadlines.map((saved) => {
-                      const tenderUrl = createTenderUrlFromTitle(saved.tender.title, saved.tenderId);
+                      const tenderUrl = createTenderUrlFromTitleAndDescription(saved.tender.title, saved.tender.description, saved.tenderId);
                       return (
                       <div
                         key={saved.tenderId}

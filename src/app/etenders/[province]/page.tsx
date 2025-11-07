@@ -5,9 +5,10 @@ import { getProvinceBySlug, getAllProvinceSlugs } from '@/data/provinces';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Building2, FileText, TrendingUp, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { Building2, FileText, TrendingUp, CheckCircle2, AlertCircle, ArrowRight, MapPin } from 'lucide-react';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { generateBreadcrumbSchema, renderStructuredData } from '@/lib/structured-data';
+import ProvincialTenders from '@/components/ProvincialTenders';
 
 // ISR: Revalidate every 6 hours for eTender pages
 export const revalidate = 21600;
@@ -222,6 +223,11 @@ export default async function ProvincialETenderPage({
             </CardContent>
           </Card>
 
+          {/* Current Tenders - Real Data */}
+          <div className="mb-12">
+            <ProvincialTenders provinceName={provinceData.name} limit={6} />
+          </div>
+
           {/* About Section */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
             <div className="lg:col-span-2 space-y-8">
@@ -391,6 +397,69 @@ export default async function ProvincialETenderPage({
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+
+          {/* Related Provincial eTenders */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6">Explore Other Provincial eTenders</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {getAllProvinceSlugs()
+                .filter(slug => slug !== province)
+                .slice(0, 4)
+                .map((slug) => {
+                  const relatedProvince = getProvinceBySlug(slug);
+                  if (!relatedProvince) return null;
+                  return (
+                    <Link key={slug} href={`/etenders/${slug}`}>
+                      <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                        <CardContent className="pt-6">
+                          <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">
+                            {relatedProvince.name} eTenders
+                          </h3>
+                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                            {relatedProvince.description.split('.')[0]}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <MapPin className="h-3 w-3" />
+                            <span>{relatedProvince.capital}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  );
+                })}
+            </div>
+            <div className="text-center mt-6">
+              <Link href="/etenders" className="text-primary hover:underline font-semibold">
+                View All Provincial eTenders →
+              </Link>
+            </div>
+          </div>
+
+          {/* Related Category eTenders */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold mb-6">Browse by Category</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {[
+                { name: 'Security', slug: 'security-services', icon: '🔒' },
+                { name: 'Cleaning', slug: 'cleaning-services', icon: '🧹' },
+                { name: 'Construction', slug: 'construction', icon: '🏗️' },
+                { name: 'IT Services', slug: 'it-services', icon: '💻' },
+                { name: 'Consulting', slug: 'consulting', icon: '📊' },
+                { name: 'Supply & Delivery', slug: 'supply-and-delivery', icon: '📦' },
+              ].map((category) => (
+                <Link key={category.slug} href={`/etenders/category/${category.slug}`}>
+                  <Card className="h-full hover:shadow-lg hover:border-primary transition-all group">
+                    <CardContent className="pt-6 text-center">
+                      <div className="text-2xl mb-2">{category.icon}</div>
+                      <h3 className="text-sm font-semibold group-hover:text-primary transition-colors">
+                        {category.name}
+                      </h3>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
             </div>
           </div>
 

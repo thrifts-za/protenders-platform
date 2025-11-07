@@ -5,7 +5,7 @@ import { DataQualityBadge } from "@/components/DataQualityBadge";
 import VerificationBadge from "@/components/VerificationBadge";
 import { Calendar, Building2, Tag, Clock } from "lucide-react";
 import { formatDate as fmtDate, formatRelativeDate, getDaysUntilClose } from "@/lib/date";
-import { createTenderUrlFromTitle } from "@/lib/utils/slug";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 import type { Tender } from "@/types/tender";
 
 interface TenderCardProps {
@@ -36,8 +36,8 @@ export function TenderCard({ tender }: TenderCardProps) {
   const isOrange = daysUntilClose !== null && daysUntilClose > 10 && daysUntilClose <= 20;
   const isGreen = daysUntilClose !== null && daysUntilClose > 20;
 
-  // Generate tender URL with title slug
-  const tenderUrl = createTenderUrlFromTitle(title, tender.ocid);
+  // Generate tender URL with description for better SEO (falls back to title if no description)
+  const tenderUrl = createTenderUrlFromTitleAndDescription(title, description, tender.ocid);
 
   return (
     <Link href={tenderUrl} target="_blank" rel="noopener noreferrer">

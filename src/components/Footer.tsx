@@ -71,12 +71,89 @@ export default function Footer() {
       { label: "Free State Tenders", href: "/province/free-state" },
       { label: "Northern Cape Tenders", href: "/province/northern-cape" },
     ],
+    etenders: {
+      hub: { label: "eTenders Portal", href: "/etenders" },
+      provinces: [
+        { label: "Gauteng eTenders", href: "/etenders/gauteng" },
+        { label: "Western Cape eTenders", href: "/etenders/western-cape" },
+        { label: "KwaZulu-Natal eTenders", href: "/etenders/kwazulu-natal" },
+        { label: "Eastern Cape eTenders", href: "/etenders/eastern-cape" },
+        { label: "Free State eTenders", href: "/etenders/free-state" },
+        { label: "Limpopo eTenders", href: "/etenders/limpopo" },
+      ],
+      categories: [
+        { label: "Security eTenders", href: "/etenders/category/security-services" },
+        { label: "Cleaning eTenders", href: "/etenders/category/cleaning-services" },
+        { label: "Construction eTenders", href: "/etenders/category/construction" },
+        { label: "IT Services eTenders", href: "/etenders/category/it-services" },
+        { label: "Consulting eTenders", href: "/etenders/category/consulting" },
+        { label: "Supply & Delivery eTenders", href: "/etenders/category/supply-and-delivery" },
+      ],
+    },
   };
 
 
   return (
     <footer className="w-full bg-card border-t mt-auto">
       <div className="content-container py-12">
+        {/* eTenders Section - Prominent Placement */}
+        <div className="mb-12 p-6 bg-primary/5 rounded-lg border border-primary/20">
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <FileText className="h-5 w-5 text-primary" />
+            eTenders Portal - Find Government Tenders by Province & Category
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Hub Link */}
+            <div>
+              <Link
+                href={footerLinks.etenders.hub.href}
+                className="text-sm font-semibold text-primary hover:underline mb-3 block"
+              >
+                🏛️ {footerLinks.etenders.hub.label} →
+              </Link>
+              <p className="text-xs text-muted-foreground">
+                Browse all government eTenders across South Africa
+              </p>
+            </div>
+
+            {/* Provincial eTenders */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Provincial eTenders</h4>
+              <ul className="space-y-1">
+                {footerLinks.etenders.provinces.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Category eTenders */}
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Category eTenders</h4>
+              <ul className="space-y-1">
+                {footerLinks.etenders.categories.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <Separator className="my-8" />
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-8">
           {/* Features */}
           <div className="lg:col-span-1">

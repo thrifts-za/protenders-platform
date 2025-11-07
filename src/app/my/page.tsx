@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/date";
 import { Trash2, FileEdit, Check, Tag as TagIcon } from "lucide-react";
 import Link from "next/link";
-import { createTenderUrlFromTitle } from "@/lib/utils/slug";
+import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 export default function My() {
   const { savedTenders, removeTender, updateTags, updateNotes, toggleSubmitted } = useSavedTenders();
@@ -59,7 +59,7 @@ export default function My() {
         ) : (
           <div className="space-y-4">
             {savedTenders.map((saved) => {
-              const tenderUrl = createTenderUrlFromTitle(saved.tender.title, saved.tenderId);
+              const tenderUrl = createTenderUrlFromTitleAndDescription(saved.tender.title, saved.tender.description, saved.tenderId);
               return (
               <div key={saved.tenderId} className="bg-card border rounded-lg p-6">
                 <div className="flex items-start justify-between gap-4 mb-4">
