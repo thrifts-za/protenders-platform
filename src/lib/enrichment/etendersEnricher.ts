@@ -24,6 +24,7 @@ export type EtendersRow = {
   date_Published?: string;
   closing_Date?: string;
   province?: string;
+  category?: string | null;
   briefingSession?: boolean;
   briefingCompulsory?: boolean;
   compulsory_briefing_session?: string | null;
@@ -49,6 +50,7 @@ export interface EnrichmentData {
   briefingVenue?: string;
   briefingMeetingLink?: string;
   tenderType?: string;
+  detailedCategory?: string;
   hasBriefing?: boolean;
   briefingCompulsory?: boolean;
   documents?: Array<{
@@ -361,6 +363,11 @@ export function enrichFromEtendersRow(row: EtendersRow): EnrichmentData {
 
   if (row.type) {
     enrichment.tenderType = row.type;
+  }
+
+  // Detailed category from eTenders
+  if (row.category && row.category.trim()) {
+    enrichment.detailedCategory = row.category.trim();
   }
 
   // Support documents from eTenders API

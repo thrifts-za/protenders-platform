@@ -408,6 +408,7 @@ export async function performSync(options?: {
           briefingMeetingLink: enrichmentData.briefingMeetingLink || undefined,
           hasBriefing: typeof enrichmentData.hasBriefing === 'boolean' ? enrichmentData.hasBriefing : undefined,
           briefingCompulsory: typeof enrichmentData.briefingCompulsory === 'boolean' ? enrichmentData.briefingCompulsory : undefined,
+          detailedCategory: enrichmentData.detailedCategory || undefined,
           enrichmentDocuments: Array.isArray(enrichmentData.documents) ? (enrichmentData.documents as any) : undefined,
         } : {};
 
