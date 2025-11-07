@@ -10,6 +10,21 @@ This script backfills the `detailedCategory` field for all tenders that are miss
 - **Tenders with detailedCategory**: 9 (0.02%)
 - **Tenders missing detailedCategory**: ~49,275 (99.98%)
 
+## Prerequisites
+
+**IMPORTANT**: Before running this script, ensure your `.env.local` has these settings:
+
+```bash
+ENRICH_SEARCH_STRATEGY="hybrid"
+ENRICH_USE_TITLE="true"
+```
+
+These settings enable:
+- Multi-page API searches (pages 0, 200, 400+)
+- Title-based fallback searches when tender number doesn't match
+- Buyer name + title combination queries
+- Higher match rates (96% vs 1.6% with default "simple" strategy)
+
 ## Why This Script?
 
 The 91 detailed categories from eTenders (like "Services: Building", "Construction", "Services: IT") enable:
@@ -131,9 +146,15 @@ Success rate:     93.0%
 - **Records to process**: ~49,275
 - **API delay**: 350ms per record
 - **Estimated time**: ~17,146 seconds ≈ 4.8 hours
-- **Success rate**: ~90-95% (some tenders may not exist in eTenders)
+- **Success rate**: ~95-96% (verified with hybrid search + title fallback enabled)
+- **Expected categorized**: ~47,000+ out of 49,275 tenders
 - **Batch size**: 500 records per batch
 - **Total batches**: ~99 batches
+
+**Note**: Success rate improved from 1.6% to 96% by:
+1. Setting `ENRICH_SEARCH_STRATEGY="hybrid"` in `.env.local`
+2. Setting `ENRICH_USE_TITLE="true"` in `.env.local`
+3. Using full tender title as search query instead of regex-extracted patterns
 
 ## Cancellation
 

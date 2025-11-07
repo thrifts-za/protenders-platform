@@ -92,27 +92,25 @@ function parseArgs() {
   return options;
 }
 
-// Derive tender number from raw OCDS data
+// Derive tender number or search query from raw OCDS data
 function deriveTenderNumber(raw: any): string | null {
   if (!raw) return null;
 
-  // Try to extract from title using common patterns
   const title = raw?.tender?.title || '';
-  if (typeof title === 'string') {
-    // Match patterns like: RFQ-123, RFP/2024/001, etc.
-    const match = title.match(/\b(RFQ|RFP|RFB|RFT|RFI|RFA|RFPQ|RFBQ|EOI)[-_\s:/]*([A-Z0-9/\.-]{3,})/i);
-    if (match) {
-      return match[0].replace(/\s+/g, '');
-    }
 
-    // Try to match tender number pattern
-    const numMatch = title.match(/([A-Z0-9/\.-]{3,})[-_\s:/]*(RFQ|RFP|RFB|RFT|RFI|RFA|RFPQ|RFBQ|EOI)\b/i);
-    if (numMatch) {
-      return numMatch[0].replace(/\s+/g, '');
-    }
+  // Strategy: Use the FULL TITLE as the search query
+  // The hybrid search strategy with ENRICH_USE_TITLE=true is designed to:
+  // 1. First try extracting tender number patterns
+  // 2. Then fall back to tokenizing the title and searching
+  // 3. Use buyer name + title combinations
+  // This approach works much better than trying to extract specific patterns here
+
+  if (typeof title === 'string' && title.trim().length > 0) {
+    // Return the full title - the hybrid search will handle extraction
+    return title.trim();
   }
 
-  // Fallback to tender.id
+  // Fallback to tender.id if no title
   const tenderId = raw?.tender?.id;
   if (tenderId != null) {
     return String(tenderId);
