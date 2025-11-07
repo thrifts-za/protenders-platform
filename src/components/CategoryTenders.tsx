@@ -25,15 +25,23 @@ export default function CategoryTenders({ categoryId, categoryName, limit = 6 }:
     (async () => {
       try {
         // Map internal category IDs to search keywords
-        // Since the database only has generic categories (services, goods, works),
-        // we use keyword search to find relevant tenders
+        // CURRENT: Using keyword search while backfilling official eTenders categories
+        // FUTURE: Will map to official categories once data is complete:
+        // - 'cleaning-services' → 'Services: Functional (Including Cleaning and Security Services)'
+        // - 'security-services' → 'Services: Functional (Including Cleaning and Security Services)'
+        // - 'construction' → 'Construction' or 'Specialised construction activities'
+        // - 'it-services' → 'Computer programming, consultancy and related activities'
+        // - 'consulting' → 'Activities of head offices; management consultancy activities'
+        // - 'catering' → 'Food and beverage service activities'
+        // - 'transport' → 'Transportation and storage' or 'Land transport and transport via pipelines'
+
         const categoryKeywordMap: Record<string, string> = {
           'cleaning-services': 'cleaning',
           'security-services': 'security',
           'construction': 'construction',
           'it-services': 'IT software hardware technology',
           'consulting': 'consulting advisory',
-          'healthcare': 'medical health',
+          'supply-and-delivery': 'supply delivery',
           'catering': 'catering food',
           'transport': 'transport logistics',
         };

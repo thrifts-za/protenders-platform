@@ -53,6 +53,37 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
+  // eTenders Hub and Provincial eTender pages
+  const eTendersHub = {
+    url: `${baseUrl}/etenders`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.95,
+  }
+
+  const provincialETenderPages = provinceSlugs.map((slug) => ({
+    url: `${baseUrl}/etenders/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.9,
+  }))
+
+  // Category eTender pages (only active categories)
+  const activeCategoryETenderSlugs = [
+    'security-services',
+    'cleaning-services',
+    'construction',
+    'it-services',
+    'consulting',
+    'supply-and-delivery',
+  ]
+  const categoryETenderPages = activeCategoryETenderSlugs.map((slug) => ({
+    url: `${baseUrl}/etenders/category/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }))
+
   // Static pages
   const staticPages = [
     {
@@ -60,6 +91,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'always' as const,
       priority: 1,
+    },
+    {
+      url: `${baseUrl}/provinces`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/categories`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
     },
     {
       url: `${baseUrl}/alerts`,
@@ -75,6 +118,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/faq`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/how-it-works`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
@@ -96,6 +145,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
     },
   ]
 
@@ -141,6 +202,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     homepage,
+    eTendersHub,
+    ...provincialETenderPages,
+    ...categoryETenderPages,
     ...provincePages,
     ...categoryPages,
     ...municipalityPages,
