@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TenderCard } from "@/components/TenderCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { TrendingUp, Target, ArrowLeft } from "lucide-react";
 import type { TenderSearchResponse } from "@/types/tender";
 import { searchTenders } from "@/lib/api";
@@ -29,16 +30,16 @@ export default function Opportunities() {
     fetchOpportunities();
   }, []);
 
+  const breadcrumbItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Opportunities' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="content-container py-12">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-6">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Search
-            </Button>
-          </Link>
+          <Breadcrumbs items={breadcrumbItems} />
 
           <div className="flex items-start gap-4 mb-6">
             <div className="p-3 bg-primary/10 rounded-lg">
