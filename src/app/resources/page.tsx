@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { BookOpen, HelpCircle, FileText, Lightbulb, GraduationCap, MessageSquare } from "lucide-react";
 
 export const metadata = {
@@ -87,8 +88,14 @@ export default function ResourcesHub() {
     },
   ];
 
+  const breadcrumbItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Resources' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Hero Section */}
       <section className="w-full border-b bg-gradient-to-br from-primary/5 via-background to-background">
         <div className="content-container py-12">

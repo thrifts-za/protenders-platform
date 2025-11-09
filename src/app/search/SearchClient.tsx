@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Download, AlertCircle, Info, Building2, FileText, CheckSquare } from "lucide-react";
 import { exportToCSV } from "@/lib/csv";
 import { useRouter } from "next/navigation";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 const FRESHNESS_STORAGE_KEY = "tender-search-freshness";
 
@@ -187,8 +188,14 @@ function SearchContent() {
 
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
+  const breadcrumbItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Search Tenders' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       <header className="w-full border-b bg-gradient-to-br from-primary/5 via-background to-background">
         <div className="content-container py-8">
           <h1 className="text-3xl md:text-4xl font-bold text-primary mb-2">

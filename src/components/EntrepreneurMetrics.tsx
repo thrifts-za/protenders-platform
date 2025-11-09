@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,8 @@ import {
   Lock,
   Crown
 } from "lucide-react";
+import { PremiumContent } from '@/components/PremiumContent';
+import { WaitingListModal } from '@/components/WaitingListModal';
 
 interface EntrepreneurMetricsProps {
   tender: any;
@@ -32,6 +35,8 @@ interface MarketInsight {
 }
 
 export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetricsProps) {
+  const [showWaitingList, setShowWaitingList] = useState(false);
+
   // Use REAL AI data from backend intelligence
   const marketInsights: MarketInsight[] = [
     {
@@ -138,9 +143,11 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
   };
 
   return (
-    <div className="space-y-6">
-      {/* Market Insights Overview */}
-      <Card>
+    <>
+      <PremiumContent onUpgradeClick={() => setShowWaitingList(true)} blurIntensity="md">
+        <div className="space-y-6">
+          {/* Market Insights Overview */}
+          <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <BarChart3 className="h-5 w-5 text-green-600" />
@@ -163,11 +170,6 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
                 </div>
                 <div className="text-xs text-gray-600">{insight.description}</div>
               </div>
-              {insight.actionable && (
-                <Button variant="outline" size="sm">
-                  View
-                </Button>
-              )}
             </div>
           ))}
         </CardContent>
@@ -380,7 +382,10 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
           <p className="text-sm text-green-100">
             Access detailed market insights, buyer spending patterns, and BBBEE analytics to maximize your win rate
           </p>
-          <Button className="bg-white text-green-600 hover:bg-green-50 font-semibold">
+          <Button
+            className="bg-white text-green-600 hover:bg-green-50 font-semibold"
+            onClick={() => setShowWaitingList(true)}
+          >
             Upgrade Now
           </Button>
           <div className="flex items-center justify-center gap-4 text-xs text-green-200">
@@ -390,6 +395,14 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
           </div>
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </PremiumContent>
+
+      <WaitingListModal
+        isOpen={showWaitingList}
+        onClose={() => setShowWaitingList(false)}
+        source="entrepreneur-metrics"
+      />
+    </>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Search, Clock, TrendingUp, Target, MapPin, Grid3x3, Calendar, AlertCircle } from "lucide-react";
 
 export const metadata = {
@@ -84,8 +85,14 @@ export default function TendersHub() {
     },
   ];
 
+  const breadcrumbItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Browse Tenders' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Hero Section */}
       <section className="w-full border-b bg-gradient-to-br from-primary/5 via-background to-background">
         <div className="content-container py-12">

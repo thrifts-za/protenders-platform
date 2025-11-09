@@ -5,6 +5,7 @@ import VerificationBadge from "@/components/VerificationBadge";
 import { Calendar, Building2, Tag, Clock } from "lucide-react";
 import { formatDate as fmtDate, formatRelativeDate, getDaysUntilClose } from "@/lib/date";
 import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
+import { toSentenceCase } from "@/lib/utils";
 import type { Tender } from "@/types/tender";
 
 interface TenderCardProps {
@@ -57,7 +58,7 @@ export function TenderCard({ tender }: TenderCardProps) {
             </div>
           </div>
 
-          {description && <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>}
+          {description && <p className="text-sm text-muted-foreground line-clamp-2">{toSentenceCase(description)}</p>}
 
           <div className="flex flex-wrap gap-2">
             {buyerName && (

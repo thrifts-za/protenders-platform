@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TenderCard } from "@/components/TenderCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Clock, AlertTriangle, Bell, ArrowLeft } from "lucide-react";
 import type { Tender, TenderSearchResponse } from "@/types/tender";
 import { searchTenders } from "@/lib/api";
@@ -30,16 +31,16 @@ export default function ClosingSoon() {
     fetchClosingSoon();
   }, []);
 
+  const breadcrumbItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Closing Soon' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       <header className="w-full border-b bg-gradient-to-br from-red-50 via-orange-50 to-background dark:from-red-950/20 dark:via-orange-950/20">
         <div className="content-container py-12">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-6">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Search
-            </Button>
-          </Link>
 
           <div className="flex items-start gap-4 mb-6">
             <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">

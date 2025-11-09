@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import {
   Building2, Factory, Zap, Hammer, Laptop, Briefcase, GraduationCap,
   Heart, Truck, ShieldCheck, Trees, Droplet, Shirt, Package, FileText,
@@ -231,8 +232,14 @@ const categoryGroups = [
 export default function CategoriesPage() {
   const totalCategories = categoryGroups.reduce((sum, group) => sum + group.categories.length, 0);
 
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "Categories" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Hero Section */}
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="content-container py-16">

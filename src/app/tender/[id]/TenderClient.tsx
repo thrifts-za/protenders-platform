@@ -10,14 +10,22 @@ import { useToast } from "@/hooks/use-toast";
 import OpportunityScoreCard from "@/components/OpportunityScoreCard";
 import { Tender } from "@/types/tender";
 import { getTenderById } from "@/lib/api";
-import { Calendar, DollarSign, FileText, Clock, Building2, Target, Star, Share2, Info, Check } from "lucide-react";
+import { Calendar, DollarSign, FileText, Clock, Building2, Target, Star, Share2, Info, Check, Lock } from "lucide-react";
 import StrategicAssistant from "@/components/StrategicAssistant";
 import EntrepreneurMetrics from "@/components/EntrepreneurMetrics";
 import TenderStructuredData from "@/components/tender/TenderStructuredData";
 import { extractTenderIdFromSlug } from "@/lib/utils/slug";
+import { toSentenceCase } from "@/lib/utils";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { CountdownTimer } from "@/components/CountdownTimer";
 import { createTenderCalendarEvent, downloadICSFile } from "@/lib/utils/calendar";
+import FinancialIntelligence from "@/components/tender/FinancialIntelligence";
+import CompetitiveAnalysis from "@/components/tender/CompetitiveAnalysis";
+import ActionCenter from "@/components/tender/ActionCenter";
+import RealTimeUpdates from "@/components/tender/RealTimeUpdates";
+import AwardHistory from "@/components/tender/AwardHistory";
+import DocumentsList from "@/components/tender/DocumentsList";
+import OverviewTab from "@/components/tender/OverviewTab";
 
 // This is the client-side interactive component for tender details
 // The server component wrapper (page.tsx) handles metadata generation
@@ -529,9 +537,9 @@ export default function TenderClient() {
       <main className="w-full py-8">
         <div className="content-container">
           {/* 2-Column Layout: Cards on left, Sidebar on right */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(300px,350px)] xl:grid-cols-[1fr_350px] gap-6 lg:gap-8">
             {/* Left Column - Main Cards */}
-            <div className="space-y-8">
+            <div className="space-y-8 w-full min-w-0">
               {/* Description Section */}
               {tender.tender?.description && (
                 <Card>
@@ -540,7 +548,7 @@ export default function TenderClient() {
                   </CardHeader>
                   <CardContent>
                     <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
-                      {tender.tender.description}
+                      {toSentenceCase(tender.tender.description)}
                     </div>
                   </CardContent>
                 </Card>
@@ -766,87 +774,53 @@ export default function TenderClient() {
                 </TabsList>
 
                 {/* Overview Tab */}
-                <TabsContent value="overview" className="space-y-8">
-                  {/* AI Opportunity Score Card */}
-                  <OpportunityScoreCard tender={tender} />
+                <TabsContent value="overview">
+                  <OverviewTab tender={tender} />
                 </TabsContent>
 
                 {/* Financial Tab */}
-                <TabsContent value="financial" className="space-y-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Financial Intelligence</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Financial analysis component will be implemented here.</p>
-                    </CardContent>
-                  </Card>
+                <TabsContent value="financial">
+                  <FinancialIntelligence
+                    tenderValue={tender?.tender?.value?.amount}
+                    tenderTitle={tender?.tender?.title}
+                  />
                 </TabsContent>
 
                 {/* Competitor Tab */}
-                <TabsContent value="competitor" className="space-y-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Competitive Analysis</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Competitive analysis component will be implemented here.</p>
-                    </CardContent>
-                  </Card>
+                <TabsContent value="competitor">
+                  <CompetitiveAnalysis
+                    tenderCategory={tender?.tender?.mainProcurementCategory}
+                    province={tender?.parties?.find(p => p.roles?.includes('buyer'))?.address?.region}
+                  />
                 </TabsContent>
 
                 {/* Documents Tab */}
-                <TabsContent value="documents" className="space-y-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Documents</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Document analysis component will be implemented here.</p>
-                    </CardContent>
-                  </Card>
+                <TabsContent value="documents">
+                  <DocumentsList documents={documents} />
                 </TabsContent>
 
                 {/* Actions Tab */}
-                <TabsContent value="actions" className="space-y-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Action Center</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Task management component will be implemented here.</p>
-                    </CardContent>
-                  </Card>
+                <TabsContent value="actions">
+                  <ActionCenter closingDate={tender?.closingAt} />
                 </TabsContent>
 
                 {/* Updates Tab */}
-                <TabsContent value="updates" className="space-y-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Real-time Updates</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Real-time updates component will be implemented here.</p>
-                    </CardContent>
-                  </Card>
+                <TabsContent value="updates">
+                  <RealTimeUpdates tenderNumber={tender?.tender?.id} />
                 </TabsContent>
 
                 {/* Awards Tab */}
-                <TabsContent value="awards" className="space-y-8">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Award History</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground">Award history component will be implemented here.</p>
-                    </CardContent>
-                  </Card>
+                <TabsContent value="awards">
+                  <AwardHistory
+                    buyerName={tender?.buyer?.name}
+                    tenderCategory={tender?.tender?.mainProcurementCategory}
+                  />
                 </TabsContent>
               </Tabs>
             </div>
 
             {/* Right Column - Sticky Sidebar */}
-            <div className="lg:sticky lg:top-8 lg:self-start">
+            <div className="lg:sticky lg:top-8 lg:self-start w-full max-w-full">
               <Tabs defaultValue="strategy" className="w-full">
                 <TabsList className="w-full grid grid-cols-2">
                   <TabsTrigger value="strategy">Strategy</TabsTrigger>

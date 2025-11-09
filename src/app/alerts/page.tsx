@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { ArrowLeft, Trash2, Mail, Clock, Search } from "lucide-react";
 import { formatDate } from "@/lib/date";
 import { toast } from "sonner";
@@ -62,8 +63,14 @@ export default function Alerts() {
     return parts.length > 0 ? parts.join(" • ") : "All tenders";
   };
 
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "Tender Alerts" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-6">
           <Link href="/">

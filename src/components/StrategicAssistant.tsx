@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,8 @@ import {
   Lock,
   Crown
 } from "lucide-react";
+import { PremiumContent } from '@/components/PremiumContent';
+import { WaitingListModal } from '@/components/WaitingListModal';
 
 interface StrategicAssistantProps {
   tender: any;
@@ -36,6 +39,8 @@ interface StrategyRecommendation {
 }
 
 export default function StrategicAssistant({ tender, intel }: StrategicAssistantProps) {
+  const [showWaitingList, setShowWaitingList] = useState(false);
+
   // Mock strategic analysis based on tender data
   // In production, this would use AI analysis of all intelligence data
   const strategicAnalysis = {
@@ -162,32 +167,33 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
   };
 
   return (
-    <Card className="h-fit">
-      <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Brain className="h-5 w-5 text-purple-600" />
-          Strategic Assistant
-        </CardTitle>
-        <div className="flex items-center gap-2">
-          <div className="text-sm text-gray-600">Win Probability:</div>
-          <div className="relative">
-            <Badge className={`${strategicAnalysis.winProbability >= 70 ? 'bg-green-100 text-green-800' : strategicAnalysis.winProbability >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'} blur-sm select-none`}>
-              {strategicAnalysis.winProbability}%
-            </Badge>
-            <Lock className="h-3 w-3 text-gray-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-          </div>
-        </div>
-      </CardHeader>
+    <>
+      <PremiumContent onUpgradeClick={() => setShowWaitingList(true)} blurIntensity="md">
+        <Card className="h-fit">
+          <CardHeader className="bg-gradient-to-r from-purple-50 to-blue-50 border-b">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Brain className="h-5 w-5 text-purple-600" />
+              Strategic Assistant
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="text-sm text-gray-600">Win Probability:</div>
+              <div className="relative">
+                <Badge className={`${strategicAnalysis.winProbability >= 70 ? 'bg-green-100 text-green-800' : strategicAnalysis.winProbability >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                  {strategicAnalysis.winProbability}%
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
 
-      <CardContent className="space-y-6 pt-6">
+          <CardContent className="space-y-6 pt-6">
         {/* Price Strategy Recommendation */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-green-600" />
             <h3 className="font-semibold text-sm">Recommended Price Band</h3>
           </div>
-          <div className="bg-green-50 p-3 rounded-lg border border-green-200 relative">
-            <div className="text-center mb-2 blur-sm select-none">
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+            <div className="text-center mb-2">
               <div className="text-lg font-bold text-green-700">
                 {formatCurrency(strategicAnalysis.recommendedPriceBand.min)} - {formatCurrency(strategicAnalysis.recommendedPriceBand.max)}
               </div>
@@ -197,9 +203,6 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
               <p>• Competitive yet profitable positioning</p>
               <p>• Accounts for 80% price weighting in evaluation</p>
               <p>• Considers competitor pricing patterns</p>
-            </div>
-            <div className="absolute top-2 right-2">
-              <Lock className="h-4 w-4 text-gray-500" />
             </div>
           </div>
         </div>
@@ -324,7 +327,10 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
           <p className="text-sm text-purple-100">
             Get complete access to win probability scores, pricing recommendations, and AI-powered bid strategies
           </p>
-          <Button className="bg-white text-purple-600 hover:bg-purple-50 font-semibold">
+          <Button
+            className="bg-white text-purple-600 hover:bg-purple-50 font-semibold"
+            onClick={() => setShowWaitingList(true)}
+          >
             Upgrade to Premium
           </Button>
           <div className="flex items-center justify-center gap-4 text-xs text-purple-200">
@@ -335,5 +341,13 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
         </div>
       </CardContent>
     </Card>
+      </PremiumContent>
+
+      <WaitingListModal
+        isOpen={showWaitingList}
+        onClose={() => setShowWaitingList(false)}
+        source="strategic-assistant"
+      />
+    </>
   );
 }

@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Database, Search, FileText, Activity, TrendingUp, AlertCircle, Rocket, RefreshCw } from "lucide-react";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 interface Metrics {
   totalReleases: number;
@@ -97,6 +100,8 @@ export default function AdminDashboard() {
     );
   }
 
+  const hasData = metrics && (metrics.totalReleases > 0 || metrics.uniqueOcids > 0);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -106,6 +111,48 @@ export default function AdminDashboard() {
           Overview of system metrics and recent activity
         </p>
       </div>
+
+      {/* Getting Started Banner - shown when no data */}
+      {!hasData && (
+        <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950/20">
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Rocket className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-blue-900 dark:text-blue-100">Getting Started</CardTitle>
+            </div>
+            <CardDescription className="text-blue-800 dark:text-blue-200">
+              Your database is empty. Start by importing tender data to populate the platform.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100">Quick Start Guide:</h4>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800 dark:text-blue-200">
+                <li>Go to <strong>ETL Sync</strong> page to configure data sources</li>
+                <li>Click <strong>"Sync Now"</strong> below or use the ETL page to import tender data</li>
+                <li>Wait for the import to complete (check Recent Jobs below)</li>
+                <li>Once complete, explore tenders in the <strong>Tenders</strong> section</li>
+              </ol>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => triggerJob('/api/admin/jobs/sync-now', 'Import tender data now? This may take several minutes.')}
+                disabled={jobBusy}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Import Data Now
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = '/admin/etl'}
+              >
+                Go to ETL Sync
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Top Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

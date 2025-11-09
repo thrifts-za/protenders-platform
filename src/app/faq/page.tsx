@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import {
   Accordion,
   AccordionContent,
@@ -127,8 +128,14 @@ export default function FAQ() {
     },
   ];
 
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "FAQ" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       <header className="border-b bg-card">
         <div className="container mx-auto px-4 py-6">
           <Link href="/">

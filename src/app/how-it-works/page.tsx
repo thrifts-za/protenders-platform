@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import {
   ArrowLeft,
   Search,
@@ -165,8 +166,14 @@ export default function HowItWorks() {
     },
   ];
 
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "How It Works" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Hero Section */}
       <header className="border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="container mx-auto px-4 py-12">

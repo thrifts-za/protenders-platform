@@ -6,7 +6,7 @@ import {
   generateWebSiteSchema,
   renderStructuredData,
 } from "@/lib/structured-data";
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalFooter";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import SessionProvider from "@/components/SessionProvider";
@@ -18,7 +18,10 @@ import { MIXPANEL_TOKEN, CLARITY_PROJECT_ID } from "@/config/analytics";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import NotificationBar from "@/components/NotificationBar";
+import ConditionalNotificationBar from "@/components/ConditionalNotificationBar";
+import NavigationMenu from "@/components/NavigationMenu";
+import FloatingContributeButton from "@/components/FloatingContributeButton";
+import AmbientGradient from "@/components/AmbientGradient";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -184,9 +187,12 @@ export default function RootLayout({
         <Providers>
           <SessionProvider>
             <TooltipProvider>
-            <div className="min-h-screen flex flex-col">
+            {/* Ambient Background Gradient */}
+            <AmbientGradient />
+
+            <div className="min-h-screen flex flex-col relative z-10">
             {/* Notification Bar */}
-            <NotificationBar />
+            <ConditionalNotificationBar />
 
             {/* Header/Navigation */}
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -196,13 +202,7 @@ export default function RootLayout({
                     ProTenders
                   </span>
                 </Link>
-                <div className="flex items-center gap-6">
-                  <Link href="/search" className="text-sm font-medium hover:text-primary transition-colors">Search</Link>
-                  <Link href="/provinces" className="text-sm font-medium hover:text-primary transition-colors">Provinces</Link>
-                  <Link href="/alerts" className="text-sm font-medium hover:text-primary transition-colors">Alerts</Link>
-                  <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">About</Link>
-                  <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">Login</Link>
-                </div>
+                <NavigationMenu />
               </nav>
             </header>
 
@@ -210,10 +210,11 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
               <VisitorModal />
+              <FloatingContributeButton />
             </main>
 
             {/* Footer */}
-            <Footer />
+            <ConditionalFooter />
           </div>
               <Toaster />
               <SonnerToaster position="top-right" />

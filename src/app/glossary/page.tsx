@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { ArrowLeft, Search, BookOpen } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -365,8 +366,14 @@ export default function TenderGlossary() {
 
   const availableLetters = Object.keys(termsByLetter);
 
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "Glossary" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Header */}
       <header className="border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="w-full py-12">

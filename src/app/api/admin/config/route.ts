@@ -18,6 +18,22 @@ export const runtime = 'nodejs';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Try to get notification bar config from database
+    let notificationBarMessage = '🚀 Beta Version - Best viewed on desktop for optimal experience';
+
+    try {
+      const storedConfig = await prisma.platformConfig.findFirst({
+        where: { key: 'notificationBar' }
+      });
+      if (storedConfig && storedConfig.value) {
+        const parsed = JSON.parse(storedConfig.value as string);
+        notificationBarMessage = parsed.message || notificationBarMessage;
+      }
+    } catch (dbError) {
+      // If table doesn't exist or error, use default
+      console.warn('Could not fetch notification bar config:', dbError);
+    }
+
     // Return platform configuration
     const config = {
       platform: {
@@ -31,6 +47,10 @@ export async function GET(request: NextRequest) {
         tenderPacks: true,
         aiIntelligence: true,
         analytics: true,
+      },
+      notificationBar: {
+        message: notificationBarMessage,
+        enabled: true,
       },
       sync: {
         enabled: true,
@@ -70,17 +90,35 @@ export async function GET(request: NextRequest) {
 
 /**
  * PUT /api/admin/config
- * Update platform configuration (in-memory only)
+ * Update platform configuration
  */
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
 
-    // Configuration updates are in-memory only
-    // In a real implementation, this would persist to a database
+    // Handle notification bar updates
+    if (body.notificationBar) {
+      try {
+        await prisma.platformConfig.upsert({
+          where: { key: 'notificationBar' },
+          create: {
+            key: 'notificationBar',
+            value: JSON.stringify({ message: body.notificationBar.message }),
+          },
+          update: {
+            value: JSON.stringify({ message: body.notificationBar.message }),
+            updatedAt: new Date(),
+          },
+        });
+      } catch (dbError) {
+        console.warn('Could not persist notification bar config:', dbError);
+        // Continue even if database update fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'Configuration updated (in-memory only)',
+      message: 'Configuration updated',
       config: body,
       updatedAt: new Date().toISOString(),
     });
