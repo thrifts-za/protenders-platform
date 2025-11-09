@@ -298,10 +298,9 @@ export default function TenderClient() {
     });
   }
 
-  // Add current tender title (no URL for current page)
+  // Add current tender title (no URL for current page) - full title for SEO
   const tenderTitle = tender.tender?.title || "Tender Details";
-  const truncatedTitle = tenderTitle.length > 50 ? tenderTitle.substring(0, 50) + '...' : tenderTitle;
-  breadcrumbItems.push({ name: truncatedTitle });
+  breadcrumbItems.push({ name: tenderTitle });
 
   return (
     <div className="min-h-screen bg-background">

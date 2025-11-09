@@ -154,7 +154,7 @@ export default function HomePage() {
             View all →
           </Link>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {loading && (
             <div className="col-span-full text-center text-muted-foreground">Loading recent tenders...</div>
           )}

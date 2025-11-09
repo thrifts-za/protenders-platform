@@ -151,7 +151,7 @@ export function CountdownTimer({ closingDate, className }: CountdownTimerProps) 
       ) : (
         <Clock className="h-4 w-4 flex-shrink-0" />
       )}
-      <div className="flex flex-col gap-0.5">
+      <div className="flex items-center gap-2">
         <span className="text-xs font-medium uppercase tracking-wide opacity-75">
           {urgencyStyle.label}
         </span>
