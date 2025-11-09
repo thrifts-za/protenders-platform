@@ -9,6 +9,7 @@ import Checkbox from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { X, Search, RotateCcw, Save } from "lucide-react";
+import { trackFilterChange, trackButtonClick } from "@/lib/analytics";
 
 interface FilterPanelProps {
   onSearch: (params: SearchParams) => void;
@@ -35,9 +36,11 @@ export const FilterPanel = ({ onSearch, onSaveSearch }: FilterPanelProps) => {
   const [status, setStatus] = useState<string>("any");
 
   const handleCategoryToggle = (category: string) => {
+    const isActive = categories.includes(category);
     setCategories((prev) =>
-      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category]
+      isActive ? prev.filter((c) => c !== category) : [...prev, category]
     );
+    trackFilterChange('category', category, !isActive);
   };
 
   const handleAddCustomCategory = () => {
@@ -52,9 +55,11 @@ export const FilterPanel = ({ onSearch, onSaveSearch }: FilterPanelProps) => {
   };
 
   const handleSubmissionMethodToggle = (method: SubmissionMethod) => {
+    const isActive = submissionMethods.includes(method);
     setSubmissionMethods((prev) =>
-      prev.includes(method) ? prev.filter((m) => m !== method) : [...prev, method]
+      isActive ? prev.filter((m) => m !== method) : [...prev, method]
     );
+    trackFilterChange('submission_method', method, !isActive);
   };
 
   const handleSearch = () => {

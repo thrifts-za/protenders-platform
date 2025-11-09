@@ -7,6 +7,7 @@ import { formatDate as fmtDate, formatRelativeDate, getDaysUntilClose } from "@/
 import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 import { toSentenceCase } from "@/lib/utils";
 import type { Tender } from "@/types/tender";
+import { trackTenderView } from "@/lib/analytics";
 
 interface TenderCardProps {
   tender: Tender;
@@ -41,7 +42,12 @@ export function TenderCard({ tender }: TenderCardProps) {
   const tenderUrl = createTenderUrlFromTitleAndDescription(title, description, tender.ocid);
 
   return (
-    <Link href={tenderUrl} target="_blank" rel="noopener noreferrer">
+    <Link
+      href={tenderUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => trackTenderView(tender.ocid, 'search_results')}
+    >
       <Card className={`p-6 hover:shadow-lg transition-shadow cursor-pointer mb-3 ${
         isRed ? "bg-red-50/30" : isOrange ? "bg-orange-50/30" : isGreen ? "bg-green-50/30" : ""
       }`}>

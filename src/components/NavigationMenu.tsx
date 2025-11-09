@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { trackNavigation } from "@/lib/analytics";
 
 export default function NavigationMenu() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -21,6 +22,10 @@ export default function NavigationMenu() {
     {
       name: "Search",
       href: "/search",
+    },
+    {
+      name: "eTenders",
+      href: "/etenders",
     },
     {
       name: "Provinces",
@@ -83,6 +88,7 @@ export default function NavigationMenu() {
                     key={subItem.href}
                     href={subItem.href}
                     className="block px-4 py-2.5 text-sm hover:bg-primary/5 hover:text-primary transition-colors"
+                    onClick={() => trackNavigation(subItem.href, 'dropdown_menu')}
                   >
                     {subItem.name}
                   </Link>
@@ -97,6 +103,7 @@ export default function NavigationMenu() {
             key={item.name}
             href={item.href!}
             className="text-sm font-medium hover:text-primary transition-colors"
+            onClick={() => trackNavigation(item.href!, 'main_menu')}
           >
             {item.name}
           </Link>

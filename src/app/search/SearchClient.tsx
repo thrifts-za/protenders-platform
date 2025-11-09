@@ -17,6 +17,7 @@ import { ChevronLeft, ChevronRight, Download, AlertCircle, Info, Building2, File
 import { exportToCSV } from "@/lib/csv";
 import { useRouter } from "next/navigation";
 import Breadcrumbs from "@/components/Breadcrumbs";
+import { trackSearch, trackButtonClick, trackFilterChange } from "@/lib/analytics";
 
 const FRESHNESS_STORAGE_KEY = "tender-search-freshness";
 
@@ -116,6 +117,22 @@ function SearchContent() {
 
         if (!cancelled) {
           setData(result);
+
+          // Track successful search
+          trackSearch(
+            searchParamsState.keywords || '',
+            {
+              categories: searchParamsState.categories?.join(','),
+              province: searchParamsState.province,
+              buyer: searchParamsState.buyer,
+              closingInDays: searchParamsState.closingInDays,
+              submissionMethods: searchParamsState.submissionMethods?.join(','),
+              status: searchParamsState.status,
+              sort: freshnessFilters.sort,
+              windowDays: freshnessFilters.windowDays,
+              results_count: result.total,
+            }
+          );
         }
       } catch (err) {
         if (!cancelled) {
@@ -183,6 +200,12 @@ function SearchContent() {
         description: t.tender?.description || "",
       }));
       exportToCSV(rows, `tenders-page-${data.page}.csv`);
+
+      // Track CSV export
+      trackButtonClick('Export to CSV', 'Search Results', {
+        results_count: rows.length,
+        page: data.page,
+      });
     }
   };
 
