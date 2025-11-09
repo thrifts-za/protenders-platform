@@ -1,50 +1,12 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { checkRateLimit, parseWindow } from "@/lib/rateLimit";
 
-export default auth((req) => {
-  const { pathname, search } = req.nextUrl;
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  // Admin app pages guard
-  if (pathname.startsWith("/admin")) {
-    if (pathname === "/admin/login") return; // allow login
-
-    const session = req.auth;
-    if (!session || !session.user) {
-      const url = req.nextUrl.clone();
-      url.pathname = "/admin/login";
-      if (pathname !== "/admin") url.searchParams.set("callbackUrl", pathname + search);
-      return NextResponse.redirect(url);
-    }
-
-    // Require admin role for app pages
-    const role = (session.user as any).role || "user";
-    if (role !== "admin") {
-      const url = req.nextUrl.clone();
-      url.pathname = "/";
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Admin API guard
-  if (pathname.startsWith("/api/admin")) {
-    // Allow auth endpoints without session
-    if (
-      pathname.startsWith("/api/admin/auth/login") ||
-      pathname.startsWith("/api/admin/auth/me") ||
-      pathname.startsWith("/api/admin/auth/logout")
-    ) {
-      return;
-    }
-
-    const session = req.auth;
-    if (!session || !session.user || (session.user as any).role !== "admin") {
-      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { 'content-type': 'application/json' },
-      });
-    }
-  }
+  // Note: Admin auth is now handled server-side in route handlers
+  // This middleware only handles rate limiting for Edge Runtime compatibility
 
   // Generic API rate limiting (public and admin APIs)
   if (pathname.startsWith("/api/")) {
@@ -92,6 +54,11 @@ export default auth((req) => {
     res.headers.set("x-ratelimit-reset", String(Math.floor(result.resetAt / 1000)));
     return res;
   }
-});
 
-export const config = { matcher: ["/admin/:path*", "/api/:path*"] };
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/api/:path*"],
+  // Remove /admin from matcher - auth now handled server-side
+};
