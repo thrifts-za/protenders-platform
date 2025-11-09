@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes max execution time
 
-type SyncMode = 'daily' | 'backfill';
+type SyncMode = 'daily' | 'backfill' | 'comprehensive';
 
 interface SyncResult {
   success: boolean;
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     try {
       // Parse query params for backfill/windowed operation
       const modeParam = url.searchParams.get('mode') || 'daily';
-      const mode = (modeParam === 'backfill' ? 'backfill' : 'daily') as SyncMode;
+      const mode = (modeParam === 'backfill' ? 'backfill' : modeParam === 'comprehensive' ? 'comprehensive' : 'daily') as SyncMode;
       const fromParam = url.searchParams.get('from') || undefined; // YYYY-MM-DD
       const toParam = url.searchParams.get('to') || undefined; // YYYY-MM-DD
       const windowDaysParam = url.searchParams.get('windowDays');
@@ -176,12 +176,16 @@ export async function performSync(options?: {
 
   // Feature flag: Enable enrichment via eTenders site API
   const enableEnrichment = process.env.ENABLE_ENRICHMENT === 'true';
-  const maxEnrichmentPerRun = parseInt(
+  const configuredMaxEnrichment = parseInt(
     process.env.MAX_ENRICHMENT_PER_RUN || String(DEFAULT_MAX_ENRICHMENT_PER_RUN),
     10
   );
 
-  console.log(`🚀 Starting sync (mode: ${mode}, enrichment: ${enableEnrichment ? 'ENABLED' : 'DISABLED'}, max: ${maxEnrichmentPerRun})`);
+  // Comprehensive mode: Higher enrichment limit and force enrichment on all missing categories
+  const isComprehensiveMode = mode === 'comprehensive';
+  const baseMaxEnrichment = isComprehensiveMode ? 1000 : configuredMaxEnrichment;
+
+  console.log(`🚀 Starting sync (mode: ${mode}, enrichment: ${enableEnrichment ? 'ENABLED' : 'DISABLED'}, baseMax: ${baseMaxEnrichment})`);
 
   // Determine date range using cursor (daily) or backfill window
   const syncStateId = 'ocds_etenders_sa';
@@ -299,6 +303,57 @@ export async function performSync(options?: {
   let enrichmentFailures = 0;
   let skippedNoEnrichment = 0;
 
+  // Dynamic enrichment limit: Count new tenders and adjust limit accordingly
+  // For comprehensive mode, also count tenders missing detailedCategory
+  let maxEnrichmentPerRun = baseMaxEnrichment;
+
+  if (isComprehensiveMode && enableEnrichment) {
+    // Comprehensive mode: Count ALL tenders from today missing detailedCategory
+    console.log(`🔍 Comprehensive mode: Counting tenders missing detailedCategory from ${fromStr} to ${toStr}...`);
+    const missingCategoryCount = await prisma.oCDSRelease.count({
+      where: {
+        publishedAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+        detailedCategory: null,
+      },
+    });
+    // Set limit to cover all missing categories (capped at 1000 for safety)
+    maxEnrichmentPerRun = Math.min(missingCategoryCount + 50, 1000); // +50 buffer for new tenders
+    console.log(`📊 Found ${missingCategoryCount} tenders missing detailedCategory, setting enrichment limit to ${maxEnrichmentPerRun}`);
+  } else if (enableEnrichment) {
+    // Regular mode: Fetch first page to estimate new tender count
+    try {
+      const firstPage = await fetchReleases(1, 100);
+      const sampleReleases = firstPage.releases || [];
+      if (sampleReleases.length > 0) {
+        // Count how many of the first 100 are new (don't exist in DB)
+        let newCount = 0;
+        for (const rel of sampleReleases.slice(0, Math.min(20, sampleReleases.length))) {
+          const publishedAtIso: string | undefined = rel?.date;
+          const exists = await prisma.oCDSRelease.findUnique({
+            where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
+            select: { ocid: true },
+          });
+          if (!exists) newCount++;
+        }
+        // Extrapolate: if 15/20 are new, expect ~75% new tenders
+        const newPercentage = sampleReleases.length > 0 ? (newCount / Math.min(20, sampleReleases.length)) : 0;
+        const estimatedNewTenders = Math.ceil(sampleReleases.length * newPercentage);
+
+        // Dynamic limit: MAX(estimated new tenders, configured base max)
+        maxEnrichmentPerRun = Math.max(estimatedNewTenders, baseMaxEnrichment);
+        console.log(`📊 Estimated ${estimatedNewTenders} new tenders (${(newPercentage * 100).toFixed(0)}% of first page), setting enrichment limit to ${maxEnrichmentPerRun}`);
+      }
+    } catch (err) {
+      console.log(`⚠️  Could not estimate new tender count, using base limit: ${baseMaxEnrichment}`);
+      maxEnrichmentPerRun = baseMaxEnrichment;
+    }
+  }
+
+  console.log(`✅ Final enrichment limit for this run: ${maxEnrichmentPerRun}`);
+
   // Helper to derive tender number from release
   function deriveTenderNumber(tender: any): string | null {
     if (!tender) return null;
@@ -340,8 +395,25 @@ export async function performSync(options?: {
           .pop();
 
         // Enrichment via eTenders site API (if enabled and within limits)
+        // In comprehensive mode, also check if existing record needs re-enrichment
         let enrichmentData = null;
-        if (enableEnrichment && enrichmentCount < maxEnrichmentPerRun) {
+        let shouldEnrich = enableEnrichment && enrichmentCount < maxEnrichmentPerRun;
+
+        // For comprehensive mode: Also enrich existing records missing detailedCategory
+        if (isComprehensiveMode && enableEnrichment && enrichmentCount < maxEnrichmentPerRun) {
+          const publishedAtIso: string | undefined = rel?.date;
+          const existingRecord = await prisma.oCDSRelease.findUnique({
+            where: { ocid_date: { ocid: String(rel.ocid), date: publishedAtIso ? new Date(publishedAtIso) : new Date() } },
+            select: { detailedCategory: true },
+          });
+          // If record exists but has no category, we should re-enrich it
+          if (existingRecord && !existingRecord.detailedCategory) {
+            shouldEnrich = true;
+            console.log(`🔍 Comprehensive: Re-enriching existing tender ${rel?.ocid} (missing category)`);
+          }
+        }
+
+        if (shouldEnrich) {
           const tenderNumber = deriveTenderNumber(rel?.tender);
           if (tenderNumber) {
             try {
@@ -357,7 +429,7 @@ export async function performSync(options?: {
               });
               if (enrichmentData) {
                 enrichmentSuccess++;
-                console.log(`✅ Enriched tender ${tenderNumber}: province=${enrichmentData.province}, contact=${enrichmentData.contactEmail || 'N/A'}`);
+                console.log(`✅ Enriched tender ${tenderNumber}: province=${enrichmentData.province}, contact=${enrichmentData.contactEmail || 'N/A'}, category=${enrichmentData.detailedCategory || 'N/A'}`);
               } else {
                 enrichmentFailures++;
                 console.log(`⚠️  No enrichment data found for tender ${tenderNumber}`);
