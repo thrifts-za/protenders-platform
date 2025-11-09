@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
@@ -15,7 +16,9 @@ import {
   CheckCircle,
   Lightbulb,
   Shield,
-  Zap
+  Zap,
+  Lock,
+  Crown
 } from "lucide-react";
 
 interface StrategicAssistantProps {
@@ -167,9 +170,12 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
         </CardTitle>
         <div className="flex items-center gap-2">
           <div className="text-sm text-gray-600">Win Probability:</div>
-          <Badge className={`${strategicAnalysis.winProbability >= 70 ? 'bg-green-100 text-green-800' : strategicAnalysis.winProbability >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-            {strategicAnalysis.winProbability}%
-          </Badge>
+          <div className="relative">
+            <Badge className={`${strategicAnalysis.winProbability >= 70 ? 'bg-green-100 text-green-800' : strategicAnalysis.winProbability >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'} blur-sm select-none`}>
+              {strategicAnalysis.winProbability}%
+            </Badge>
+            <Lock className="h-3 w-3 text-gray-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+          </div>
         </div>
       </CardHeader>
 
@@ -180,8 +186,8 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
             <DollarSign className="h-4 w-4 text-green-600" />
             <h3 className="font-semibold text-sm">Recommended Price Band</h3>
           </div>
-          <div className="bg-green-50 p-3 rounded-lg border border-green-200">
-            <div className="text-center mb-2">
+          <div className="bg-green-50 p-3 rounded-lg border border-green-200 relative">
+            <div className="text-center mb-2 blur-sm select-none">
               <div className="text-lg font-bold text-green-700">
                 {formatCurrency(strategicAnalysis.recommendedPriceBand.min)} - {formatCurrency(strategicAnalysis.recommendedPriceBand.max)}
               </div>
@@ -191,6 +197,9 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
               <p>• Competitive yet profitable positioning</p>
               <p>• Accounts for 80% price weighting in evaluation</p>
               <p>• Considers competitor pricing patterns</p>
+            </div>
+            <div className="absolute top-2 right-2">
+              <Lock className="h-4 w-4 text-gray-500" />
             </div>
           </div>
         </div>
@@ -305,6 +314,25 @@ export default function StrategicAssistant({ tender, intel }: StrategicAssistant
             before the closing date to ensure submission readiness.
           </AlertDescription>
         </Alert>
+
+        {/* Upgrade CTA */}
+        <div className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg p-6 text-white text-center space-y-4">
+          <div className="flex items-center justify-center gap-2">
+            <Crown className="h-6 w-6" />
+            <h3 className="text-lg font-bold">Unlock Full Strategic Intelligence</h3>
+          </div>
+          <p className="text-sm text-purple-100">
+            Get complete access to win probability scores, pricing recommendations, and AI-powered bid strategies
+          </p>
+          <Button className="bg-white text-purple-600 hover:bg-purple-50 font-semibold">
+            Upgrade to Premium
+          </Button>
+          <div className="flex items-center justify-center gap-4 text-xs text-purple-200">
+            <span>✓ Unlimited Intelligence</span>
+            <span>✓ Priority Support</span>
+            <span>✓ Advanced Analytics</span>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

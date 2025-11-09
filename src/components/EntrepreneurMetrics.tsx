@@ -12,7 +12,9 @@ import {
   Award,
   DollarSign,
   Target,
-  BarChart3
+  BarChart3,
+  Lock,
+  Crown
 } from "lucide-react";
 
 interface EntrepreneurMetricsProps {
@@ -147,14 +149,17 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
         </CardHeader>
         <CardContent className="space-y-4">
           {marketInsights.map((insight, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg relative">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-medium">{insight.title}</span>
                   {insight.trend && getTrendIcon(insight.trend)}
                 </div>
-                <div className={`text-lg font-bold ${getTrendColor(insight.trend)}`}>
-                  {insight.value}
+                <div className="relative">
+                  <div className={`text-lg font-bold ${getTrendColor(insight.trend)} blur-sm select-none`}>
+                    {insight.value}
+                  </div>
+                  <Lock className="h-3 w-3 text-gray-500 absolute top-1/2 left-8 -translate-y-1/2" />
                 </div>
                 <div className="text-xs text-gray-600">{insight.description}</div>
               </div>
@@ -361,6 +366,27 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
                 Learn More
               </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Upgrade CTA */}
+      <Card className="bg-gradient-to-br from-green-600 to-emerald-600 text-white border-0">
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="flex items-center justify-center gap-2">
+            <Crown className="h-6 w-6" />
+            <h3 className="text-lg font-bold">Unlock Market Intelligence</h3>
+          </div>
+          <p className="text-sm text-green-100">
+            Access detailed market insights, buyer spending patterns, and BBBEE analytics to maximize your win rate
+          </p>
+          <Button className="bg-white text-green-600 hover:bg-green-50 font-semibold">
+            Upgrade Now
+          </Button>
+          <div className="flex items-center justify-center gap-4 text-xs text-green-200">
+            <span>✓ Market Analytics</span>
+            <span>✓ Buyer Insights</span>
+            <span>✓ Competition Data</span>
           </div>
         </CardContent>
       </Card>
