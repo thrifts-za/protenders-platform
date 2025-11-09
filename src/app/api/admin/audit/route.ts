@@ -8,11 +8,21 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET(_request: NextRequest) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const logs = await prisma.auditLog.findMany({
       include: { user: { select: { email: true, name: true } } },

@@ -21,8 +21,8 @@ export function useContentAccess() {
   // Special pages that bypass all gating
   const isDemoPage = pathname?.startsWith('/demo');
 
-  // Role-based access (Admins and Devs always see everything)
-  const isDevOrAdmin = user?.role === 'ADMIN' || user?.role === 'DEV';
+  // Role-based access (Admins always see everything)
+  const isDevOrAdmin = user?.role === 'admin';
 
   // Subscription check (ready for Stripe integration)
   // @ts-expect-error - plan field will be added to User model

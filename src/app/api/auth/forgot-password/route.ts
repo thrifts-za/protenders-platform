@@ -19,6 +19,16 @@ const forgotPasswordSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    // TODO: Add PasswordResetToken model to Prisma schema before enabling this feature
+    // For now, return a message that this feature is not yet implemented
+    return NextResponse.json(
+      {
+        error: "Password reset feature is currently under maintenance. Please contact support.",
+      },
+      { status: 503 }
+    );
+
+    /* Temporarily disabled - needs PasswordResetToken model in Prisma schema
     const body = await request.json();
     const { email } = forgotPasswordSchema.parse(body);
 
@@ -77,6 +87,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 200 }
     );
+    */
   } catch (error) {
     console.error("❌ Forgot password error:", error);
 

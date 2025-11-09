@@ -117,6 +117,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     },
     {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    },
+    {
       url: `${baseUrl}/faq`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
@@ -127,6 +133,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/glossary`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
     },
     {
       url: `${baseUrl}/closing-soon`,
@@ -141,13 +153,55 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     },
     {
+      url: `${baseUrl}/tenders`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/opportunities`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    },
+    {
       url: `${baseUrl}/public-sector-tenders`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/insights`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/resources`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/feedback`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.4,
+    },
+    {
       url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/privacy-policy`,
       lastModified: new Date(),
       changeFrequency: 'yearly' as const,
       priority: 0.3,
@@ -158,9 +212,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly' as const,
       priority: 0.3,
     },
+    {
+      url: `${baseUrl}/terms-of-service`,
+      lastModified: new Date(),
+      changeFrequency: 'yearly' as const,
+      priority: 0.3,
+    },
   ]
 
   // Tender pages (limit to active tenders to keep sitemap manageable)
+  // Using slug field for fast lookups and SEO-friendly URLs
   let tenderPages: MetadataRoute.Sitemap = []
   try {
     const activeTenders = await prisma.oCDSRelease.findMany({
@@ -172,8 +233,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         tenderTitle: {
           not: null,
         },
+        slug: {
+          not: null, // Only include tenders with slugs for better SEO
+        },
       },
       select: {
+        slug: true,
         ocid: true,
         updatedAt: true,
         closingAt: true,
@@ -184,17 +249,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     })
 
-    tenderPages = await Promise.all(
-      activeTenders.map(async (tender) => {
-        const slug = await getTenderSlug(tender.ocid)
-        return {
-          url: `${baseUrl}/tender/${slug}`,
-          lastModified: tender.updatedAt || new Date(),
-          changeFrequency: 'daily' as const,
-          priority: 0.6,
-        }
-      })
-    )
+    tenderPages = activeTenders.map((tender) => ({
+      url: `${baseUrl}/tender/${tender.slug || tender.ocid}`,
+      lastModified: tender.updatedAt || new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.6,
+    }))
   } catch (error) {
     console.error('Error generating tender sitemap entries:', error)
     // Continue without tender pages if there's an error

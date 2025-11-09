@@ -4,6 +4,14 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
+// Enforce NEXTAUTH_SECRET - fail fast if not configured
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error(
+    'FATAL: NEXTAUTH_SECRET environment variable is not set. ' +
+    'Generate one with: openssl rand -base64 32'
+  );
+}
+
 // User type
 export type User = {
   id: string;
@@ -44,8 +52,9 @@ export default {
           const user = await prisma.user.findUnique({ where: { email } });
 
           if (!user || !user.password) {
-            // Fallback: Allow any email/password for development if no user exists
-            if (process.env.NODE_ENV === 'development') {
+            // ONLY allow dev bypass in local development (not on Vercel preview/production)
+            if (process.env.NODE_ENV === 'development' && !process.env.VERCEL_ENV) {
+              console.warn('⚠️  DEV MODE: Using development authentication bypass for:', email);
               const isAdmin = email.toLowerCase().includes('admin');
               return {
                 id: email,

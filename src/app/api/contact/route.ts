@@ -129,10 +129,18 @@ export async function GET(request: NextRequest) {
   const limit = parseInt(searchParams.get('limit') || '50');
   const offset = parseInt(searchParams.get('offset') || '0');
 
+  // Require admin authentication
   try {
-    // TODO: Add admin authentication check here
-    // For now, we'll allow access (you should add proper auth)
+    const { requireAdmin } = await import('@/lib/auth-middleware');
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
 
+  try {
     const where = status ? { status } : undefined;
 
     const [submissions, total] = await Promise.all([

@@ -30,6 +30,10 @@ model User {
   waitingListDate   DateTime?      // Date joined waiting list
   rsvpInterest      String?        // Interest level or notes
 
+  // Password recovery (security question method)
+  securityQuestion  String?
+  securityAnswer    String?        // Hashed answer
+
   savedSearches SavedSearch[]
   savedTenders  SavedTender[]
   alertLogs     AlertLog[]
@@ -138,12 +142,19 @@ model OCDSRelease {
   detailedCategory     String?   // Detailed category from eTenders website (91 categories)
   enrichmentDocuments  Json?
 
+  // Performance optimization fields
+  slug                 String?   @unique // SEO-friendly URL slug for fast lookups
+  enrichedAt           DateTime? // Timestamp of last enrichment (for cache-first strategy)
+  briefingFlags        Json?     // Cached briefing information from eTenders
+  documentUrls         Json?     // Cached document URLs from eTenders
+
   // ETL metadata
   importedAt           DateTime  @default(now())
   lastModifiedAt       DateTime  @default(now()) @updatedAt // Prisma auto-update field
 
   @@unique([ocid, date])
   @@index([ocid])
+  @@index([slug]) // Performance: Fast tender lookups by slug
   @@index([closingAt])
   @@index([mainCategory])
   @@index([status])
@@ -155,6 +166,7 @@ model OCDSRelease {
   @@index([tenderType])
   @@index([enquiryDeadline])
   @@index([detailedCategory])
+  @@index([enrichedAt]) // Performance: Track enrichment freshness
   // Composite indexes for common query patterns (performance optimization)
   @@index([publishedAt(sort: Desc), mainCategory])
   @@index([status, closingAt(sort: Desc)])

@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -17,6 +18,16 @@ export const runtime = 'nodejs';
  * Get platform configuration
  */
 export async function GET(request: NextRequest) {
+  // Require admin authentication
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     // Try to get notification bar config from database
     let notificationBarMessage = '🚀 Beta Version - Best viewed on desktop for optimal experience';
@@ -93,6 +104,16 @@ export async function GET(request: NextRequest) {
  * Update platform configuration
  */
 export async function PUT(request: NextRequest) {
+  // Require admin authentication
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json();
 

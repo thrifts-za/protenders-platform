@@ -4,7 +4,12 @@ import { z } from "zod";
 import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
 
-const JWT_SECRET = process.env.JWT_SECRET || "tender-finder-jwt-secret-change-in-production";
+// Enforce JWT_SECRET - fail fast if not configured
+if (!process.env.JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is not set. This is required for security.');
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = "24h";
 
 const loginSchema = z.object({
