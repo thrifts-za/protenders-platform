@@ -18,6 +18,7 @@ import { MIXPANEL_TOKEN, CLARITY_PROJECT_ID } from "@/config/analytics";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import NotificationBar from "@/components/NotificationBar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -184,6 +185,9 @@ export default function RootLayout({
           <SessionProvider>
             <TooltipProvider>
             <div className="min-h-screen flex flex-col">
+            {/* Notification Bar */}
+            <NotificationBar />
+
             {/* Header/Navigation */}
             <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <nav className="content-container h-16 flex items-center justify-between">

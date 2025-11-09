@@ -6,16 +6,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import OpportunityScoreCard from "@/components/OpportunityScoreCard";
 import { Tender } from "@/types/tender";
 import { getTenderById } from "@/lib/api";
-import { Calendar, DollarSign, FileText, Clock, Building2, Target, Star, Share2, Info } from "lucide-react";
+import { Calendar, DollarSign, FileText, Clock, Building2, Target, Star, Share2, Info, Check } from "lucide-react";
 import StrategicAssistant from "@/components/StrategicAssistant";
 import EntrepreneurMetrics from "@/components/EntrepreneurMetrics";
 import TenderStructuredData from "@/components/tender/TenderStructuredData";
 import { extractTenderIdFromSlug } from "@/lib/utils/slug";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import { CountdownTimer } from "@/components/CountdownTimer";
+import { createTenderCalendarEvent, downloadICSFile } from "@/lib/utils/calendar";
 
 // This is the client-side interactive component for tender details
 // The server component wrapper (page.tsx) handles metadata generation
@@ -27,6 +29,8 @@ export default function TenderClient() {
   const id = extractTenderIdFromSlug(slug);
   const [tender, setTender] = useState<Tender | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isSaved, setIsSaved] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function loadTender() {
@@ -44,6 +48,131 @@ export default function TenderClient() {
       loadTender();
     }
   }, [id]);
+
+  // Check if tender is saved in localStorage
+  useEffect(() => {
+    if (!id) return;
+    const savedTenders = localStorage.getItem('saved-tenders');
+    if (savedTenders) {
+      const parsed = JSON.parse(savedTenders);
+      setIsSaved(parsed.includes(id));
+    }
+  }, [id]);
+
+  // Button Handlers
+  const handleAddToCalendar = () => {
+    if (!tender) return;
+
+    const closingDate = tender.tender?.tenderPeriod?.endDate;
+    if (!closingDate) {
+      toast({
+        title: "No closing date",
+        description: "This tender doesn't have a closing date set.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const tenderUrl = typeof window !== 'undefined' ? window.location.href : '';
+      const event = createTenderCalendarEvent(
+        tender.tender?.title || 'Tender',
+        closingDate,
+        tender.tender?.description,
+        tenderUrl
+      );
+
+      const filename = `tender-${tender.ocid}-closing.ics`;
+      downloadICSFile(event, filename);
+
+      toast({
+        title: "Calendar event downloaded",
+        description: "The .ics file has been downloaded. Open it to add to your calendar.",
+      });
+    } catch (error) {
+      console.error('Failed to create calendar event:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create calendar event. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveTender = () => {
+    if (!id) return;
+
+    try {
+      const savedTenders = localStorage.getItem('saved-tenders');
+      let tenderIds: string[] = savedTenders ? JSON.parse(savedTenders) : [];
+
+      if (isSaved) {
+        // Remove from saved
+        tenderIds = tenderIds.filter(tenderId => tenderId !== id);
+        setIsSaved(false);
+        toast({
+          title: "Tender removed",
+          description: "Tender has been removed from your saved list.",
+        });
+      } else {
+        // Add to saved
+        tenderIds.push(id);
+        setIsSaved(true);
+        toast({
+          title: "Tender saved",
+          description: "Tender has been added to your saved list.",
+        });
+      }
+
+      localStorage.setItem('saved-tenders', JSON.stringify(tenderIds));
+    } catch (error) {
+      console.error('Failed to save tender:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save tender. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    if (!tender) return;
+
+    const tenderUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const shareData = {
+      title: tender.tender?.title || 'Tender',
+      text: `Check out this tender: ${tender.tender?.title || 'Tender'}`,
+      url: tenderUrl,
+    };
+
+    try {
+      // Try native share API first (mobile devices)
+      if (navigator.share) {
+        await navigator.share(shareData);
+        toast({
+          title: "Shared successfully",
+          description: "Tender has been shared.",
+        });
+      } else {
+        // Fallback to clipboard copy
+        await navigator.clipboard.writeText(tenderUrl);
+        toast({
+          title: "Link copied",
+          description: "Tender link has been copied to clipboard.",
+        });
+      }
+    } catch (error) {
+      // User cancelled or error occurred
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Failed to share:', error);
+        toast({
+          title: "Error",
+          description: "Failed to share tender. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   if (loading) {
     return (
@@ -371,15 +500,23 @@ export default function TenderClient() {
               </>
             )}
             <div className="ml-auto flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleAddToCalendar}>
                 <Calendar className="h-4 w-4 mr-2" />
                 Add to Calendar
               </Button>
-              <Button variant="outline" size="sm">
-                <Star className="h-4 w-4 mr-2" />
-                Save Tender
+              <Button
+                variant={isSaved ? "default" : "outline"}
+                size="sm"
+                onClick={handleSaveTender}
+              >
+                {isSaved ? (
+                  <Check className="h-4 w-4 mr-2" />
+                ) : (
+                  <Star className="h-4 w-4 mr-2" />
+                )}
+                {isSaved ? "Saved" : "Save Tender"}
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={handleShare}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
