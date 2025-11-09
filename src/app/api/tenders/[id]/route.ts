@@ -16,6 +16,17 @@ import { findTenderBySlugOrId } from '@/lib/utils/tender-lookup';
 export const revalidate = 3600;
 export const runtime = 'nodejs';
 
+/**
+ * Safely convert a date to ISO string
+ * Handles both Date objects and date strings
+ */
+function toISOString(date: Date | string | null | undefined): string | undefined {
+  if (!date) return undefined;
+  if (typeof date === 'string') return date;
+  if (date instanceof Date) return date.toISOString();
+  return undefined;
+}
+
 interface NormalizedTender {
   id: string;
   ocid?: string;
@@ -257,13 +268,13 @@ export async function GET(
       buyerName: release.buyerName || undefined,
       mainProcurementCategory: release.mainCategory || undefined,
       detailedCategory: release.detailedCategory || undefined,
-      closingDate: release.closingAt?.toISOString(),
+      closingDate: toISOString(release.closingAt),
       submissionMethods: release.submissionMethods
         ? JSON.parse(release.submissionMethods)
         : undefined,
       status: release.status || undefined,
-      publishedAt: release.publishedAt?.toISOString(),
-      updatedAt: release.updatedAt?.toISOString(),
+      publishedAt: toISOString(release.publishedAt),
+      updatedAt: toISOString(release.updatedAt),
       previousClosingDate: null, // Can be computed from timeline if needed
       dataQualityScore: 85, // Default score for now
       raw: rawData,
