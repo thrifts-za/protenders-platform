@@ -111,11 +111,11 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  // Note: Add your Google Search Console verification code here
-  // Get it from: https://search.google.com/search-console
-  // verification: {
-  //   google: "your-verification-code-here",
-  // },
+  verification: {
+    other: {
+      'msvalidate.01': '2967B207EBA69D1C4A0549D73AF773E7',
+    },
+  },
 };
 
 export default function RootLayout({

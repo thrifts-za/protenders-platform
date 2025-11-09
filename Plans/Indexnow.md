@@ -1,33 +1,43 @@
-Generate API Key
-An API key is needed to match the ownership of the domain with submitted URLs.
+# Sitemaps: submit
 
-0b1263b8ed06431aae2a05fc49502518
+**Requires [authorization](https://developers.google.com/webmaster-tools/v1/sitemaps/submit#auth)**
 
-2
-Host your API key
-Option 1: Host your UTF-8 key file at the root of your website: https://www.example.com/0b1263b8ed06431aae2a05fc49502518.txt This file must contain the key 0b1263b8ed06431aae2a05fc49502518
+Submits a sitemap for a site.
+[Try it now](https://developers.google.com/webmaster-tools/v1/sitemaps/submit#try-it).
+
+## Request
+
+### HTTP request
+
+```
+PUT https://www.googleapis.com/webmasters/v3/sites/siteUrl/sitemaps/feedpath
+```
+
+### Parameters
+
+| Parameter name |  Value   |                                                                                                                                                    Description                                                                                                                                                     |
+|----------------|----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Path parameters**                                                                                                                                                                                                                                                                                                                          |||
+| `feedpath`     | `string` | The URL of the sitemap to add. For example: `http://www.example.com/sitemap.xml`                                                                                                                                                                                                                                   |
+| `siteUrl`      | `string` | The URL of the property as defined in Search Console. For example: `http://www.example.com/` ([URL-prefix](https://support.google.com/webmasters/answer/34592#url_prefix_prop_tips) property), or `sc-domain:example.com` ([Domain](https://support.google.com/webmasters/answer/34592#domain_property) property). |
+
+### Authorization
+
+This request requires authorization with the following scope ([read more about authentication and authorization](https://developers.google.com/webmaster-tools/v1/how-tos/authorizing)).
+
+|                    Scope                     |
+|----------------------------------------------|
+| `https://www.googleapis.com/auth/webmasters` |
+
+### Request body
+
+Do not supply a request body with this method.
+
+## Response
+
+If successful, this method returns an empty response body.
+
+## Try it!
 
 
-Option 2: Host one to many UTF-8 encoded text key files in other locations within the same host.
-Note: If you submit a URL, you must specify the key file location as keyLocation URLs parameter value: https://<searchengine>/indexnow?url=http://www.example.com/product.html&key=0b1263b8ed06431aae2a05fc49502518&keyLocation=http://www.example.com/myIndexNowKey63638.txt
-
-3
-Submit URLs
-Submit individual or bulk URLs with your key location as your URL parameter: Send one URL via an HTTP request
-
-Submitting a set of URL via an HTTP request
-
-Request
-POST /IndexNow HTTP/1.1
-Content-Type: application/json; charset=utf-8
-Host: api.indexnow.org
-{
-  "host": "www.example.org",
-  "key": "0b1263b8ed06431aae2a05fc49502518",
-  "keyLocation": "https://www.example.org/0b1263b8ed06431aae2a05fc49502518.txt",
-  "urlList": [
-      "https://www.example.org/url1",
-      "https://www.example.org/folder/url2",
-      "https://www.example.org/url3"
-      ]
-}
+Use the APIs Explorer below to call this method on live data and see the response.
