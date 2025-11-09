@@ -19,8 +19,16 @@ const AI_BASE_URL = "/ai";
 
 /**
  * Transform flat API response to nested OCDS structure
+ * If data is already in nested structure, return as-is
  */
 function transformFlatToOCDS(flatTender: Record<string, unknown>): Tender {
+  // Check if data is already in the proper nested structure
+  if (flatTender.tender && typeof flatTender.tender === 'object') {
+    // Data is already properly structured, return as-is with type assertion
+    return flatTender as unknown as Tender;
+  }
+
+  // Data is flat, transform it to nested structure
   const t: Tender = {
     ocid: String(flatTender.id || flatTender.ocid || ""),
     id: String(flatTender.id || ""),
@@ -75,6 +83,7 @@ export async function searchTenders(
   if (params.categories?.length) {
     params.categories.forEach((cat) => searchParams.append("categories", cat));
   }
+  if (params.province) searchParams.append("province", params.province);
   if (params.closingInDays !== undefined)
     searchParams.append("closingInDays", params.closingInDays.toString());
   if (params.submissionMethods?.length) {

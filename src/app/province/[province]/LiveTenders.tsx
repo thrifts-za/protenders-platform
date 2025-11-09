@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { TenderCard } from "@/components/TenderCard";
 
-export function LiveTenders({ keyword }: { keyword: string }) {
+export function LiveTenders({ province }: { province: string }) {
   const [tenders, setTenders] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -13,9 +13,10 @@ export function LiveTenders({ keyword }: { keyword: string }) {
       setLoading(true);
       try {
         const params = new URLSearchParams();
-        params.append('keywords', keyword);
+        params.append('province', province);
         params.append('page', '1');
         params.append('pageSize', '10');
+        params.append('sort', 'latest');
         const res = await fetch(`/api/search?${params.toString()}`, { cache: 'no-store' });
         const json = await res.json();
         if (!cancelled) setTenders(json.data || []);
@@ -27,7 +28,7 @@ export function LiveTenders({ keyword }: { keyword: string }) {
     }
     load();
     return () => { cancelled = true; };
-  }, [keyword]);
+  }, [province]);
 
   if (loading) return <div className="p-6 bg-card border rounded-lg text-muted-foreground">Loading live tenders…</div>;
   if (!tenders || tenders.length === 0) return <div className="p-6 bg-card border rounded-lg text-muted-foreground">No live tenders found right now. Try the search page for more results.</div>;

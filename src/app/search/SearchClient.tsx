@@ -51,25 +51,28 @@ function SearchContent() {
       page: parseInt(searchParams.get("page") || "1"),
       pageSize: 20,
     };
-    
+
     const keywords = searchParams.get("keywords");
     if (keywords) params.keywords = keywords;
-    
+
     const categories = searchParams.getAll("categories");
     if (categories.length) params.categories = categories;
-    
+
+    const province = searchParams.get("province");
+    if (province) params.province = province;
+
     const buyer = searchParams.get("buyer");
     if (buyer) params.buyer = buyer;
-    
+
     const closingInDays = searchParams.get("closingInDays");
     if (closingInDays) params.closingInDays = parseInt(closingInDays);
-    
+
     const submissionMethods = searchParams.getAll("submissionMethods");
     if (submissionMethods.length) params.submissionMethods = submissionMethods;
-    
+
     const status = searchParams.get("status");
     if (status) params.status = status as any;
-    
+
     setSearchParamsState(params);
   }, [searchParams]);
 
@@ -135,6 +138,7 @@ function SearchContent() {
     const qs = new URLSearchParams();
     if (params.keywords) qs.set("keywords", params.keywords);
     params.categories?.forEach((c) => qs.append("categories", c));
+    if (params.province) qs.set("province", params.province);
     if (params.buyer) qs.set("buyer", String(params.buyer));
     if (params.closingInDays != null) qs.set("closingInDays", String(params.closingInDays));
     params.submissionMethods?.forEach((m) => qs.append("submissionMethods", m));
@@ -282,15 +286,12 @@ function SearchContent() {
                   Sorted by {freshnessFilters.sort === "latest" ? "Latest" : freshnessFilters.sort === "closingSoon" ? "Closing Soon" : "Relevance"}
                 </Badge>
                 {data && (
-                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <span>?</span>
-                    <span className="relative flex items-center gap-1.5">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                      </span>
-                      <span>Live Cloud Database</span>
+                  <span className="relative flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                     </span>
+                    <span>Live Cloud Database</span>
                   </span>
                 )}
               </AlertDescription>

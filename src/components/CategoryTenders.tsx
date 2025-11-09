@@ -52,7 +52,7 @@ export default function CategoryTenders({ categoryId, categoryName, limit = 6 }:
           page: 1,
           pageSize: limit,
           sort: "latest",
-          q: searchKeyword, // Use keyword search instead of category filter
+          keywords: searchKeyword, // Use keyword search instead of category filter
         });
         if (!cancelled) setTenders(res);
       } catch (error) {
