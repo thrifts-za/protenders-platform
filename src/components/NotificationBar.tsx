@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import LiveUserCounter from '@/components/LiveUserCounter';
 
 interface NotificationBarProps {
   message?: string;
@@ -49,17 +50,20 @@ export default function NotificationBar({
             <Info className="h-4 w-4 flex-shrink-0" />
             <p className="text-sm font-medium">{message}</p>
           </div>
-          {dismissible && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 hover:bg-transparent"
-              onClick={handleDismiss}
-              aria-label="Dismiss notification"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
+          <div className="flex items-center gap-4">
+            <LiveUserCounter className="hidden md:flex" />
+            {dismissible && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 hover:bg-transparent"
+                onClick={handleDismiss}
+                aria-label="Dismiss notification"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

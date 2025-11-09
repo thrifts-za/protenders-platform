@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TenderCard } from "@/components/TenderCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Sparkles, Info, Bell, TrendingUp, ArrowLeft } from "lucide-react";
 import type { Tender, TenderSearchResponse } from "@/types/tender";
 import { searchTenders } from "@/lib/api";
@@ -46,17 +47,17 @@ export default function LatestTenders() {
     });
   }
 
+  const breadcrumbItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Latest Tenders' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-blue-50 to-background dark:from-primary/20 dark:via-blue-950/20">
         <div className="content-container py-12">
-          <Link href="/">
-            <Button variant="ghost" size="sm" className="mb-6">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Search
-            </Button>
-          </Link>
+          <Breadcrumbs items={breadcrumbItems} />
 
           <div className="flex items-start gap-4 mb-6">
             <div className="p-3 bg-primary/10 rounded-lg">
