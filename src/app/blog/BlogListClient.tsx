@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { ArrowLeft, Search, Calendar, Clock, Tag } from "lucide-react";
 import { useState, useMemo } from "react";
 import { blogPosts, getAllTags, getAllCategories } from "@/data/blogPosts";
@@ -39,8 +40,14 @@ export default function BlogListClient() {
 
   const featuredPosts = blogPosts.filter((post) => post.featured);
 
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "Blog" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Header */}
       <header className="border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="container mx-auto px-4 py-12">

@@ -293,19 +293,19 @@ export default function Footer() {
             © {currentYear} ProTenders. All rights reserved.
           </div>
           <div className="flex flex-wrap gap-6 text-sm text-muted-foreground">
-            <Link href="/privacy" className="hover:text-primary transition-colors">
+            <Link href="/privacy-policy" className="hover:text-primary transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="hover:text-primary transition-colors">
+            <Link href="/terms-of-service" className="hover:text-primary transition-colors">
               Terms of Service
             </Link>
-            <a
-              href="mailto:support@protenders.co.za"
+            <Link
+              href="/contact"
               className="hover:text-primary transition-colors flex items-center gap-1"
             >
               <Mail className="h-3 w-3" />
               Contact Us
-            </a>
+            </Link>
           </div>
         </div>
 

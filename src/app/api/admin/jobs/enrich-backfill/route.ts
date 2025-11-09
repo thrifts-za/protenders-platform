@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { backfillEnrichment } from '@/lib/enrichment/backfill';
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -22,6 +23,15 @@ function yearRange(year: string): { from: string; to: string } {
 }
 
 export async function POST(request: NextRequest) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     // Prevent overlapping runs (last 10 minutes)
     const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);

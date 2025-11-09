@@ -4,6 +4,7 @@ import { getAllProvinceSlugs, getProvinceBySlug } from "@/data/provinces";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { MapPin, Building2, TrendingUp, ArrowRight, Search } from "lucide-react";
 
 export const revalidate = 86400;
@@ -28,8 +29,14 @@ export default function ProvincesIndex() {
     };
   });
 
+  const breadcrumbItems = [
+    { name: 'Home', url: '/' },
+    { name: 'Provinces' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="content-container py-16">
           <div className="max-w-4xl mx-auto text-center">

@@ -15,16 +15,32 @@ model User {
   email         String         @unique
   name          String?
   password      String?        // bcrypt hash for admin users
-  role          String         @default("USER") // USER, VIEWER, ADMIN
+  role          String         @default("USER") // USER, VIEWER, ADMIN, DEV
   lastLoginAt   DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+
+  // Premium subscription fields
+  plan              String?        @default("free") // "free", "basic", "premium", "pro"
+  subscriptionId    String?        // Stripe subscription ID
+  subscriptionEnd   DateTime?      // Subscription expiry date
+
+  // Waiting list tracking
+  waitingListStatus String?        // "waiting_list", "contacted", "converted"
+  waitingListDate   DateTime?      // Date joined waiting list
+  rsvpInterest      String?        // Interest level or notes
+
+  // Password recovery (security question method)
+  securityQuestion  String?
+  securityAnswer    String?        // Hashed answer
+
   savedSearches SavedSearch[]
   savedTenders  SavedTender[]
   alertLogs     AlertLog[]
   auditLogs     AuditLog[]
   preferences   UserPreferences?
   tenderPacks   TenderPack[]
+  waitingListEntry WaitingListEntry?
 }
 
 model SavedTender {
@@ -126,12 +142,19 @@ model OCDSRelease {
   detailedCategory     String?   // Detailed category from eTenders website (91 categories)
   enrichmentDocuments  Json?
 
+  // Performance optimization fields
+  slug                 String?   @unique // SEO-friendly URL slug for fast lookups
+  enrichedAt           DateTime? // Timestamp of last enrichment (for cache-first strategy)
+  briefingFlags        Json?     // Cached briefing information from eTenders
+  documentUrls         Json?     // Cached document URLs from eTenders
+
   // ETL metadata
   importedAt           DateTime  @default(now())
   lastModifiedAt       DateTime  @default(now()) @updatedAt // Prisma auto-update field
 
   @@unique([ocid, date])
   @@index([ocid])
+  @@index([slug]) // Performance: Fast tender lookups by slug
   @@index([closingAt])
   @@index([mainCategory])
   @@index([status])
@@ -143,6 +166,7 @@ model OCDSRelease {
   @@index([tenderType])
   @@index([enquiryDeadline])
   @@index([detailedCategory])
+  @@index([enrichedAt]) // Performance: Track enrichment freshness
   // Composite indexes for common query patterns (performance optimization)
   @@index([publishedAt(sort: Desc), mainCategory])
   @@index([status, closingAt(sort: Desc)])
@@ -884,4 +908,62 @@ model Feedback {
   @@index([type])
   @@index([createdAt])
   @@index([priority])
+}
+
+model PlatformConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique // e.g., "notificationBar", "maintenanceMode", etc.
+  value     Json?    // Flexible JSON storage for configuration values
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+model ContactSubmission {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  subject   String
+  message   String   @db.Text
+  status    String   @default("unread") // "unread" | "read" | "replied" | "spam"
+  ipAddress String?  // For spam prevention and tracking
+  userAgent String?  // Browser/device information
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model WaitingListEntry {
+  id            String   @id @default(uuid())
+  userId        String?  @unique
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  // Captured data
+  name          String
+  email         String   @unique
+  company       String?
+  phoneNumber   String?
+  jobTitle      String?
+  interest      String?  // "high", "medium", "low"
+  message       String?  @db.Text
+
+  // Tracking
+  status        String   @default("pending") // "pending", "contacted", "converted", "declined"
+  source        String   @default("tender-page") // Where they signed up
+  referrer      String?  // UTM or referrer
+
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  contactedAt   DateTime?
+  convertedAt   DateTime?
+
+  @@index([email])
+  @@index([status])
+  @@index([createdAt])
+  @@index([userId])
 }

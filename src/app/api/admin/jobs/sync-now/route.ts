@@ -9,11 +9,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { performSync } from "@/app/api/cron/sync/route";
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const body = await request.json().catch(() => ({}));
     const {

@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -44,6 +45,15 @@ async function countsForRange(from: Date, to: Date) {
 }
 
 export async function GET(_req: NextRequest) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const now = new Date();
     const y2024 = await countsForRange(startOfYear(2024), endOfYear(2024));

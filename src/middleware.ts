@@ -2,8 +2,35 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { checkRateLimit, parseWindow } from "@/lib/rateLimit";
 
+// Common attack patterns to block
+const BLOCKED_PATTERNS = [
+  '/wp-admin',
+  '/wp-login',
+  '/wordpress',
+  '/admin/setup',
+  'setup-config.php',
+  'xmlrpc.php',
+  '.env',
+  '.git',
+  'phpmyadmin',
+  'mysql',
+  'config.php',
+  'install.php',
+  'wp-config.php',
+];
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Block common attack patterns
+  const isBlockedPath = BLOCKED_PATTERNS.some(pattern =>
+    pathname.toLowerCase().includes(pattern.toLowerCase())
+  );
+
+  if (isBlockedPath) {
+    console.warn(`[Security] Blocked request to suspicious path: ${pathname} from ${req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown"}`);
+    return new NextResponse('Not Found', { status: 404 });
+  }
 
   // Note: Admin auth is now handled server-side in route handlers
   // This middleware only handles rate limiting for Edge Runtime compatibility

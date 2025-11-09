@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,12 @@ import {
   Award,
   DollarSign,
   Target,
-  BarChart3
+  BarChart3,
+  Lock,
+  Crown
 } from "lucide-react";
+import { PremiumContent } from '@/components/PremiumContent';
+import { WaitingListModal } from '@/components/WaitingListModal';
 
 interface EntrepreneurMetricsProps {
   tender: any;
@@ -30,6 +35,8 @@ interface MarketInsight {
 }
 
 export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetricsProps) {
+  const [showWaitingList, setShowWaitingList] = useState(false);
+
   // Use REAL AI data from backend intelligence
   const marketInsights: MarketInsight[] = [
     {
@@ -136,9 +143,11 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
   };
 
   return (
-    <div className="space-y-6">
-      {/* Market Insights Overview */}
-      <Card>
+    <>
+      <PremiumContent onUpgradeClick={() => setShowWaitingList(true)} blurIntensity="md">
+        <div className="space-y-6">
+          {/* Market Insights Overview */}
+          <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <BarChart3 className="h-5 w-5 text-green-600" />
@@ -147,22 +156,20 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
         </CardHeader>
         <CardContent className="space-y-4">
           {marketInsights.map((insight, index) => (
-            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg relative">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-sm font-medium">{insight.title}</span>
                   {insight.trend && getTrendIcon(insight.trend)}
                 </div>
-                <div className={`text-lg font-bold ${getTrendColor(insight.trend)}`}>
-                  {insight.value}
+                <div className="relative">
+                  <div className={`text-lg font-bold ${getTrendColor(insight.trend)} blur-sm select-none`}>
+                    {insight.value}
+                  </div>
+                  <Lock className="h-3 w-3 text-gray-500 absolute top-1/2 left-8 -translate-y-1/2" />
                 </div>
                 <div className="text-xs text-gray-600">{insight.description}</div>
               </div>
-              {insight.actionable && (
-                <Button variant="outline" size="sm">
-                  View
-                </Button>
-              )}
             </div>
           ))}
         </CardContent>
@@ -364,6 +371,38 @@ export default function EntrepreneurMetrics({ tender, intel }: EntrepreneurMetri
           </div>
         </CardContent>
       </Card>
-    </div>
+
+      {/* Upgrade CTA */}
+      <Card className="bg-gradient-to-br from-green-600 to-emerald-600 text-white border-0">
+        <CardContent className="p-6 text-center space-y-4">
+          <div className="flex items-center justify-center gap-2">
+            <Crown className="h-6 w-6" />
+            <h3 className="text-lg font-bold">Unlock Market Intelligence</h3>
+          </div>
+          <p className="text-sm text-green-100">
+            Access detailed market insights, buyer spending patterns, and BBBEE analytics to maximize your win rate
+          </p>
+          <Button
+            className="bg-white text-green-600 hover:bg-green-50 font-semibold"
+            onClick={() => setShowWaitingList(true)}
+          >
+            Upgrade Now
+          </Button>
+          <div className="flex items-center justify-center gap-4 text-xs text-green-200">
+            <span>✓ Market Analytics</span>
+            <span>✓ Buyer Insights</span>
+            <span>✓ Competition Data</span>
+          </div>
+        </CardContent>
+      </Card>
+        </div>
+      </PremiumContent>
+
+      <WaitingListModal
+        isOpen={showWaitingList}
+        onClose={() => setShowWaitingList(false)}
+        source="entrepreneur-metrics"
+      />
+    </>
   );
 }

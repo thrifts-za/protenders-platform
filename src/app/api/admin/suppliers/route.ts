@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -24,6 +25,16 @@ export const runtime = 'nodejs';
  * - minAwards: Minimum award count filter
  */
 export async function GET(request: NextRequest) {
+  // Require admin authentication
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
 

@@ -7,11 +7,21 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { runSavedSearchAlerts } from '@/lib/alertsRunner';
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 export async function POST(_request: NextRequest) {
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const { processed, emails, totalFound } = await runSavedSearchAlerts();
     return NextResponse.json({ success: true, processed, emails, totalFound });

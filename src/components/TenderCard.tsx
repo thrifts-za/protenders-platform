@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { DataQualityBadge } from "@/components/DataQualityBadge";
 import VerificationBadge from "@/components/VerificationBadge";
 import { Calendar, Building2, Tag, Clock } from "lucide-react";
 import { formatDate as fmtDate, formatRelativeDate, getDaysUntilClose } from "@/lib/date";
 import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
+import { toSentenceCase } from "@/lib/utils";
 import type { Tender } from "@/types/tender";
 
 interface TenderCardProps {
@@ -49,7 +49,6 @@ export function TenderCard({ tender }: TenderCardProps) {
           <div className="flex items-start justify-between gap-4">
             <h3 className="font-semibold text-lg text-card-foreground line-clamp-2">{title}</h3>
             <div className="flex items-center gap-2 flex-shrink-0">
-              <DataQualityBadge score={dataQualityScore} showLabel={false} />
               {publishedAt && (
                 <Badge variant="outline" className="text-xs">
                   <Calendar className="h-3 w-3 mr-1" /> Advertised {fmtDate(publishedAt)}
@@ -59,7 +58,7 @@ export function TenderCard({ tender }: TenderCardProps) {
             </div>
           </div>
 
-          {description && <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>}
+          {description && <p className="text-sm text-muted-foreground line-clamp-2">{toSentenceCase(description)}</p>}
 
           <div className="flex flex-wrap gap-2">
             {buyerName && (

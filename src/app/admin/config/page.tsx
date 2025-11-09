@@ -12,6 +12,7 @@ import { Settings, Save, RefreshCw } from "lucide-react";
 type AdminConfig = {
   platform: { name: string; version: string; environment: string };
   features: { alerts: boolean; savedSearches: boolean; tenderPacks: boolean; aiIntelligence: boolean; analytics: boolean };
+  notificationBar: { message: string; enabled: boolean };
   sync: { enabled: boolean; autoSync: boolean; syncInterval: string; maxPagesPerDay: number; maxScrapeDetails: number };
   limits: { maxAlertsPerUser: number; maxSavedTendersPerUser: number; maxSearchResultsPerPage: number };
   api: { rateLimit: number; rateLimitWindow: string; maxRequestSize: string };
@@ -75,6 +76,21 @@ export default function ConfigPage() {
                   <Input value={cfg.platform.name} onChange={(e) => setCfg({ ...cfg, platform: { ...cfg.platform, name: e.target.value } })} />
                   <Input value={cfg.platform.version} onChange={(e) => setCfg({ ...cfg, platform: { ...cfg.platform, version: e.target.value } })} />
                   <Input value={cfg.platform.environment} onChange={(e) => setCfg({ ...cfg, platform: { ...cfg.platform, environment: e.target.value } })} />
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Notification Bar */}
+              <div>
+                <h3 className="font-semibold mb-2">Notification Bar</h3>
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">Message displayed at the top of the site</label>
+                  <Input
+                    value={cfg.notificationBar.message}
+                    onChange={(e) => setCfg({ ...cfg, notificationBar: { ...cfg.notificationBar, message: e.target.value } })}
+                    placeholder="🚀 Beta Version - Best viewed on desktop for optimal experience"
+                  />
                 </div>
               </div>
 

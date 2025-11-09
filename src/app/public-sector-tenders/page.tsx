@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TenderCard } from "@/components/TenderCard";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Building2, ShieldCheck, ArrowLeft } from "lucide-react";
 import type { TenderSearchResponse } from "@/types/tender";
 import { searchTenders } from "@/lib/api";
@@ -29,8 +30,14 @@ export default function PublicSectorTenders() {
     fetchPublicSector();
   }, []);
 
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "Public Sector Tenders" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       <header className="w-full border-b bg-gradient-to-br from-blue-50 via-background to-background dark:from-blue-950/20">
         <div className="content-container py-12">
           <Link href="/">

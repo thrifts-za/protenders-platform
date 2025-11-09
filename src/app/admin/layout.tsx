@@ -19,8 +19,10 @@ import {
   LogOut,
   Menu,
   X,
+  Bell,
+  Inbox,
+  ClipboardList,
 } from "lucide-react";
-import { Bell } from "lucide-react";
 import { useState } from "react";
 
 const navigation = [
@@ -31,11 +33,13 @@ const navigation = [
   { name: "Buyers", href: "/admin/buyers", icon: Building2 },
   { name: "Suppliers", href: "/admin/suppliers", icon: Users },
   { name: "Users", href: "/admin/users", icon: Users },
+  { name: "Waiting List", href: "/admin/waiting-list", icon: ClipboardList },
   { name: "Alerts", href: "/admin/alerts", icon: Bell },
+  { name: "Contact Submissions", href: "/admin/contact-submissions", icon: Inbox },
+  { name: "Feedback", href: "/admin/feedback", icon: MessageSquare },
   { name: "Config", href: "/admin/config", icon: Settings },
   { name: "Mail", href: "/admin/mail", icon: Mail },
   { name: "Audit Logs", href: "/admin/audit", icon: FileText },
-  { name: "Feedback", href: "/admin/feedback", icon: MessageSquare },
 ];
 
 export default function AdminLayout({

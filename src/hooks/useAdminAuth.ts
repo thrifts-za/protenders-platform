@@ -16,7 +16,15 @@ export function useAdminAuth() {
   const isAdmin = role === "admin" || role === "ADMIN";
 
   const logout = async () => {
-    await signOut({ callbackUrl: "/admin/login" });
+    try {
+      await signOut({ redirect: false });
+      router.push("/admin/login");
+      router.refresh();
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Force redirect even on error
+      router.push("/admin/login");
+    }
   };
 
   return {

@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { enrichTenderFromEtenders } from '@/lib/enrichment/etendersEnricher';
 import { RATE_LIMIT_DELAY_MS, DEFAULT_MAX_ENRICHMENT_PER_RUN, OCDS_API_BASE } from '@/lib/enrichment/constants';
+import { generateSlug } from '@/lib/utils/slug';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -454,6 +455,21 @@ export async function performSync(options?: {
           }
         }
 
+        // Generate SEO-friendly slug for new tenders
+        const title = rel?.tender?.title || '';
+        const description = rel?.tender?.description || '';
+        const textForSlug = description && description.trim().length > 10 ? description : title;
+        let baseSlug = generateSlug(textForSlug);
+
+        // Limit description part to 80 chars for reasonable URL length
+        if (baseSlug.length > 80) {
+          baseSlug = baseSlug.slice(0, 80).replace(/-+$/, '');
+        }
+
+        const slug = textForSlug && textForSlug.trim().length > 0
+          ? `${baseSlug}-${rel.ocid}`
+          : rel.ocid; // Fallback to OCID if no title/description
+
         const baseData = {
           json: JSON.stringify(rel),
           buyerName: rel?.buyer?.name || rel?.tender?.procuringEntity?.name || undefined,
@@ -465,6 +481,7 @@ export async function performSync(options?: {
           publishedAt: publishedAtIso ? new Date(publishedAtIso) : undefined,
           updatedAt: updatedAtIso ? new Date(updatedAtIso) : undefined,
           tenderType: enrichmentData?.tenderType || rel?.tender?.procurementMethodDetails || rel?.tender?.procurementMethod || undefined,
+          slug: slug, // Automatically generate slug for all new tenders
         };
 
         const enrichmentFields = enrichmentData ? {

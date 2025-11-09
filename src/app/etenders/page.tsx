@@ -5,6 +5,7 @@ import { categories } from '@/data/categories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import { MapPin, ArrowRight, Building2, FileText, Search, Briefcase } from 'lucide-react';
 
 export const metadata: Metadata = {
@@ -48,8 +49,14 @@ export const metadata: Metadata = {
 };
 
 export default function ETendersHubPage() {
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "eTenders Portal" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Header */}
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="content-container py-16">

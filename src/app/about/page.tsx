@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Target, Bell, Search, TrendingUp, Users, Shield, Zap, Award } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -12,8 +13,14 @@ export const metadata: Metadata = {
 };
 
 export default function AboutPage() {
+  const breadcrumbItems = [
+    { name: "Home", url: "/" },
+    { name: "About" }
+  ];
+
   return (
     <div className="min-h-screen bg-background">
+      <Breadcrumbs items={breadcrumbItems} />
       {/* Hero Section */}
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="content-container py-16">

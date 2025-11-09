@@ -5,11 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar, DollarSign, Building2, Target } from "lucide-react";
 import { useEffect, useState } from "react";
 import { searchTenders } from "@/lib/api";
 import type { TenderSearchResponse } from "@/types/tender";
-import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
+import { TenderCard } from "@/components/TenderCard";
 
 export default function HomePage() {
   const provinces = [
@@ -158,91 +157,9 @@ export default function HomePage() {
           {loading && (
             <div className="col-span-full text-center text-muted-foreground">Loading recent tenders...</div>
           )}
-          {!loading && recent && recent.results.map((tender) => {
-            const title = tender.tender?.title || "Untitled Tender";
-            const description = tender.tender?.description || "";
-            const buyerName = tender.buyer?.name || "Unknown Buyer";
-            const category = tender.tender?.mainProcurementCategory || "General";
-            const value = tender.tender?.value?.amount;
-            const currency = tender.tender?.value?.currency || "ZAR";
-            const closing = tender.tender?.tenderPeriod?.endDate;
-            const daysLeft = closing ? Math.ceil((new Date(closing).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
-            const isUrgent = daysLeft != null && daysLeft <= 7;
-
-            return (
-              <Card key={tender.ocid} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className="bg-primary/10 text-primary">{category}</Badge>
-                        {tender.tender?.status && (
-                          <Badge variant={tender.tender.status === "active" ? "default" : "secondary"} className={tender.tender.status === "active" ? "bg-green-100 text-green-800" : ""}>
-                            {tender.tender.status}
-                          </Badge>
-                        )}
-                      </div>
-                      <CardTitle className="text-lg leading-tight mb-2">
-                        <Link href={createTenderUrlFromTitleAndDescription(title, description, tender.ocid)} className="hover:text-primary transition-colors">
-                          {title}
-                        </Link>
-                      </CardTitle>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                        <Building2 className="h-4 w-4" />
-                        <span>{buyerName}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                    {description}
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-green-600" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Value</p>
-                        <p className="text-sm font-medium">
-                          {value ? new Intl.NumberFormat("en-ZA", { style: "currency", currency, maximumFractionDigits: 0 }).format(value) : "Not specified"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Calendar className={`h-4 w-4 ${isUrgent ? 'text-red-500' : 'text-muted-foreground'}`} />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Closes</p>
-                        <p className="text-sm font-medium">{closing ? new Date(closing).toLocaleDateString() : '—'}</p>
-                        {daysLeft != null && daysLeft > 0 && (
-                          <Badge
-                            variant={isUrgent ? "destructive" : "secondary"}
-                            className="text-xs mt-1"
-                          >
-                            {daysLeft} days left
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button asChild className="flex-1">
-                      <Link href={createTenderUrlFromTitleAndDescription(title, description, tender.ocid)}>
-                        View Details
-                      </Link>
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Target className="h-4 w-4 mr-1" />
-                      AI Insights
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {!loading && recent && recent.results.map((tender) => (
+            <TenderCard key={tender.ocid} tender={tender} />
+          ))}
         </div>
         </div>
       </section>

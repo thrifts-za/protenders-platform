@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/auth-middleware';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -16,6 +17,16 @@ export const runtime = 'nodejs';
  * Get operational metrics
  */
 export async function GET(request: NextRequest) {
+  // Require admin authentication
+  try {
+    await requireAdmin();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Unauthorized - Admin access required' },
+      { status: 401 }
+    );
+  }
+
   try {
     const now = new Date();
     const last24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -101,7 +112,56 @@ export async function GET(request: NextRequest) {
       : null;
     const syncHealthy = lastSyncAgo !== null && lastSyncAgo < 24 * 60 * 60 * 1000;
 
+    // Get unique OCIDs count
+    const uniqueOcids = await prisma.oCDSRelease.groupBy({
+      by: ['ocid'],
+    }).then(results => results.length);
+
+    // Get total searches and search results from SearchLog
+    const totalSearches = await prisma.searchLog.count().catch(() => 0);
+    const searchResults = await prisma.searchLog.aggregate({
+      _sum: { resultsCount: true },
+    }).then(res => res._sum.resultsCount || 0).catch(() => 0);
+
+    // Calculate data source ratio (estimate based on recent searches)
+    const recentSearches = await prisma.searchLog.findMany({
+      take: 100,
+      orderBy: { createdAt: 'desc' },
+      select: { dataSource: true },
+    }).catch(() => []);
+
+    const localDbCount = recentSearches.filter(s => s.dataSource === 'local-db').length;
+    const totalRecentSearches = recentSearches.length;
+    const localDbRatio = totalRecentSearches > 0 ? Math.round((localDbCount / totalRecentSearches) * 100) : 100;
+
+    // Get database size (rough estimate based on table sizes)
+    const dbSizeQuery = await prisma.$queryRaw<Array<{ size: bigint }>>`
+      SELECT pg_database_size(current_database()) as size
+    `.catch(() => [{ size: BigInt(0) }]);
+    const dbSizeBytes = Number(dbSizeQuery[0]?.size || 0);
+    const dbSizeMB = (dbSizeBytes / (1024 * 1024)).toFixed(2);
+
+    // Get last import time (most recent tender)
+    const lastImport = await prisma.oCDSRelease.findFirst({
+      orderBy: { publishedAt: 'desc' },
+      select: { publishedAt: true },
+    });
+
     return NextResponse.json({
+      // Dashboard compatibility fields (top-level)
+      totalReleases: totalTenders,
+      uniqueOcids: uniqueOcids,
+      totalSearches: totalSearches,
+      searchResults: searchResults,
+      dataSourceRatio: {
+        localDb: localDbRatio,
+        liveApi: 100 - localDbRatio,
+      },
+      databaseSize: `${dbSizeMB} MB`,
+      lastImport: lastImport?.publishedAt?.toISOString(),
+      nextCronRun: '03:00 SAST',
+
+      // Detailed metrics (nested structure)
       database: {
         tenders: totalTenders,
         users: totalUsers,

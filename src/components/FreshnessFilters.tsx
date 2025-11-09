@@ -52,8 +52,8 @@ export default function FreshnessFilters({ value, onChange, onReset }: Freshness
   const isActive = value.windowDays !== 30 || value.updatedSince !== null || value.sort !== "latest";
 
   return (
-    <div className="space-y-4">
-      {/* Freshness Window Chips */}
+    <div className="space-y-3">
+      {/* Single row: Freshness chips + Sort + Reset */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
           <Clock className="h-4 w-4" />
@@ -104,26 +104,25 @@ export default function FreshnessFilters({ value, onChange, onReset }: Freshness
             )}
           </PopoverContent>
         </Popover>
-      </div>
 
-      {/* Sort and Reset */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-            <SlidersHorizontal className="h-4 w-4" />
-            Sort:
-          </span>
-          <Select value={value.sort} onValueChange={handleSortChange}>
-            <SelectTrigger className="h-8 w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="latest">Latest</SelectItem>
-              <SelectItem value="closingSoon">Closing Soon</SelectItem>
-              <SelectItem value="relevance">Relevance</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Vertical separator */}
+        <div className="h-6 w-px bg-border mx-1" />
+
+        {/* Sort controls in same row */}
+        <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+          <SlidersHorizontal className="h-4 w-4" />
+          Sort:
+        </span>
+        <Select value={value.sort} onValueChange={handleSortChange}>
+          <SelectTrigger className="h-8 w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="latest">Latest</SelectItem>
+            <SelectItem value="closingSoon">Closing Soon</SelectItem>
+            <SelectItem value="relevance">Relevance</SelectItem>
+          </SelectContent>
+        </Select>
 
         {isActive && onReset && (
           <Button variant="ghost" size="sm" onClick={onReset} className="h-8">
@@ -132,7 +131,7 @@ export default function FreshnessFilters({ value, onChange, onReset }: Freshness
         )}
       </div>
 
-      {/* Active Filter Summary */}
+      {/* Active Filter Summary (below if needed) */}
       {value.updatedSince && (
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="gap-1">
