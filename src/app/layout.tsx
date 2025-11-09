@@ -184,6 +184,20 @@ export default function RootLayout({
             })()}
           </Script>
         ) : null}
+
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-JS1J9SDY13"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-JS1J9SDY13');
+          `}
+        </Script>
         <Providers>
           <SessionProvider>
             <TooltipProvider>

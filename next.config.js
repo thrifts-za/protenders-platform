@@ -44,11 +44,11 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://cdn.clarity.ms https://www.clarity.ms https://scripts.clarity.ms https://cdn.mixpanel.com https://cdn.mxpnl.com",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://cdn.clarity.ms https://www.clarity.ms https://scripts.clarity.ms https://cdn.mixpanel.com https://cdn.mxpnl.com https://www.googletagmanager.com https://www.google-analytics.com",
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://vercel.live https://ocds-api.etenders.gov.za https://www.etenders.gov.za https://api.mixpanel.com https://www.clarity.ms https://cdn.jsdelivr.net",
+              "connect-src 'self' https://vercel.live https://ocds-api.etenders.gov.za https://www.etenders.gov.za https://api.mixpanel.com https://www.clarity.ms https://cdn.jsdelivr.net https://www.google-analytics.com https://analytics.google.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
