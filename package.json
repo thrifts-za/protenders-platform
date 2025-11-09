@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "postinstall": "prisma generate",
     "fetch:ocds:today": "npx tsx scripts/fetch-ocds-today.ts",
     "fetch:ocds:today:enrich": "npx tsx scripts/fetch-ocds-today.ts --enrich --maxPages=1 --maxDetails=5 --maxDocTenders=3",
     "fetch:ocds:today:scrape": "npx tsx scripts/fetch-ocds-today.ts --scrape-page --maxPages=1 --maxScrape=10",

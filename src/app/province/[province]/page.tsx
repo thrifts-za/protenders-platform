@@ -201,8 +201,28 @@ export default async function ProvincePage({ params }: { params: Promise<{ provi
 
           {/* Live Tenders in this Province */}
           <section className="mb-12">
-            <h2 className="text-2xl font-bold mb-4">Current Tenders in {provinceData.name}</h2>
-            <LiveTenders keyword={provinceData.name} />
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">Current Tenders in {provinceData.name}</h2>
+              <a
+                href={`/search?province=${encodeURIComponent(provinceData.name)}`}
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors text-sm"
+              >
+                See All Tenders →
+              </a>
+            </div>
+            <LiveTenders province={provinceData.name} />
+            {/* Bottom CTA */}
+            <div className="mt-6 text-center">
+              <a
+                href={`/search?province=${encodeURIComponent(provinceData.name)}`}
+                className="inline-block px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+              >
+                View All {provinceData.name} Tenders with Pagination →
+              </a>
+              <p className="text-sm text-muted-foreground mt-2">
+                Browse through all available tenders with advanced filtering
+              </p>
+            </div>
           </section>
 
           {/* Success Tip */}

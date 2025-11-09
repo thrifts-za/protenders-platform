@@ -16,6 +16,8 @@ import Script from "next/script";
 import VisitorModal from "@/components/VisitorModal";
 import { MIXPANEL_TOKEN, CLARITY_PROJECT_ID } from "@/config/analytics";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -214,6 +216,8 @@ export default function RootLayout({
             </TooltipProvider>
           </SessionProvider>
         </Providers>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

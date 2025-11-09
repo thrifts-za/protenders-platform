@@ -14,6 +14,8 @@ import StrategicAssistant from "@/components/StrategicAssistant";
 import EntrepreneurMetrics from "@/components/EntrepreneurMetrics";
 import TenderStructuredData from "@/components/tender/TenderStructuredData";
 import { extractTenderIdFromSlug } from "@/lib/utils/slug";
+import Breadcrumbs from "@/components/Breadcrumbs";
+import { CountdownTimer } from "@/components/CountdownTimer";
 
 // This is the client-side interactive component for tender details
 // The server component wrapper (page.tsx) handles metadata generation
@@ -177,14 +179,138 @@ export default function TenderClient() {
   };
 
   const closingDate = tender.tender?.tenderPeriod?.endDate || tender.closingAt;
+
+  // Extract requirements and eligibility information
+  const extractRequirements = () => {
+    const requirements: {
+      bbbeeLevel?: string;
+      certifications: string[];
+      eligibility: string[];
+      otherRequirements: string[];
+    } = {
+      certifications: [],
+      eligibility: [],
+      otherRequirements: [],
+    };
+
+    // Combine all text sources for parsing
+    const textSources = [
+      tender.tender?.description || '',
+      tender.tender?.title || '',
+      specialConditions,
+      raw?.tender?.eligibilityCriteria || '',
+      raw?.tender?.otherRequirements || '',
+      enrichment?.specialConditions || '',
+      ...(tender.tender?.items || []).map((item: any) => item?.description || ''),
+    ].join(' ').toLowerCase();
+
+    // Extract BBBEE requirements
+    const bbbeeMatch = textSources.match(/b-?bbee\s*(level\s*)?(\d+|[1-4])/i);
+    if (bbbeeMatch) {
+      requirements.bbbeeLevel = `Level ${bbbeeMatch[2]}`;
+    } else if (textSources.includes('bbbee') || textSources.includes('b-bbee')) {
+      requirements.bbbeeLevel = 'Required (level not specified)';
+    }
+
+    // Common certifications
+    const certKeywords = [
+      { keyword: 'tax', cert: 'Valid Tax Clearance Certificate' },
+      { keyword: 'csd', cert: 'CSD (Central Supplier Database) Registration' },
+      { keyword: 'cidb', cert: 'CIDB (Construction Industry Development Board) Registration' },
+      { keyword: 'cipc', cert: 'CIPC Company Registration' },
+      { keyword: 'vat', cert: 'VAT Registration' },
+      { keyword: 'insurance', cert: 'Professional Indemnity Insurance' },
+      { keyword: 'liability insurance', cert: 'Public Liability Insurance' },
+      { keyword: 'workman', cert: "Workmen's Compensation" },
+      { keyword: 'uif', cert: 'UIF Registration' },
+      { keyword: 'sars', cert: 'SARS Tax Compliance Status' },
+    ];
+
+    certKeywords.forEach(({ keyword, cert }) => {
+      if (textSources.includes(keyword) && !requirements.certifications.includes(cert)) {
+        requirements.certifications.push(cert);
+      }
+    });
+
+    // Eligibility criteria
+    const eligibilityKeywords = [
+      { keyword: 'sme', criteria: 'SME (Small and Medium Enterprises) preferred' },
+      { keyword: 'qse', criteria: 'QSE (Qualifying Small Enterprise)' },
+      { keyword: 'exempt micro enterprise', criteria: 'EME (Exempt Micro Enterprise) preferred' },
+      { keyword: 'eme', criteria: 'EME (Exempt Micro Enterprise) preferred' },
+      { keyword: '51%', criteria: 'Minimum 51% Black Ownership' },
+      { keyword: '30%', criteria: 'Minimum 30% Black Ownership' },
+      { keyword: 'black owned', criteria: 'Black-Owned Business preferred' },
+      { keyword: 'women owned', criteria: 'Women-Owned Business preferred' },
+      { keyword: 'youth owned', criteria: 'Youth-Owned Business preferred' },
+      { keyword: 'disabled', criteria: 'Businesses owned by people with disabilities preferred' },
+      { keyword: 'local', criteria: 'Local suppliers preferred' },
+      { keyword: 'years experience', criteria: 'Minimum experience required (see description)' },
+      { keyword: 'track record', criteria: 'Proven track record required' },
+      { keyword: 'past performance', criteria: 'Past performance references required' },
+    ];
+
+    eligibilityKeywords.forEach(({ keyword, criteria }) => {
+      if (textSources.includes(keyword) && !requirements.eligibility.includes(criteria)) {
+        requirements.eligibility.push(criteria);
+      }
+    });
+
+    // Other requirements
+    const otherKeywords = [
+      { keyword: 'site visit', requirement: 'Compulsory site visit' },
+      { keyword: 'compulsory briefing', requirement: 'Compulsory briefing session' },
+      { keyword: 'non-refundable', requirement: 'Non-refundable tender fee may apply' },
+      { keyword: 'joint venture', requirement: 'Joint ventures allowed' },
+      { keyword: 'consortium', requirement: 'Consortium bids allowed' },
+      { keyword: 'sub-contract', requirement: 'Sub-contracting allowed' },
+    ];
+
+    otherKeywords.forEach(({ keyword, requirement }) => {
+      if (textSources.includes(keyword) && !requirements.otherRequirements.includes(requirement)) {
+        requirements.otherRequirements.push(requirement);
+      }
+    });
+
+    return requirements;
+  };
+
+  const requirements = extractRequirements();
   const daysUntilClose = getDaysUntilClose(closingDate);
   const isUrgent = daysUntilClose !== null && daysUntilClose <= 7 && daysUntilClose >= 0;
+
+  // Helper to create URL-friendly category slug
+  const createCategorySlug = (category: string) => {
+    return category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  };
+
+  // Build breadcrumb items
+  const breadcrumbItems: Array<{ name: string; url?: string }> = [
+    { name: 'Home', url: '/' },
+    { name: 'eTenders', url: '/etenders' },
+  ];
+
+  // Add category breadcrumb if available
+  if (tender.detailedCategory) {
+    breadcrumbItems.push({
+      name: `${tender.detailedCategory}`,
+      url: `/etenders/category/${createCategorySlug(tender.detailedCategory)}`,
+    });
+  }
+
+  // Add current tender title (no URL for current page)
+  const tenderTitle = tender.tender?.title || "Tender Details";
+  const truncatedTitle = tenderTitle.length > 50 ? tenderTitle.substring(0, 50) + '...' : tenderTitle;
+  breadcrumbItems.push({ name: truncatedTitle });
 
   return (
     <div className="min-h-screen bg-background">
       {/* Structured Data for SEO */}
       {tender && <TenderStructuredData tender={tender} />}
-      
+
+      {/* Breadcrumbs */}
+      <Breadcrumbs items={breadcrumbItems} />
+
       {/* Header */}
       <header className="w-full border-b bg-gradient-to-br from-primary/10 via-background to-background">
         <div className="content-container py-8">
@@ -237,10 +363,13 @@ export default function TenderClient() {
         <div className="content-container py-4">
           <div className="flex flex-wrap items-center gap-3">
             {closingDate && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                Closes {formatDate(closingDate)}
-              </Badge>
+              <>
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  Closes {formatDate(closingDate)}
+                </Badge>
+                <CountdownTimer closingDate={closingDate} />
+              </>
             )}
             <div className="ml-auto flex items-center gap-2">
               <Button variant="outline" size="sm">
@@ -263,8 +392,26 @@ export default function TenderClient() {
       {/* Main Content */}
       <main className="w-full py-8">
         <div className="content-container">
-        {/* Details Section (eTenders-style) */}
-        <Card className="mb-8">
+          {/* 2-Column Layout: Cards on left, Sidebar on right */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8">
+            {/* Left Column - Main Cards */}
+            <div className="space-y-8">
+              {/* Description Section */}
+              {tender.tender?.description && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Description</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
+                      {tender.tender.description}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Details Section (eTenders-style) */}
+              <Card>
           <CardHeader>
             <CardTitle>Details</CardTitle>
           </CardHeader>
@@ -295,11 +442,86 @@ export default function TenderClient() {
                 <span className="font-semibold">Special Conditions:</span> {specialConditions}
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Enquiries Section */}
-        <Card className="mb-8">
+            {/* Requirements & Eligibility Section */}
+            {(requirements.bbbeeLevel || requirements.certifications.length > 0 ||
+              requirements.eligibility.length > 0 || requirements.otherRequirements.length > 0) && (
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+                  <Info className="h-5 w-5 text-blue-600" />
+                  Requirements & Eligibility
+                </h3>
+
+                <div className="space-y-4">
+                  {/* BBBEE Level */}
+                  {requirements.bbbeeLevel && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <div className="flex items-start gap-2">
+                        <Badge className="bg-blue-600 text-white mt-0.5">BBBEE</Badge>
+                        <span className="text-sm font-medium">{requirements.bbbeeLevel}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Required Certifications */}
+                  {requirements.certifications.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-700">Required Certifications:</h4>
+                      <ul className="space-y-1.5">
+                        {requirements.certifications.map((cert, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <span className="text-green-600 mt-0.5">✓</span>
+                            <span>{cert}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Eligibility Criteria */}
+                  {requirements.eligibility.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-700">Eligibility Criteria:</h4>
+                      <ul className="space-y-1.5">
+                        {requirements.eligibility.map((criteria, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <span className="text-blue-600 mt-0.5">•</span>
+                            <span>{criteria}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Other Requirements */}
+                  {requirements.otherRequirements.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold mb-2 text-gray-700">Additional Requirements:</h4>
+                      <ul className="space-y-1.5">
+                        {requirements.otherRequirements.map((req, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-sm">
+                            <span className="text-orange-600 mt-0.5">!</span>
+                            <span>{req}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Disclaimer */}
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-xs text-amber-800">
+                      <strong>Note:</strong> Requirements have been automatically extracted. Always verify complete requirements in the official tender documents.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+              </Card>
+
+              {/* Enquiries Section */}
+              <Card>
           <CardHeader>
             <CardTitle>Enquiries</CardTitle>
           </CardHeader>
@@ -332,10 +554,10 @@ export default function TenderClient() {
               </div>
             )}
           </CardContent>
-        </Card>
+              </Card>
 
-        {/* Briefing Section */}
-        <Card className="mb-8">
+              {/* Briefing Section */}
+              <Card>
           <CardHeader>
             <CardTitle>Briefing Session</CardTitle>
           </CardHeader>
@@ -366,10 +588,10 @@ export default function TenderClient() {
               </div>
             )}
           </CardContent>
-        </Card>
+              </Card>
 
-        {/* Documents Section */}
-        <Card className="mb-8">
+              {/* Documents Section */}
+              <Card>
           <CardHeader>
             <CardTitle>Documents</CardTitle>
           </CardHeader>
@@ -392,197 +614,117 @@ export default function TenderClient() {
                 ))}
               </ul>
             )}
-      </CardContent>
-        </Card>
+              </CardContent>
+              </Card>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="w-full justify-start mb-8 overflow-x-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="financial">Financial Intelligence</TabsTrigger>
-            <TabsTrigger value="competitor">Competitive Analysis</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="actions">Action Center</TabsTrigger>
-            <TabsTrigger value="updates">Real-time Updates</TabsTrigger>
-            <TabsTrigger value="awards">Award History</TabsTrigger>
-          </TabsList>
+              {/* Tabbed Interface */}
+              <Tabs defaultValue="overview" className="w-full">
+                <TabsList className="w-full justify-start mb-8 overflow-x-auto">
+                  <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="financial">Financial Intelligence</TabsTrigger>
+                  <TabsTrigger value="competitor">Competitive Analysis</TabsTrigger>
+                  <TabsTrigger value="documents">Documents</TabsTrigger>
+                  <TabsTrigger value="actions">Action Center</TabsTrigger>
+                  <TabsTrigger value="updates">Real-time Updates</TabsTrigger>
+                  <TabsTrigger value="awards">Award History</TabsTrigger>
+                </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Main Column */}
-              <div className="lg:col-span-2 space-y-8">
-                {/* AI Opportunity Score Card */}
-                <OpportunityScoreCard tender={tender} />
+                {/* Overview Tab */}
+                <TabsContent value="overview" className="space-y-8">
+                  {/* AI Opportunity Score Card */}
+                  <OpportunityScoreCard tender={tender} />
+                </TabsContent>
 
-                {/* Description */}
-                {tender.tender?.description && (
+                {/* Financial Tab */}
+                <TabsContent value="financial" className="space-y-8">
                   <Card>
                     <CardHeader>
-                      <CardTitle>Description</CardTitle>
+                      <CardTitle>Financial Intelligence</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
-                        {tender.tender.description}
-                      </div>
+                      <p className="text-muted-foreground">Financial analysis component will be implemented here.</p>
                     </CardContent>
                   </Card>
-                )}
+                </TabsContent>
 
-                {/* Key Details */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Key Details</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {tender.tender?.value && (
-                      <div className="flex items-start gap-3">
-                        <DollarSign className="h-5 w-5 text-green-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Estimated Value</p>
-                          <p className="text-lg font-semibold text-green-700">
-                            {formatCurrency(tender.tender.value.amount, tender.tender.value.currency)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                {/* Competitor Tab */}
+                <TabsContent value="competitor" className="space-y-8">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Competitive Analysis</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">Competitive analysis component will be implemented here.</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-                    {closingDate && (
-                      <div className="flex items-start gap-3">
-                        <Calendar className={`h-5 w-5 mt-0.5 ${isUrgent ? 'text-red-500' : 'text-muted-foreground'}`} />
-                        <div className="flex-1">
-                          <p className="text-sm text-muted-foreground">Closing Date</p>
-                          <p className="text-lg font-semibold">{formatDate(closingDate)}</p>
-                          {daysUntilClose !== null && (
-                            <div className="flex items-center gap-2 mt-1">
-                              {isUrgent ? (
-                                <Badge className="bg-red-100 text-red-800">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {daysUntilClose} days left
-                                </Badge>
-                              ) : (
-                                <Badge variant="secondary">
-                                  {daysUntilClose} days left
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                {/* Documents Tab */}
+                <TabsContent value="documents" className="space-y-8">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Documents</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">Document analysis component will be implemented here.</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-                    {tender.tender?.procurementMethod && (
-                      <div className="flex items-start gap-3">
-                        <Target className="h-5 w-5 text-blue-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Procurement Method</p>
-                          <p className="font-medium">{tender.tender.procurementMethod}</p>
-                        </div>
-                      </div>
-                    )}
+                {/* Actions Tab */}
+                <TabsContent value="actions" className="space-y-8">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Action Center</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">Task management component will be implemented here.</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-                    {tender.buyer?.name && (
-                      <div className="flex items-start gap-3">
-                        <Building2 className="h-5 w-5 text-gray-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm text-muted-foreground">Buyer</p>
-                          <p className="font-medium">{tender.buyer.name}</p>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+                {/* Updates Tab */}
+                <TabsContent value="updates" className="space-y-8">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Real-time Updates</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">Real-time updates component will be implemented here.</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
 
-              {/* Sidebar */}
-              <div className="sticky top-8">
-                <Tabs defaultValue="strategy" className="w-full">
-                  <TabsList className="w-full grid grid-cols-2">
-                    <TabsTrigger value="strategy" className="text-xs">Strategy</TabsTrigger>
-                    <TabsTrigger value="market" className="text-xs">Market</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="strategy" className="mt-4">
-                    <StrategicAssistant tender={tender} intel={undefined} />
-                  </TabsContent>
-                  <TabsContent value="market" className="mt-4">
-                    <EntrepreneurMetrics tender={tender} intel={undefined} />
-                  </TabsContent>
-                </Tabs>
-              </div>
+                {/* Awards Tab */}
+                <TabsContent value="awards" className="space-y-8">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Award History</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">Award history component will be implemented here.</p>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </div>
-          </TabsContent>
 
-          {/* Financial Tab */}
-          <TabsContent value="financial" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Financial Intelligence</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Financial analysis component will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Competitor Tab */}
-          <TabsContent value="competitor" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Competitive Analysis</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Competitive analysis component will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Documents Tab */}
-          <TabsContent value="documents" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Documents</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Document analysis component will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Actions Tab */}
-          <TabsContent value="actions" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Action Center</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Task management component will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Updates Tab */}
-          <TabsContent value="updates" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Real-time Updates</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Real-time updates component will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Awards Tab */}
-          <TabsContent value="awards" className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Award History</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Award history component will be implemented here.</p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-      </Tabs>
+            {/* Right Column - Sticky Sidebar */}
+            <div className="lg:sticky lg:top-8 lg:self-start">
+              <Tabs defaultValue="strategy" className="w-full">
+                <TabsList className="w-full grid grid-cols-2">
+                  <TabsTrigger value="strategy">Strategy</TabsTrigger>
+                  <TabsTrigger value="market">Market</TabsTrigger>
+                </TabsList>
+                <TabsContent value="strategy" className="mt-4">
+                  <StrategicAssistant tender={tender} intel={undefined} />
+                </TabsContent>
+                <TabsContent value="market" className="mt-4">
+                  <EntrepreneurMetrics tender={tender} intel={undefined} />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
         </div>
       </main>
     </div>

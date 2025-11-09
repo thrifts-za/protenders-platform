@@ -28,7 +28,7 @@ export default function ProvincialTenders({ provinceName, limit = 6 }: Provincia
           page: 1,
           pageSize: limit,
           sort: "latest",
-          q: provinceName // Search for tenders mentioning the province
+          keywords: provinceName // Search for tenders mentioning the province
         });
         if (!cancelled) setTenders(res);
       } catch (error) {

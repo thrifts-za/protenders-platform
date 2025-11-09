@@ -145,6 +145,7 @@ export interface Contract {
 export interface TenderSearchParams {
   keywords?: string;
   categories?: string[];
+  province?: string;
   closingInDays?: number;
   submissionMethods?: string[];
   buyer?: string;
@@ -174,6 +175,7 @@ export type TenderStatus = "active" | "planned" | "complete" | "cancelled";
 export interface SearchParams {
   keywords?: string;
   categories?: string[];
+  province?: string;
   closingInDays?: number | null;
   submissionMethods?: string[];
   buyer?: string | null;

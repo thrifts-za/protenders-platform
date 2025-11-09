@@ -16,6 +16,7 @@ export const runtime = 'nodejs';
 interface SearchParams {
   keywords?: string;
   categories?: string[];
+  province?: string;
   closingInDays?: number;
   submissionMethods?: string[];
   buyer?: string;
@@ -27,26 +28,8 @@ interface SearchParams {
   updatedSince?: string;
 }
 
-interface NormalizedTender {
-  id: string;
-  ocid?: string;
-  title: string;
-  displayTitle?: string;
-  description?: string;
-  buyerName?: string;
-  mainProcurementCategory?: string;
-  detailedCategory?: string;
-  closingDate?: string;
-  submissionMethods?: string[];
-  status?: string;
-  publishedAt?: string;
-  updatedAt?: string;
-  dataQualityScore: number;
-  raw?: unknown;
-}
-
 interface SearchResponse {
-  data: NormalizedTender[];
+  data: any[]; // Returns Tender type structure
   total: number;
   page: number;
   pageSize: number;
@@ -68,6 +51,7 @@ export async function GET(request: NextRequest) {
     const params: SearchParams = {
       keywords: searchParams.get('keywords') || undefined,
       categories: searchParams.getAll('categories').filter(Boolean),
+      province: searchParams.get('province') || undefined,
       closingInDays: searchParams.get('closingInDays') ? parseInt(searchParams.get('closingInDays')!) : undefined,
       submissionMethods: searchParams.getAll('submissionMethods').filter(Boolean),
       buyer: searchParams.get('buyer') || undefined,
@@ -99,6 +83,11 @@ export async function GET(request: NextRequest) {
     // Category filter
     if (params.categories && params.categories.length > 0) {
       where.mainCategory = { in: params.categories };
+    }
+
+    // Province filter
+    if (params.province && params.province.trim()) {
+      where.province = { equals: params.province, mode: 'insensitive' };
     }
 
     // Freshness filters
@@ -179,30 +168,45 @@ export async function GET(request: NextRequest) {
       prisma.oCDSRelease.count({ where }),
     ]);
 
-    // Convert to NormalizedTender format
-    let tenders: NormalizedTender[] = releases.map((release) => ({
-      id: release.ocid,
-      ocid: release.ocid,
-      title: release.tenderTitle || release.ocid,
-      displayTitle: release.tenderDisplayTitle || undefined,
-      description: release.tenderDescription || undefined,
-      buyerName: release.buyerName || undefined,
-      mainProcurementCategory: release.mainCategory || undefined,
-      detailedCategory: release.detailedCategory || undefined,
-      closingDate: release.closingAt?.toISOString(),
-      submissionMethods: release.submissionMethods
+    // Convert to proper Tender format (matching the expected structure)
+    let tenders: any[] = releases.map((release) => {
+      const submissionMethods = release.submissionMethods
         ? JSON.parse(release.submissionMethods)
-        : undefined,
-      status: release.status || undefined,
-      publishedAt: release.publishedAt?.toISOString(),
-      updatedAt: release.updatedAt?.toISOString(),
-      dataQualityScore: 85, // Default score for now
-    }));
+        : [];
+
+      return {
+        ocid: release.ocid,
+        id: release.ocid,
+        date: release.publishedAt?.toISOString() || '',
+        tag: [],
+        initiationType: 'tender',
+        buyer: release.buyerName ? {
+          id: release.buyerName,
+          name: release.buyerName,
+        } : undefined,
+        tender: {
+          id: release.ocid,
+          title: release.tenderTitle || release.tenderDisplayTitle || release.ocid,
+          description: release.tenderDescription || undefined,
+          status: release.status || 'active',
+          mainProcurementCategory: release.mainCategory || undefined,
+          tenderPeriod: release.closingAt ? {
+            endDate: release.closingAt.toISOString(),
+          } : undefined,
+          submissionMethod: submissionMethods.length > 0 ? submissionMethods : undefined,
+        },
+        publishedAt: release.publishedAt?.toISOString(),
+        updatedAt: release.updatedAt?.toISOString(),
+        closingAt: release.closingAt?.toISOString(),
+        status: release.status || undefined,
+        detailedCategory: release.detailedCategory || undefined,
+      };
+    });
 
     // Post-filter submission methods (for array field compatibility)
     if (params.submissionMethods && params.submissionMethods.length > 0) {
       tenders = tenders.filter((tender) =>
-        tender.submissionMethods?.some((method) =>
+        tender.tender?.submissionMethod?.some((method: string) =>
           params.submissionMethods!.includes(method)
         )
       );
