@@ -43,6 +43,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
+    "inngest": "^3.45.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.552.0",
     "mammoth": "^1.8.0",
