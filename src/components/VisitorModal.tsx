@@ -47,26 +47,23 @@ export default function VisitorModal() {
       const profile = { name, business, at: Date.now() };
       localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
 
-      // Mixpanel user identification and profile
+      // Mixpanel tracking - simplified
       try {
-        // Identify the visitor by name (will create a distinct_id)
+        // Identify user
         mixpanel.identify(name.trim());
 
-        // Set user profile properties using reserved properties
+        // Set user properties
         mixpanel.people.set({
-          $name: name.trim(), // Reserved property for name
-          business: business.trim(), // Custom property for business
-          user_type: 'visitor', // Track as visitor (not registered user)
-          signup_date: new Date().toISOString(),
+          '$name': name.trim(),
+          'business': business.trim(),
         });
 
-        // Track the visitor info submission event
-        mixpanel.track('Visitor Info Submitted', {
-          name: name.trim(),
-          business: business.trim(),
-        });
+        // Track event
+        mixpanel.track('Visitor Info Submitted');
+
+        console.log('Mixpanel: User identified and tracked');
       } catch (err) {
-        console.warn('Mixpanel tracking error:', err);
+        console.error('Mixpanel error:', err);
       }
 
       setOpen(false);

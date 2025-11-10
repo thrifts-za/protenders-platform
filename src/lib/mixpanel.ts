@@ -1,6 +1,6 @@
 /**
  * Mixpanel Client Initialization
- * Official Next.js integration: https://docs.mixpanel.com/docs/tracking-methods/integrations/nextjs
+ * Simplified implementation for Next.js
  */
 
 import mixpanel from 'mixpanel-browser';
@@ -23,12 +23,14 @@ export const initMixpanel = () => {
     return;
   }
 
+  // Initialize with minimal config for maximum compatibility
   mixpanel.init(MIXPANEL_TOKEN, {
-    autocapture: true,
-    record_sessions_percent: 100,
+    debug: true, // Enable debug mode to see what's being tracked
+    track_pageview: true, // Automatically track page views
     persistence: 'localStorage',
   });
 
+  console.log('Mixpanel initialized');
   isInitialized = true;
 };
 

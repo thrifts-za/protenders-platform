@@ -1,0 +1,366 @@
+[
+  {
+    "id": 30,
+    "name": "Accommodation"
+  },
+  {
+    "id": 41,
+    "name": "Activities auxiliary to financial service and insurance activities."
+  },
+  {
+    "id": 51,
+    "name": "Activities of head offices; management consultancy activities"
+  },
+  {
+    "id": 7,
+    "name": "Activities of households as employers of domestic personnel"
+  },
+  {
+    "id": 44,
+    "name": "Administrative and support activities"
+  },
+  {
+    "id": 45,
+    "name": "Advertising and market research"
+  },
+  {
+    "id": 91,
+    "name": "Agricultural Products and Services"
+  },
+  {
+    "id": 23,
+    "name": "Air transport"
+  },
+  {
+    "id": 18,
+    "name": "Architectural and engineering activities; technical testing and analysis"
+  },
+  {
+    "id": 46,
+    "name": "Arts, entertainment and recreation"
+  },
+  {
+    "id": 13,
+    "name": "Civil engineering"
+  },
+  {
+    "id": 73,
+    "name": "Computer programming, consultancy and related activities"
+  },
+  {
+    "id": 27,
+    "name": "Construction"
+  },
+  {
+    "id": 39,
+    "name": "Construction of buildings"
+  },
+  {
+    "id": 79,
+    "name": "Creative, arts and entertainment activities"
+  },
+  {
+    "id": 19,
+    "name": "Disposals: General"
+  },
+  {
+    "id": 4,
+    "name": "Education"
+  },
+  {
+    "id": 77,
+    "name": "Electricity, gas, steam and air conditioning"
+  },
+  {
+    "id": 38,
+    "name": "Employment activities"
+  },
+  {
+    "id": 5,
+    "name": "Financial and insurance activities"
+  },
+  {
+    "id": 81,
+    "name": "Financial service activities, except insurance and pension funding"
+  },
+  {
+    "id": 16,
+    "name": "Food and beverage service activities"
+  },
+  {
+    "id": 17,
+    "name": "Human health activities"
+  },
+  {
+    "id": 34,
+    "name": "Human health and social work activities"
+  },
+  {
+    "id": 40,
+    "name": "Information and communication"
+  },
+  {
+    "id": 75,
+    "name": "Information service activities"
+  },
+  {
+    "id": 83,
+    "name": "Insurance, reinsurance and pension funding, except compulsory social security"
+  },
+  {
+    "id": 50,
+    "name": "Land transport and transport via pipelines"
+  },
+  {
+    "id": 54,
+    "name": "Legal and accounting activities"
+  },
+  {
+    "id": 1,
+    "name": "Libraries, archives, museums and other cultural activities"
+  },
+  {
+    "id": 20,
+    "name": "Manufacture of basic metals"
+  },
+  {
+    "id": 15,
+    "name": "Manufacture of chemicals and chemical products"
+  },
+  {
+    "id": 29,
+    "name": "Manufacture of coke and refined petroleum products"
+  },
+  {
+    "id": 36,
+    "name": "Manufacture of computer, electronic and optical products"
+  },
+  {
+    "id": 42,
+    "name": "Manufacture of electrical equipment"
+  },
+  {
+    "id": 3,
+    "name": "Manufacture of fabricated metal products, except machinery and equipment"
+  },
+  {
+    "id": 14,
+    "name": "Manufacture of furniture"
+  },
+  {
+    "id": 26,
+    "name": "Manufacture of machinery and equipment n.e.c."
+  },
+  {
+    "id": 80,
+    "name": "Manufacture of motor vehicles, trailers and semi-trailers"
+  },
+  {
+    "id": 69,
+    "name": "Manufacture of other non-metallic mineral products"
+  },
+  {
+    "id": 9,
+    "name": "Manufacture of paper and paper products"
+  },
+  {
+    "id": 33,
+    "name": "Manufacture of rubber and plastics products"
+  },
+  {
+    "id": 87,
+    "name": "Manufacture of textiles"
+  },
+  {
+    "id": 66,
+    "name": "Manufacturing"
+  },
+  {
+    "id": 31,
+    "name": "Mining and quarrying"
+  },
+  {
+    "id": 25,
+    "name": "Mining of coal and lignite"
+  },
+  {
+    "id": 8,
+    "name": "Mining support service activities"
+  },
+  {
+    "id": 64,
+    "name": "Motion picture, video and television programme production, sound recording and music publishing activities"
+  },
+  {
+    "id": 68,
+    "name": "Office administrative, office support and other business support activities"
+  },
+  {
+    "id": 67,
+    "name": "Other manufacturing"
+  },
+  {
+    "id": 57,
+    "name": "Other personal service activities"
+  },
+  {
+    "id": 32,
+    "name": "Other professional, scientific and technical activities"
+  },
+  {
+    "id": 48,
+    "name": "Other service activities"
+  },
+  {
+    "id": 85,
+    "name": "Postal and courier activities"
+  },
+  {
+    "id": 60,
+    "name": "Printing and reproduction of recorded media"
+  },
+  {
+    "id": 90,
+    "name": "Professional, scientific and technical activities"
+  },
+  {
+    "id": 35,
+    "name": "Programming and broadcasting activities"
+  },
+  {
+    "id": 58,
+    "name": "Publishing activities"
+  },
+  {
+    "id": 59,
+    "name": "Real estate activities"
+  },
+  {
+    "id": 47,
+    "name": "Remediation activities and other waste management services"
+  },
+  {
+    "id": 71,
+    "name": "Rental and leasing activities"
+  },
+  {
+    "id": 43,
+    "name": "Repair and installation of machinery and equipment"
+  },
+  {
+    "id": 2,
+    "name": "Residential care activities"
+  },
+  {
+    "id": 6,
+    "name": "Scientific research and development"
+  },
+  {
+    "id": 62,
+    "name": "Security and investigation activities"
+  },
+  {
+    "id": 10,
+    "name": "Services to buildings and landscape activities"
+  },
+  {
+    "id": 78,
+    "name": "Services: Building"
+  },
+  {
+    "id": 49,
+    "name": "Services: Civil"
+  },
+  {
+    "id": 84,
+    "name": "Services: Electrical"
+  },
+  {
+    "id": 74,
+    "name": "Services: Functional (Including Cleaning and Security Services)"
+  },
+  {
+    "id": 61,
+    "name": "Services: General"
+  },
+  {
+    "id": 86,
+    "name": "Services: Professional"
+  },
+  {
+    "id": 82,
+    "name": "Sewerage"
+  },
+  {
+    "id": 76,
+    "name": "Specialised construction activities"
+  },
+  {
+    "id": 56,
+    "name": "Sports activities and amusement and recreation activities"
+  },
+  {
+    "id": 70,
+    "name": "Supplies: Clothing/Textiles/Footwear"
+  },
+  {
+    "id": 22,
+    "name": "Supplies: Computer Equipment"
+  },
+  {
+    "id": 52,
+    "name": "Supplies: Electrical Equipment"
+  },
+  {
+    "id": 55,
+    "name": "Supplies: General"
+  },
+  {
+    "id": 89,
+    "name": "Supplies: Medical"
+  },
+  {
+    "id": 12,
+    "name": "Supplies: Perishable Provisions"
+  },
+  {
+    "id": 28,
+    "name": "Supplies: Stationery/Printing"
+  },
+  {
+    "id": 63,
+    "name": "Telecommunications"
+  },
+  {
+    "id": 72,
+    "name": "Transportation and storage"
+  },
+  {
+    "id": 65,
+    "name": "Travel agency, tour operator, reservation service and related activities"
+  },
+  {
+    "id": 37,
+    "name": "Warehousing and support activities for transportation"
+  },
+  {
+    "id": 88,
+    "name": "Waste collection, treatment and disposal activities; materials recovery"
+  },
+  {
+    "id": 21,
+    "name": "Water collection, treatment and supply"
+  },
+  {
+    "id": 11,
+    "name": "Water supply; sewerage, waste management and remediation activities"
+  },
+  {
+    "id": 53,
+    "name": "Water transport"
+  },
+  {
+    "id": 24,
+    "name": "Wholesale and retail trade and repair of motor vehicles and motorcycles"
+  }
+]
