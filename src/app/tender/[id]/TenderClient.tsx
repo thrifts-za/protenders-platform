@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,6 +66,11 @@ export default function TenderClient() {
       setIsSaved(parsed.includes(id));
     }
   }, [id]);
+
+  // Memoize the formatted description to avoid re-computing on every render
+  const formattedDescription = useMemo(() => {
+    return tender?.tender?.description ? toSentenceCase(tender.tender.description) : '';
+  }, [tender?.tender?.description]);
 
   // Button Handlers
   const handleAddToCalendar = () => {
@@ -548,7 +553,7 @@ export default function TenderClient() {
                   </CardHeader>
                   <CardContent>
                     <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
-                      {toSentenceCase(tender.tender.description)}
+                      {formattedDescription}
                     </div>
                   </CardContent>
                 </Card>
