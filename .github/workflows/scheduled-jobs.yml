@@ -13,15 +13,21 @@ jobs:
     if: github.event.schedule == '*/30 * * * *' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - name: Call sync endpoint (incremental + enrichment)
+      - name: Send Inngest tender sync event
         env:
-          API_URL: ${{ secrets.API_URL }}
-          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          INNGEST_EVENT_KEY: ${{ secrets.INNGEST_EVENT_KEY }}
         run: |
           set -euo pipefail
-          curl -sS -X POST \
-            "$API_URL/api/cron/sync?mode=daily&incremental=1&requireEnrichment=1&secret=$CRON_SECRET" \
-            -H "Content-Type: application/json"
+          curl -sS -X POST "https://inn.gs/e/$INNGEST_EVENT_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "name": "tender/sync.requested",
+              "data": {
+                "maxEnrichment": 300,
+                "requireEnrichment": true,
+                "triggeredBy": "github-actions"
+              }
+            }'
 
   alerts:
     if: github.event.schedule == '0 5 * * *' || github.event_name == 'workflow_dispatch'
