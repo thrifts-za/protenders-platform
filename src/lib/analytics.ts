@@ -3,12 +3,16 @@
  * Centralized event tracking for Mixpanel, Google Analytics, and other analytics platforms
  */
 
-import mixpanel from 'mixpanel-browser';
-
 // Extend Window interface to include analytics globals
 declare global {
   interface Window {
-    mixpanel?: typeof mixpanel;
+    mixpanel?: {
+      track: (event: string, properties?: Record<string, any>) => void;
+      identify: (userId: string) => void;
+      people: {
+        set: (properties: Record<string, any>) => void;
+      };
+    };
     gtag?: (
       command: string,
       targetId: string,
@@ -26,9 +30,9 @@ export function trackEvent(
   properties?: Record<string, any>
 ) {
   // Mixpanel
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.mixpanel) {
     try {
-      mixpanel.track(eventName, properties);
+      window.mixpanel.track(eventName, properties);
     } catch (error) {
       console.warn('Mixpanel tracking error:', error);
     }
@@ -205,11 +209,11 @@ export function trackError(
  */
 export function identifyUser(userId: string, properties?: Record<string, any>) {
   // Mixpanel
-  if (typeof window !== 'undefined') {
+  if (typeof window !== 'undefined' && window.mixpanel) {
     try {
-      mixpanel.identify(userId);
-      if (properties) {
-        mixpanel.people.set(properties);
+      window.mixpanel.identify(userId);
+      if (properties && window.mixpanel.people) {
+        window.mixpanel.people.set(properties);
       }
     } catch (error) {
       console.warn('Mixpanel identify error:', error);
