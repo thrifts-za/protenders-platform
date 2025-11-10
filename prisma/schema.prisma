@@ -142,6 +142,20 @@ model OCDSRelease {
   detailedCategory     String?   // Detailed category from eTenders website (91 categories)
   enrichmentDocuments  Json?
 
+  // Phase 2: Deep Filtering Enhancement Fields (December 2025)
+  organOfStateType     String?   // Classified type: "Local Municipality", "National Department", "SOE", etc.
+  hasESubmission       Boolean?  // Boolean flag for electronic submission capability
+  estimatedValueMin    Float?    // Minimum estimated contract value (ZAR)
+  estimatedValueMax    Float?    // Maximum estimated contract value (ZAR)
+  documentCount        Int?      // Number of available tender documents
+  hasDocuments         Boolean?  // Quick filter: has any documents
+  city                 String?   // City/locality (extracted from delivery location or briefing venue)
+  district             String?   // District (for municipalities - e.g., "Cape Winelands District")
+  tenderTypeCategory   String?   // Normalized tender type: "RFQ", "RFP", "RFI", "EOI", etc.
+  dataQualityScore     Int?      // 0-100 score based on field completeness
+  municipalityType     String?   // For municipalities: "Local", "District", "Metro"
+  departmentLevel      String?   // For departments: "National", "Provincial"
+
   // Performance optimization fields
   slug                 String?   @unique // SEO-friendly URL slug for fast lookups
   enrichedAt           DateTime? // Timestamp of last enrichment (for cache-first strategy)
@@ -167,12 +181,25 @@ model OCDSRelease {
   @@index([enquiryDeadline])
   @@index([detailedCategory])
   @@index([enrichedAt]) // Performance: Track enrichment freshness
+  // Phase 2: Deep Filtering indexes
+  @@index([organOfStateType])
+  @@index([hasESubmission])
+  @@index([estimatedValueMin])
+  @@index([estimatedValueMax])
+  @@index([documentCount])
+  @@index([city])
+  @@index([district])
+  @@index([tenderTypeCategory])
+  @@index([dataQualityScore])
   // Composite indexes for common query patterns (performance optimization)
   @@index([publishedAt(sort: Desc), mainCategory])
   @@index([status, closingAt(sort: Desc)])
   @@index([mainCategory, publishedAt(sort: Desc)])
   @@index([province, status])
   @@index([tenderType, closingAt(sort: Desc)])
+  @@index([organOfStateType, province])
+  @@index([estimatedValueMin, estimatedValueMax])
+  @@index([detailedCategory, organOfStateType])
 }
 
 // Admin Console Models
