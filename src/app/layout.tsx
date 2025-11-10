@@ -144,27 +144,17 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        {/* Mixpanel (env or fallback in config/analytics.ts) */}
-        {(() => {
-          const token = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || MIXPANEL_TOKEN;
-          return token && token !== 'REPLACE_WITH_MIXPANEL_TOKEN';
-        })() ? (
-          <>
-            <Script id="mixpanel-init" strategy="afterInteractive">
-              {(() => {
-                const token = process.env.NEXT_PUBLIC_MIXPANEL_TOKEN || MIXPANEL_TOKEN;
-                return `
-              (function(f,b){if(!b.__SV){var a,e,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}
-              var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set set_once union unset toString opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=f.createElement("script");a.type="text/javascript";a.async=!0;a.src="https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";e=f.getElementsByTagName("script")[0];e.parentNode.insertBefore(a,e)}})(document,window.mixpanel||[]);
-              mixpanel.init('${token}', { debug: false });
-              `;
-              })()}
-            </Script>
-            <Script id="mixpanel-page" strategy="afterInteractive">
-              {`try { window.mixpanel && window.mixpanel.track('Page View', { path: location.pathname }); } catch(e) {}`}
-            </Script>
-          </>
-        ) : null}
+        {/* Mixpanel */}
+        <Script id="mixpanel-init" strategy="afterInteractive">
+          {`
+            (function(e,c){if(!c.__SV){var i,a,n,t,s;window.mixpanel=c;c._i=[];c.init=function(e,t,s){function a(e,c){var i=c.split(".");2==i.length&&(e=e[i[0]],c=i[1]),e[c]=function(){e.push([c].concat(Array.prototype.slice.call(arguments,0)))}}var r=c;"undefined"!=typeof s?r=c[s]=[]:s="mixpanel",r.people=r.people||[],r.toString=function(e){var c="mixpanel";"mixpanel"!==s&&(c+="."+s),e||(c+=" (stub)");return c},r.people.toString=function(){return r.toString(1)+".people (stub)"},n="disable time_event track track_pageview track_links track_forms track_with_groups add_group set_group remove_group register register_once alias unregister identify name_tag set_config reset opt_in_tracking opt_out_tracking has_opted_in_tracking has_opted_out_tracking clear_opt_in_out_tracking start_batch_senders people.set people.set_once people.unset people.increment people.append people.union people.track_charge people.clear_charges people.delete_user people.remove".split(" ");for(t=0;t<n.length;t++)a(r,n[t]);var o="set_config";"undefined"!=typeof r[o]&&r[o]({persistence:"localStorage"});c._i.push([e,t,s])},c.__SV=1.2,i=e.createElement("script"),i.type="text/javascript",i.async=!0,i.src="https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js",a=e.getElementsByTagName("script")[0],a.parentNode.insertBefore(i,a)}})(document,window.mixpanel||[]);
+
+            mixpanel.init('c4423b2f88901316cd6162f2bd583f68', {
+              autocapture: true,
+              record_sessions_percent: 100,
+            });
+          `}
+        </Script>
 
         {/* Microsoft Clarity (env or fallback in config/analytics.ts) */}
         {(() => {
