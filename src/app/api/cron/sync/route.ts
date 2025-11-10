@@ -499,6 +499,20 @@ export async function performSync(options?: {
           briefingCompulsory: typeof enrichmentData.briefingCompulsory === 'boolean' ? enrichmentData.briefingCompulsory : undefined,
           detailedCategory: enrichmentData.detailedCategory || undefined,
           enrichmentDocuments: Array.isArray(enrichmentData.documents) ? (enrichmentData.documents as any) : undefined,
+          // Phase 2 enhancement fields
+          organOfStateType: enrichmentData.organOfStateType || undefined,
+          municipalityType: enrichmentData.municipalityType || undefined,
+          departmentLevel: enrichmentData.departmentLevel || undefined,
+          hasESubmission: typeof enrichmentData.hasESubmission === 'boolean' ? enrichmentData.hasESubmission : undefined,
+          estimatedValueMin: enrichmentData.estimatedValueMin ?? undefined,
+          estimatedValueMax: enrichmentData.estimatedValueMax ?? undefined,
+          documentCount: typeof enrichmentData.documentCount === 'number' ? enrichmentData.documentCount : undefined,
+          hasDocuments: typeof enrichmentData.hasDocuments === 'boolean' ? enrichmentData.hasDocuments : undefined,
+          city: enrichmentData.city || undefined,
+          district: enrichmentData.district || undefined,
+          tenderTypeCategory: enrichmentData.tenderTypeCategory || undefined,
+          dataQualityScore: typeof enrichmentData.dataQualityScore === 'number' ? enrichmentData.dataQualityScore : undefined,
+          enrichedAt: new Date(),
         } : {};
 
         const existing = await prisma.oCDSRelease.findUnique({
