@@ -61,6 +61,20 @@ export interface EnrichmentData {
     dateModified?: string;
     format?: string;
   }>;
+
+  // Phase 2: Deep Filtering Enhancement Fields
+  organOfStateType?: string;
+  hasESubmission?: boolean;
+  estimatedValueMin?: number | null;
+  estimatedValueMax?: number | null;
+  documentCount?: number;
+  hasDocuments?: boolean;
+  city?: string | null;
+  district?: string | null;
+  tenderTypeCategory?: string | null;
+  dataQualityScore?: number;
+  municipalityType?: string | null;
+  departmentLevel?: string | null;
 }
 
 export interface EtendersQueryContext {
@@ -300,6 +314,255 @@ function extractMeetingInfo(venue?: string | null): { meetingId?: string; passco
 }
 
 /**
+ * Phase 2: Classify organ of state into standardized types
+ */
+function classifyOrganOfState(organOfStateName?: string): string | null {
+  if (!organOfStateName) return null;
+  const name = organOfStateName.toLowerCase();
+
+  // Local municipalities (159)
+  if (name.includes('local municipality') && !name.includes('district')) {
+    return 'Local Municipality';
+  }
+
+  // District municipalities (44)
+  if (name.includes('district municipality')) {
+    return 'District Municipality';
+  }
+
+  // Metro municipalities (8)
+  if (name.includes('metro') || name.includes('metropolitan municipality')) {
+    return 'Metro Municipality';
+  }
+
+  // SETAs (21)
+  if (name.includes('seta') || name.includes('education and training authority')) {
+    return 'SETA';
+  }
+
+  // State-Owned Enterprises (37)
+  if (name.includes('soc ltd') || name.includes(' limited') || name.includes('(pty)')) {
+    return 'State-Owned Enterprise';
+  }
+
+  // Departments - try to distinguish national vs provincial
+  if (name.includes('department') || name.startsWith('dept')) {
+    // Provincial departments usually mention the province
+    const provinces = ['western cape', 'eastern cape', 'gauteng', 'kwazulu', 'limpopo', 'mpumalanga', 'northern cape', 'north west', 'free state'];
+    const isProvincial = provinces.some(prov => name.includes(prov));
+
+    if (isProvincial) {
+      return 'Provincial Department';
+    }
+    return 'National Department';
+  }
+
+  // Agencies, Authorities, Boards (141)
+  if (name.includes('agency') || name.includes('authority') || name.includes('board') ||
+      name.includes('commission') || name.includes('council')) {
+    return 'Agency/Authority';
+  }
+
+  // Public entities
+  if (name.includes('entity')) {
+    return 'Public Entity';
+  }
+
+  return 'Other';
+}
+
+/**
+ * Phase 2: Detect if tender supports electronic submission
+ */
+function detectESubmission(row: EtendersRow, deliveryLocation?: string | null): boolean {
+  // Check delivery and type fields for electronic submission keywords
+  const text = `${row.delivery || ''} ${row.type || ''} ${deliveryLocation || ''}`.toLowerCase();
+
+  return text.includes('electronic') ||
+         text.includes('e-tender') ||
+         text.includes('portal') ||
+         text.includes('online submission') ||
+         text.includes('etender') ||
+         text.includes('central supplier database');
+}
+
+/**
+ * Phase 2: Extract estimated value from various fields
+ */
+function extractEstimatedValue(row: EtendersRow, rawOcdsData?: any): { min: number | null; max: number | null } {
+  // Try OCDS value field first if available
+  if (rawOcdsData?.tender?.value?.amount) {
+    const amount = parseFloat(rawOcdsData.tender.value.amount);
+    if (!isNaN(amount) && amount > 0) {
+      return { min: amount, max: amount };
+    }
+  }
+
+  // Extract from conditions or delivery text with regex
+  // Match patterns like: "R1,500,000", "R1.5M", "R 2 million", "ZAR 500000"
+  const text = `${row.conditions || ''} ${row.delivery || ''}`;
+
+  // Pattern 1: R1,500,000 or R1500000
+  const pattern1 = /R\s*([0-9,]+(?:\.[0-9]{2})?)/gi;
+  // Pattern 2: R1.5M or R2M
+  const pattern2 = /R\s*([0-9.]+)\s*(?:million|m\b)/gi;
+
+  const matches1 = Array.from(text.matchAll(pattern1));
+  const matches2 = Array.from(text.matchAll(pattern2));
+
+  const values: number[] = [];
+
+  // Parse pattern 1 matches
+  for (const match of matches1) {
+    const numStr = match[1].replace(/,/g, '');
+    const num = parseFloat(numStr);
+    if (!isNaN(num) && num > 1000) { // Minimum R1000 to avoid false positives
+      values.push(num);
+    }
+  }
+
+  // Parse pattern 2 matches (millions)
+  for (const match of matches2) {
+    const num = parseFloat(match[1]) * 1000000;
+    if (!isNaN(num) && num > 0) {
+      values.push(num);
+    }
+  }
+
+  if (values.length === 0) {
+    return { min: null, max: null };
+  }
+
+  // If multiple values found, use min and max
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+
+  return { min, max };
+}
+
+/**
+ * Phase 2: Extract city and district from location text
+ */
+function extractCityAndDistrict(
+  deliveryLocation?: string | null,
+  briefingVenue?: string | null,
+  province?: string
+): { city: string | null; district: string | null } {
+  const text = `${deliveryLocation || ''} ${briefingVenue || ''}`.toLowerCase();
+
+  // Known major cities in South Africa
+  const knownCities = [
+    'johannesburg', 'cape town', 'durban', 'pretoria', 'port elizabeth', 'bloemfontein',
+    'polokwane', 'nelspruit', 'kimberley', 'pietermaritzburg', 'east london', 'george',
+    'richards bay', 'rustenburg', 'soweto', 'benoni', 'springs', 'roodepoort', 'midrand',
+    'sandton', 'centurion', 'randburg', 'boksburg', 'alberton', 'germiston', 'krugersdorp',
+    'uitenhage', 'mahikeng', 'mmabatho', 'thohoyandou', 'giyani', 'tzaneen', 'musina',
+    'phalaborwa', 'witbank', 'emalahleni', 'secunda', 'standerton', 'ermelo', 'upington',
+    'kathu', 'kuruman', 'postmasburg', 'springbok', 'welkom', 'bethlehem', 'kroonstad',
+    'sasolburg', 'parys', 'worcester', 'paarl', 'stellenbosch', 'somerset west', 'knysna',
+    'oudtshoorn', 'mossel bay', 'beaufort west', 'ladysmith', 'newcastle', 'dundee',
+    'vryheid', 'ulundi', 'empangeni', 'eshowe', 'greytown', 'kokstad', 'mthatha', 'umtata',
+    'queenstown', 'butterworth', 'king williams town', 'grahamstown', 'makhanda'
+  ];
+
+  // Find city
+  const city = knownCities.find(c => text.includes(c)) || null;
+
+  // Extract district patterns (e.g., "Cape Winelands District", "Ugu District")
+  const districtMatch = text.match(/([a-z\s]+)\s+district/i);
+  const district = districtMatch ? districtMatch[1].trim() : null;
+
+  return {
+    city: city ? city.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : null,
+    district: district ? district.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : null
+  };
+}
+
+/**
+ * Phase 2: Normalize tender type to standard categories
+ */
+function normalizeTenderType(rawType?: string | null): string | null {
+  if (!rawType) return null;
+  const type = rawType.toLowerCase();
+
+  // RFQ - Request for Quotation
+  if (type.includes('rfq') || type.includes('quotation')) {
+    return 'RFQ';
+  }
+
+  // RFP - Request for Proposal
+  if (type.includes('rfp') || type.includes('proposal')) {
+    return 'RFP';
+  }
+
+  // RFI - Request for Information
+  if (type.includes('rfi') || type.includes('information')) {
+    return 'RFI';
+  }
+
+  // EOI - Expression of Interest
+  if (type.includes('eoi') || type.includes('expression of interest')) {
+    return 'EOI';
+  }
+
+  // Bid
+  if (type.includes('bid')) {
+    return 'Bid';
+  }
+
+  // Contract
+  if (type.includes('contract')) {
+    return 'Contract';
+  }
+
+  // Pre-qualification
+  if (type.includes('pre-qual') || type.includes('prequalification')) {
+    return 'Pre-qualification';
+  }
+
+  // Framework Agreement
+  if (type.includes('framework')) {
+    return 'Framework Agreement';
+  }
+
+  // Price Quotation
+  if (type.includes('price')) {
+    return 'Price Quotation';
+  }
+
+  return 'Other';
+}
+
+/**
+ * Phase 2: Calculate data quality score (0-100)
+ */
+function calculateDataQualityScore(enrichment: EnrichmentData): number {
+  let score = 0;
+  const maxScore = 100;
+
+  // Critical fields (60 points)
+  if (enrichment.province) score += 15;
+  if (enrichment.detailedCategory) score += 15;
+  if (enrichment.contactEmail) score += 15;
+  if (enrichment.organOfStateType) score += 15;
+
+  // Important fields (30 points)
+  if (enrichment.contactPerson) score += 5;
+  if (enrichment.contactTelephone) score += 5;
+  if (enrichment.deliveryLocation) score += 5;
+  if (enrichment.tenderType) score += 5;
+  if (enrichment.documents && enrichment.documents.length > 0) score += 10;
+
+  // Nice-to-have fields (10 points)
+  if (enrichment.briefingVenue) score += 3;
+  if (enrichment.specialConditions) score += 3;
+  if (enrichment.city) score += 2;
+  if (enrichment.estimatedValueMin || enrichment.estimatedValueMax) score += 2;
+
+  return Math.min(score, maxScore);
+}
+
+/**
  * Convert eTenders API row to enrichment data
  */
 export function enrichFromEtendersRow(row: EtendersRow): EnrichmentData {
@@ -384,6 +647,53 @@ export function enrichFromEtendersRow(row: EtendersRow): EnrichmentData {
       format: (d.extension || '').replace(/^\./, ''),
     }));
   }
+
+  // Phase 2: Deep Filtering Enhancement Fields
+
+  // 1. Organ of State Type Classification
+  const organType = classifyOrganOfState(row.organ_of_State);
+  if (organType) {
+    enrichment.organOfStateType = organType;
+
+    // Set municipality/department subtypes
+    if (organType.includes('Municipality')) {
+      enrichment.municipalityType = organType.replace(' Municipality', '');
+    } else if (organType.includes('Department')) {
+      enrichment.departmentLevel = organType.replace(' Department', '');
+    }
+  }
+
+  // 2. Electronic Submission Detection
+  enrichment.hasESubmission = detectESubmission(row, enrichment.deliveryLocation);
+
+  // 3. Estimated Value Extraction
+  const estimatedValue = extractEstimatedValue(row);
+  enrichment.estimatedValueMin = estimatedValue.min;
+  enrichment.estimatedValueMax = estimatedValue.max;
+
+  // 4. Document Count
+  if (enrichment.documents) {
+    enrichment.documentCount = enrichment.documents.length;
+    enrichment.hasDocuments = enrichment.documents.length > 0;
+  } else {
+    enrichment.documentCount = 0;
+    enrichment.hasDocuments = false;
+  }
+
+  // 5. City and District Extraction
+  const location = extractCityAndDistrict(
+    enrichment.deliveryLocation,
+    enrichment.briefingVenue,
+    enrichment.province
+  );
+  enrichment.city = location.city;
+  enrichment.district = location.district;
+
+  // 6. Tender Type Normalization
+  enrichment.tenderTypeCategory = normalizeTenderType(row.type);
+
+  // 7. Data Quality Score (calculated after all fields are populated)
+  enrichment.dataQualityScore = calculateDataQualityScore(enrichment);
 
   return enrichment;
 }

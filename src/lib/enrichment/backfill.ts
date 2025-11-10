@@ -62,6 +62,12 @@ export async function backfillEnrichment(opts: BackfillOptions): Promise<Backfil
           { enrichmentDocuments: { equals: Prisma.DbNull } },
           { enrichmentDocuments: { equals: [] as any } },
         ] },
+        // Phase 2: Include records missing new enrichment fields
+        { organOfStateType: null },
+        { hasESubmission: null },
+        { documentCount: null },
+        { tenderTypeCategory: null },
+        { dataQualityScore: null },
       ],
     },
     orderBy: { date: 'asc' },
@@ -122,6 +128,23 @@ export async function backfillEnrichment(opts: BackfillOptions): Promise<Backfil
           hasBriefing: (typeof e.hasBriefing === 'boolean' ? e.hasBriefing : r.hasBriefing) ?? null,
           briefingCompulsory: (typeof e.briefingCompulsory === 'boolean' ? e.briefingCompulsory : r.briefingCompulsory) ?? null,
           enrichmentDocuments: Array.isArray(e.documents) ? (e.documents as any) : (r as any).enrichmentDocuments,
+
+          // Phase 2: Deep Filtering Enhancement Fields
+          organOfStateType: e.organOfStateType || r.organOfStateType,
+          hasESubmission: (typeof e.hasESubmission === 'boolean' ? e.hasESubmission : r.hasESubmission) ?? null,
+          estimatedValueMin: e.estimatedValueMin ?? r.estimatedValueMin,
+          estimatedValueMax: e.estimatedValueMax ?? r.estimatedValueMax,
+          documentCount: (typeof e.documentCount === 'number' ? e.documentCount : r.documentCount) ?? null,
+          hasDocuments: (typeof e.hasDocuments === 'boolean' ? e.hasDocuments : r.hasDocuments) ?? null,
+          city: e.city ?? r.city,
+          district: e.district ?? r.district,
+          tenderTypeCategory: e.tenderTypeCategory || r.tenderTypeCategory,
+          dataQualityScore: (typeof e.dataQualityScore === 'number' ? e.dataQualityScore : r.dataQualityScore) ?? null,
+          municipalityType: e.municipalityType ?? r.municipalityType,
+          departmentLevel: e.departmentLevel ?? r.departmentLevel,
+
+          // Update enrichedAt timestamp
+          enrichedAt: new Date(),
         },
       });
       updated++; processed++; i++;

@@ -73,9 +73,33 @@ async function main(){
       hasBriefing: typeof enrichment.hasBriefing === 'boolean' ? enrichment.hasBriefing : null,
       briefingCompulsory: typeof enrichment.briefingCompulsory === 'boolean' ? enrichment.briefingCompulsory : null,
       enrichmentDocuments: Array.isArray(enrichment.documents) ? (enrichment.documents as any) : null,
+
+      // Phase 2: Deep Filtering Enhancement Fields
+      organOfStateType: enrichment.organOfStateType || null,
+      hasESubmission: typeof enrichment.hasESubmission === 'boolean' ? enrichment.hasESubmission : null,
+      estimatedValueMin: enrichment.estimatedValueMin ?? null,
+      estimatedValueMax: enrichment.estimatedValueMax ?? null,
+      documentCount: typeof enrichment.documentCount === 'number' ? enrichment.documentCount : null,
+      hasDocuments: typeof enrichment.hasDocuments === 'boolean' ? enrichment.hasDocuments : null,
+      city: enrichment.city ?? null,
+      district: enrichment.district ?? null,
+      tenderTypeCategory: enrichment.tenderTypeCategory || null,
+      dataQualityScore: typeof enrichment.dataQualityScore === 'number' ? enrichment.dataQualityScore : null,
+      municipalityType: enrichment.municipalityType ?? null,
+      departmentLevel: enrichment.departmentLevel ?? null,
+      enrichedAt: new Date(),
     }
   });
-  console.log('DB updated for', ocid);
+  console.log('✅ DB updated for', ocid);
+  console.log('\n📊 Phase 2 Fields:');
+  console.log('  - Organ Type:', enrichment.organOfStateType || 'N/A');
+  console.log('  - E-Submission:', enrichment.hasESubmission ? 'Yes' : 'No');
+  console.log('  - Estimated Value:', enrichment.estimatedValueMin ? `R${enrichment.estimatedValueMin.toLocaleString()}` : 'N/A');
+  console.log('  - Documents:', enrichment.documentCount || 0);
+  console.log('  - City:', enrichment.city || 'N/A');
+  console.log('  - District:', enrichment.district || 'N/A');
+  console.log('  - Tender Type:', enrichment.tenderTypeCategory || 'N/A');
+  console.log('  - Quality Score:', enrichment.dataQualityScore || 'N/A');
 }
 
 main().catch((e)=>{ console.error(e); process.exit(1); });
