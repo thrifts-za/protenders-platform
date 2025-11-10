@@ -48,7 +48,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://vercel.live https://ocds-api.etenders.gov.za https://www.etenders.gov.za https://api.mixpanel.com https://www.clarity.ms https://cdn.jsdelivr.net https://www.google-analytics.com https://analytics.google.com",
+              "connect-src 'self' https://vercel.live https://ocds-api.etenders.gov.za https://www.etenders.gov.za https://api.mixpanel.com https://api-js.mixpanel.com https://www.clarity.ms https://cdn.jsdelivr.net https://www.google-analytics.com https://analytics.google.com",
               "frame-ancestors 'none'",
               "base-uri 'self'",
               "form-action 'self'",
