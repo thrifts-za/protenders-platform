@@ -39,7 +39,10 @@ export async function checkTendersNeedingEnrichment(
   const existing = await prisma.oCDSRelease.findMany({
     where: {
       OR: ocids.map(({ ocid, publishedAt }) => ({
-        ocid_date: { ocid, date: publishedAt }
+        AND: [
+          { ocid },
+          { date: publishedAt }
+        ]
       }))
     },
     select: {
