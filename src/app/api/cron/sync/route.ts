@@ -3,7 +3,7 @@
  * POST /api/cron/sync
  *
  * Scheduled endpoint for automated tender synchronization
- * Called by Vercel Cron every 6 hours
+ * Called by Vercel Cron every 30 minutes
  *
  * Security: Validates CRON_SECRET to prevent unauthorized access
  */

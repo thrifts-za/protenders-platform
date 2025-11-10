@@ -3,8 +3,8 @@
   "buildCommand": "npm run build",
   "crons": [
     {
-      "path": "/api/cron/sync?mode=comprehensive&requireEnrichment=1",
-      "schedule": "0 21 * * *"
+      "path": "/api/cron/sync?mode=daily",
+      "schedule": "*/30 * * * *"
     }
   ]
 }
