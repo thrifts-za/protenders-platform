@@ -3,8 +3,9 @@
   "buildCommand": "npm run build",
   "crons": [
     {
-      "path": "/api/cron/sync?mode=daily",
-      "schedule": "*/30 * * * *"
+      "path": "/api/cron/sync?mode=comprehensive&requireEnrichment=1",
+      "schedule": "0 21 * * *",
+      "comment": "Backup daily comprehensive sync at 9 PM (GitHub Actions handles 30-min syncs)"
     }
   ]
 }
