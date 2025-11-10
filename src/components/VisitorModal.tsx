@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import mixpanel from "@/lib/mixpanel";
 
 const STORAGE_KEY_PROFILE = "pt_visitor_profile"; // { name, business }
 const STORAGE_KEY_NEXT_SHOW = "pt_visitor_next_show"; // epoch ms
@@ -43,19 +44,31 @@ export default function VisitorModal() {
       return;
     }
     try {
-      localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify({ name, business, at: Date.now() }));
-      // Mixpanel tracking
+      const profile = { name, business, at: Date.now() };
+      localStorage.setItem(STORAGE_KEY_PROFILE, JSON.stringify(profile));
+
+      // Mixpanel user identification and profile
       try {
-        // @ts-ignore
-        if (window.mixpanel) {
-          // @ts-ignore
-          window.mixpanel.identify(name);
-          // @ts-ignore
-          window.mixpanel.people?.set({ name, business });
-          // @ts-ignore
-          window.mixpanel.track('Visitor Info', { name, business });
-        }
-      } catch {}
+        // Identify the visitor by name (will create a distinct_id)
+        mixpanel.identify(name.trim());
+
+        // Set user profile properties using reserved properties
+        mixpanel.people.set({
+          $name: name.trim(), // Reserved property for name
+          business: business.trim(), // Custom property for business
+          user_type: 'visitor', // Track as visitor (not registered user)
+          signup_date: new Date().toISOString(),
+        });
+
+        // Track the visitor info submission event
+        mixpanel.track('Visitor Info Submitted', {
+          name: name.trim(),
+          business: business.trim(),
+        });
+      } catch (err) {
+        console.warn('Mixpanel tracking error:', err);
+      }
+
       setOpen(false);
     } catch {
       setOpen(false);
