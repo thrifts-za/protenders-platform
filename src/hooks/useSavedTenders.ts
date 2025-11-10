@@ -1,23 +1,75 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { SavedTender, NormalizedTender } from "@/types/tender";
+import { useAuth } from "./useAuth";
 
 const STORAGE_KEY = "tender-finder-saved-tenders";
 
 export const useSavedTenders = () => {
   const [savedTenders, setSavedTenders] = useState<SavedTender[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
+  // Load saved tenders on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setSavedTenders(JSON.parse(stored));
-      } catch (e) {
-        console.error("Failed to parse saved tenders:", e);
+    const loadSavedTenders = async () => {
+      if (authLoading) {
+        return; // Wait for auth to load
       }
-    }
-  }, []);
 
-  const saveTender = (tender: NormalizedTender) => {
+      if (isAuthenticated) {
+        // Fetch from database for authenticated users
+        try {
+          const response = await fetch("/api/user/saved");
+          if (response.ok) {
+            const data = await response.json();
+            setSavedTenders(data.savedTenders || []);
+            // Sync to localStorage as backup
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.savedTenders || []));
+          } else {
+            console.error("Failed to fetch saved tenders from API");
+            // Fallback to localStorage
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+              try {
+                setSavedTenders(JSON.parse(stored));
+              } catch (e) {
+                console.error("Failed to parse saved tenders:", e);
+              }
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching saved tenders:", error);
+          // Fallback to localStorage
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            try {
+              setSavedTenders(JSON.parse(stored));
+            } catch (e) {
+              console.error("Failed to parse saved tenders:", e);
+            }
+          }
+        }
+      } else {
+        // Use localStorage for unauthenticated users
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          try {
+            setSavedTenders(JSON.parse(stored));
+          } catch (e) {
+            console.error("Failed to parse saved tenders:", e);
+          }
+        }
+      }
+
+      setIsLoading(false);
+    };
+
+    loadSavedTenders();
+  }, [isAuthenticated, authLoading]);
+
+  const saveTender = async (tender: NormalizedTender) => {
     const newSaved: SavedTender = {
       tenderId: tender.id,
       tender,
@@ -29,37 +81,104 @@ export const useSavedTenders = () => {
 
     const updated = [...savedTenders, newSaved];
     setSavedTenders(updated);
+
+    // Always update localStorage immediately for optimistic UI
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // If authenticated, also save to database
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/user/saved/${tender.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ notes: "" }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to save tender to database");
+          // localStorage still has it, so user won't lose data
+        }
+      } catch (error) {
+        console.error("Error saving tender to database:", error);
+        // localStorage still has it, so user won't lose data
+      }
+    }
   };
 
-  const removeTender = (tenderId: string) => {
+  const removeTender = async (tenderId: string) => {
     const updated = savedTenders.filter((st) => st.tenderId !== tenderId);
     setSavedTenders(updated);
+
+    // Always update localStorage immediately for optimistic UI
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // If authenticated, also remove from database
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/user/saved/${tenderId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          console.error("Failed to remove tender from database");
+          // Already removed from localStorage and state
+        }
+      } catch (error) {
+        console.error("Error removing tender from database:", error);
+        // Already removed from localStorage and state
+      }
+    }
   };
 
-  const updateTags = (tenderId: string, tags: string[]) => {
+  const updateTags = async (tenderId: string, tags: string[]) => {
     const updated = savedTenders.map((st) =>
       st.tenderId === tenderId ? { ...st, tags } : st
     );
     setSavedTenders(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // Note: Current API doesn't support tags, but we keep them in localStorage
+    // TODO: Add tags support to API if needed
   };
 
-  const updateNotes = (tenderId: string, notes: string) => {
+  const updateNotes = async (tenderId: string, notes: string) => {
     const updated = savedTenders.map((st) =>
       st.tenderId === tenderId ? { ...st, notes } : st
     );
     setSavedTenders(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // If authenticated, also update database
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/user/saved/${tenderId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ notes }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to update notes in database");
+        }
+      } catch (error) {
+        console.error("Error updating notes in database:", error);
+      }
+    }
   };
 
-  const toggleSubmitted = (tenderId: string) => {
+  const toggleSubmitted = async (tenderId: string) => {
     const updated = savedTenders.map((st) =>
       st.tenderId === tenderId ? { ...st, isSubmitted: !st.isSubmitted } : st
     );
     setSavedTenders(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // Note: Current API doesn't support isSubmitted, but we keep it in localStorage
+    // TODO: Add isSubmitted support to API if needed
   };
 
   const isSaved = (tenderId: string) => {
@@ -74,5 +193,6 @@ export const useSavedTenders = () => {
     updateNotes,
     toggleSubmitted,
     isSaved,
+    isLoading,
   };
 };

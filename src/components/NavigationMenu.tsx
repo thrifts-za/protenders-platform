@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, LogOut, User } from "lucide-react";
 import { trackNavigation } from "@/lib/analytics";
+import { useAuth } from "@/hooks/useAuth";
+import { signOut } from "next-auth/react";
 
 export default function NavigationMenu() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const { isAuthenticated, user } = useAuth();
 
   const navigation = [
     {
@@ -53,11 +56,24 @@ export default function NavigationMenu() {
       name: "Demo",
       href: "/demo",
     },
-    {
+  ];
+
+  // Add authentication-aware navigation
+  if (isAuthenticated) {
+    navigation.push({
+      name: user?.name || user?.email || "Account",
+      items: [
+        { name: "Dashboard", href: "/dashboard" },
+        { name: "Profile", href: "/profile" },
+        { name: "Logout", href: "/api/auth/signout" },
+      ],
+    });
+  } else {
+    navigation.push({
       name: "Login",
       href: "/login",
-    },
-  ];
+    });
+  }
 
   return (
     <div className="hidden md:flex items-center gap-6">
@@ -83,16 +99,35 @@ export default function NavigationMenu() {
                     : "opacity-0 invisible -translate-y-2"
                 }`}
               >
-                {item.items.map((subItem) => (
-                  <Link
-                    key={subItem.href}
-                    href={subItem.href}
-                    className="block px-4 py-2.5 text-sm hover:bg-primary/5 hover:text-primary transition-colors"
-                    onClick={() => trackNavigation(subItem.href, 'dropdown_menu')}
-                  >
-                    {subItem.name}
-                  </Link>
-                ))}
+                {item.items.map((subItem) => {
+                  // Handle logout specially
+                  if (subItem.name === "Logout") {
+                    return (
+                      <button
+                        key={subItem.name}
+                        onClick={() => {
+                          trackNavigation('/logout', 'dropdown_menu');
+                          signOut({ callbackUrl: '/' });
+                        }}
+                        className="w-full text-left px-4 py-2.5 text-sm hover:bg-primary/5 hover:text-primary transition-colors flex items-center gap-2"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        {subItem.name}
+                      </button>
+                    );
+                  }
+
+                  return (
+                    <Link
+                      key={subItem.href}
+                      href={subItem.href}
+                      className="block px-4 py-2.5 text-sm hover:bg-primary/5 hover:text-primary transition-colors"
+                      onClick={() => trackNavigation(subItem.href, 'dropdown_menu')}
+                    >
+                      {subItem.name}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           );

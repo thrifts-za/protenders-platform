@@ -21,7 +21,7 @@ import { useMemo } from "react";
 import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 
 export default function Dashboard() {
-  const { savedTenders, removeTender, saveTender } = useSavedTenders();
+  const { savedTenders, removeTender, saveTender, isLoading } = useSavedTenders();
   const { isGuest, user } = useAuth();
 
   const stats = useMemo(() => {
@@ -116,6 +116,15 @@ export default function Dashboard() {
               to sync across devices.
             </AlertDescription>
           </Alert>
+        )}
+
+        {isLoading && (
+          <Card className="mb-6">
+            <CardContent className="p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-3"></div>
+              <p className="text-muted-foreground">Loading your saved tenders...</p>
+            </CardContent>
+          </Card>
         )}
 
         {/* Stats Grid */}
