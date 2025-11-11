@@ -23,10 +23,36 @@ export const useSavedTenders = () => {
         try {
           const response = await fetch("/api/user/saved");
           if (response.ok) {
-            const data = await response.json();
-            setSavedTenders(data.savedTenders || []);
+            const apiData = await response.json();
+            // API returns { data: [...], total, page }
+            // Convert to SavedTender format expected by the hook
+            const savedTendersData = (apiData.data || []).map((item: any) => ({
+              tenderId: item.tenderId,
+              savedAt: item.savedAt,
+              notes: item.notes || "",
+              tags: [],
+              isSubmitted: false,
+              tender: {
+                id: item.tender.id,
+                ocid: item.tender.ocid,
+                title: item.tender.title || "Untitled Tender",
+                description: item.tender.description,
+                mainProcurementCategory: item.tender.mainProcurementCategory,
+                closingDate: item.tender.endDate,
+                publishedDate: item.tender.startDate,
+                status: item.tender.status,
+                value: item.tender.valueAmount
+                  ? {
+                      amount: item.tender.valueAmount,
+                      currency: item.tender.valueCurrency || "ZAR",
+                    }
+                  : undefined,
+                dataQualityScore: 0.8,
+              },
+            }));
+            setSavedTenders(savedTendersData);
             // Sync to localStorage as backup
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(data.savedTenders || []));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(savedTendersData));
           } else {
             console.error("Failed to fetch saved tenders from API");
             // Fallback to localStorage
