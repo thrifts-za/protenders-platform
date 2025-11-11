@@ -86,7 +86,14 @@ export default function NavigationMenu() {
               onMouseEnter={() => setActiveDropdown(item.name)}
               onMouseLeave={() => setActiveDropdown(null)}
             >
-              <button className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+              <button className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${
+                isAuthenticated && item.items.some(i => i.name === "Logout")
+                  ? "bg-primary/10 px-3 py-1.5 rounded-full text-primary font-semibold"
+                  : ""
+              }`}>
+                {isAuthenticated && item.items.some(i => i.name === "Logout") && (
+                  <User className="h-4 w-4" />
+                )}
                 {item.name}
                 <ChevronDown className="h-3 w-3" />
               </button>
