@@ -257,18 +257,23 @@ export const tenderSyncFunction = inngest.createFunction(
 
           const enrichmentData = enrichmentMap.get(rel.ocid) || null;
 
-          // Generate slug
+          // Generate slug - MUST be unique across all records
+          // Include date hash to avoid collisions when same OCID has multiple versions
           const title = rel?.tender?.title || '';
           const description = rel?.tender?.description || '';
           const textForSlug = description && description.trim().length > 10 ? description : title;
           let baseSlug = generateSlug(textForSlug);
 
-          if (baseSlug.length > 80) {
-            baseSlug = baseSlug.slice(0, 80).replace(/-+$/, '');
+          if (baseSlug.length > 70) {
+            baseSlug = baseSlug.slice(0, 70).replace(/-+$/, '');
           }
 
+          // Include date hash to ensure uniqueness for same OCID with different dates
+          const dateHash = publishedAt.getTime().toString(36).slice(-6);
           const slug =
-            textForSlug && textForSlug.trim().length > 0 ? `${baseSlug}-${rel.ocid}` : rel.ocid;
+            textForSlug && textForSlug.trim().length > 0
+              ? `${baseSlug}-${dateHash}-${rel.ocid}`
+              : `${rel.ocid}-${dateHash}`;
 
           const baseData = {
             json: JSON.stringify(rel),
