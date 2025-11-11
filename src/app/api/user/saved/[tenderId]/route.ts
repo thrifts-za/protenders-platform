@@ -43,16 +43,45 @@ export async function PUT(
     const { tenderId } = await params;
     const body = await request.json();
 
-    // Check if tender exists
-    const tender = await prisma.tender.findUnique({
-      where: { id: tenderId },
-    });
+    // Upsert tender if full tender data is provided
+    if (body.tenderData) {
+      const tenderData = body.tenderData;
+      await prisma.tender.upsert({
+        where: { id: tenderId },
+        update: {
+          title: tenderData.title || null,
+          description: tenderData.description || null,
+          mainProcurementCategory: tenderData.mainProcurementCategory || null,
+          status: tenderData.status || null,
+          endDate: tenderData.closingDate ? new Date(tenderData.closingDate) : null,
+          valueAmount: tenderData.value?.amount || null,
+          valueCurrency: tenderData.value?.currency || 'ZAR',
+        },
+        create: {
+          id: tenderId,
+          ocid: tenderData.ocid || tenderId,
+          title: tenderData.title || 'Untitled Tender',
+          description: tenderData.description || null,
+          mainProcurementCategory: tenderData.mainProcurementCategory || null,
+          status: tenderData.status || 'active',
+          startDate: tenderData.publishedDate ? new Date(tenderData.publishedDate) : new Date(),
+          endDate: tenderData.closingDate ? new Date(tenderData.closingDate) : null,
+          valueAmount: tenderData.value?.amount || null,
+          valueCurrency: tenderData.value?.currency || 'ZAR',
+        },
+      });
+    } else {
+      // Check if tender exists in database
+      const tender = await prisma.tender.findUnique({
+        where: { id: tenderId },
+      });
 
-    if (!tender) {
-      return NextResponse.json(
-        { error: 'Tender not found' },
-        { status: 404 }
-      );
+      if (!tender) {
+        return NextResponse.json(
+          { error: 'Tender not found. Please provide tenderData in request body.' },
+          { status: 404 }
+        );
+      }
     }
 
     // Upsert saved tender

@@ -93,11 +93,15 @@ export const useSavedTenders = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ notes: "" }),
+          body: JSON.stringify({
+            notes: "",
+            tenderData: tender, // Pass full tender data so API can create it if needed
+          }),
         });
 
         if (!response.ok) {
-          console.error("Failed to save tender to database");
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Failed to save tender to database:", errorData);
           // localStorage still has it, so user won't lose data
         }
       } catch (error) {
@@ -153,12 +157,16 @@ export const useSavedTenders = () => {
     // If authenticated, also update database
     if (isAuthenticated) {
       try {
+        const savedTender = savedTenders.find(st => st.tenderId === tenderId);
         const response = await fetch(`/api/user/saved/${tenderId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ notes }),
+          body: JSON.stringify({
+            notes,
+            tenderData: savedTender?.tender, // Pass tender data in case it doesn't exist in DB
+          }),
         });
 
         if (!response.ok) {
