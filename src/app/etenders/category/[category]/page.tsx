@@ -18,11 +18,8 @@ export const revalidate = 21600;
  */
 export async function generateStaticParams() {
   const slugs = getAllCategorySlugs();
-  // Focus on high-priority categories with research keywords
-  const priorityCategories = ['security', 'cleaning', 'construction', 'it-services', 'consulting', 'healthcare'];
-  return slugs
-    .filter(slug => priorityCategories.includes(slug))
-    .map((category) => ({ category }));
+  // Generate all category pages including new service categories
+  return slugs.map((category) => ({ category }));
 }
 
 /**
