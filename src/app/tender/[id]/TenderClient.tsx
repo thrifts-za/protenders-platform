@@ -26,6 +26,7 @@ import RealTimeUpdates from "@/components/tender/RealTimeUpdates";
 import AwardHistory from "@/components/tender/AwardHistory";
 import DocumentsList from "@/components/tender/DocumentsList";
 import OverviewTab from "@/components/tender/OverviewTab";
+import { useSavedTenders } from "@/hooks/useSavedTenders";
 
 // This is the client-side interactive component for tender details
 // The server component wrapper (page.tsx) handles metadata generation
@@ -37,8 +38,8 @@ export default function TenderClient() {
   const id = extractTenderIdFromSlug(slug);
   const [tender, setTender] = useState<Tender | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSaved, setIsSaved] = useState(false);
   const { toast } = useToast();
+  const { saveTender, removeTender, isSaved: checkIsSaved } = useSavedTenders();
 
   useEffect(() => {
     async function loadTender() {
@@ -54,16 +55,6 @@ export default function TenderClient() {
 
     if (id) {
       loadTender();
-    }
-  }, [id]);
-
-  // Check if tender is saved in localStorage
-  useEffect(() => {
-    if (!id) return;
-    const savedTenders = localStorage.getItem('saved-tenders');
-    if (savedTenders) {
-      const parsed = JSON.parse(savedTenders);
-      setIsSaved(parsed.includes(id));
     }
   }, [id]);
 
@@ -113,31 +104,42 @@ export default function TenderClient() {
   };
 
   const handleSaveTender = () => {
-    if (!id) return;
+    if (!id || !tender) return;
 
     try {
-      const savedTenders = localStorage.getItem('saved-tenders');
-      let tenderIds: string[] = savedTenders ? JSON.parse(savedTenders) : [];
+      const isSaved = checkIsSaved(id);
 
       if (isSaved) {
         // Remove from saved
-        tenderIds = tenderIds.filter(tenderId => tenderId !== id);
-        setIsSaved(false);
+        removeTender(id);
         toast({
           title: "Tender removed",
           description: "Tender has been removed from your saved list.",
         });
       } else {
-        // Add to saved
-        tenderIds.push(id);
-        setIsSaved(true);
+        // Add to saved - convert Tender to NormalizedTender format
+        const normalizedTender = {
+          id: tender.id,
+          ocid: tender.ocid,
+          title: tender.tender?.title || "Untitled Tender",
+          displayTitle: tender.tender?.title,
+          description: tender.tender?.description,
+          buyerName: tender.buyer?.name,
+          mainProcurementCategory: tender.tender?.mainProcurementCategory,
+          closingDate: tender.closingAt || tender.tender?.tenderPeriod?.endDate,
+          status: tender.tender?.status || tender.status,
+          documents: tender.tender?.documents,
+          awards: tender.awards,
+          dataQualityScore: 0.8, // Default score for saved tenders
+          raw: tender.raw,
+        };
+
+        saveTender(normalizedTender);
         toast({
           title: "Tender saved",
           description: "Tender has been added to your saved list.",
         });
       }
-
-      localStorage.setItem('saved-tenders', JSON.stringify(tenderIds));
     } catch (error) {
       console.error('Failed to save tender:', error);
       toast({
@@ -518,16 +520,16 @@ export default function TenderClient() {
                 Add to Calendar
               </Button>
               <Button
-                variant={isSaved ? "default" : "outline"}
+                variant={checkIsSaved(id) ? "default" : "outline"}
                 size="sm"
                 onClick={handleSaveTender}
               >
-                {isSaved ? (
+                {checkIsSaved(id) ? (
                   <Check className="h-4 w-4 mr-2" />
                 ) : (
                   <Star className="h-4 w-4 mr-2" />
                 )}
-                {isSaved ? "Saved" : "Save Tender"}
+                {checkIsSaved(id) ? "Saved" : "Save Tender"}
               </Button>
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <Share2 className="h-4 w-4 mr-2" />
