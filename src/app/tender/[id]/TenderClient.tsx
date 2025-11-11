@@ -428,17 +428,26 @@ export default function TenderClient() {
     return category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   };
 
+  // Defined category pages (only these slugs have pages)
+  const availableCategories = [
+    'construction', 'it-services', 'consulting', 'security-services',
+    'supply-and-delivery', 'cleaning-services', 'catering', 'transport'
+  ];
+
   // Build breadcrumb items
   const breadcrumbItems: Array<{ name: string; url?: string }> = [
     { name: 'Home', url: '/' },
     { name: 'eTenders', url: '/etenders' },
   ];
 
-  // Add category breadcrumb if available
+  // Add category breadcrumb if available - only link if page exists
   if (tender.detailedCategory) {
+    const categorySlug = createCategorySlug(tender.detailedCategory);
     breadcrumbItems.push({
       name: `${tender.detailedCategory}`,
-      url: `/etenders/category/${createCategorySlug(tender.detailedCategory)}`,
+      url: availableCategories.includes(categorySlug)
+        ? `/etenders/category/${categorySlug}`
+        : undefined, // No URL = non-clickable breadcrumb
     });
   }
 
