@@ -20,6 +20,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import ConditionalNotificationBar from "@/components/ConditionalNotificationBar";
 import NavigationMenu from "@/components/NavigationMenu";
+import MobileNavigation from "@/components/MobileNavigation";
 import FloatingContributeButton from "@/components/FloatingContributeButton";
 import AmbientGradient from "@/components/AmbientGradient";
 import MixpanelProvider from "@/components/MixpanelProvider";
@@ -199,6 +200,7 @@ export default function RootLayout({
                   </span>
                 </Link>
                 <NavigationMenu />
+                <MobileNavigation />
               </nav>
             </header>
 
