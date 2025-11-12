@@ -70,13 +70,19 @@ export async function GET(request: NextRequest) {
     // Build where clause
     const where: Prisma.OCDSReleaseWhereInput = {};
 
-    // Keywords search (searches across title, description, buyer)
+    // Keywords search (searches across title, description, buyer, and enriched fields)
     if (params.keywords && params.keywords.trim()) {
       const kw = params.keywords.toLowerCase();
       where.OR = [
         { tenderTitle: { contains: kw, mode: 'insensitive' } },
         { tenderDescription: { contains: kw, mode: 'insensitive' } },
         { buyerName: { contains: kw, mode: 'insensitive' } },
+        { detailedCategory: { contains: kw, mode: 'insensitive' } }, // Phase 1 enrichment
+        { tenderType: { contains: kw, mode: 'insensitive' } }, // Phase 1 enrichment
+        { province: { contains: kw, mode: 'insensitive' } }, // Phase 1 enrichment
+        { city: { contains: kw, mode: 'insensitive' } }, // Phase 2 enrichment
+        { organOfStateType: { contains: kw, mode: 'insensitive' } }, // Phase 2 enrichment
+        { tenderTypeCategory: { contains: kw, mode: 'insensitive' } }, // Phase 2 enrichment
       ];
     }
 
