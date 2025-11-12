@@ -115,6 +115,7 @@ export const metadata: Metadata = {
   verification: {
     other: {
       'msvalidate.01': '2967B207EBA69D1C4A0549D73AF773E7',
+      'yandex-verification': 'b166310a445f63e4',
     },
   },
 };
