@@ -14,7 +14,8 @@ interface TenderCardProps {
 }
 
 export function TenderCard({ tender }: TenderCardProps) {
-  const title = tender.tender?.title || "Untitled Tender";
+  // Use display title if available (human-readable), otherwise fall back to technical title
+  const title = tender.displayTitle || tender.tender?.title || "Untitled Tender";
   const description = tender.tender?.description || "";
   const buyerName = tender.buyer?.name || "";
   const category = tender.tender?.mainProcurementCategory || "";

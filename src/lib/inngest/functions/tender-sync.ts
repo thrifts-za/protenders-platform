@@ -341,6 +341,7 @@ export const tenderSyncFunction = inngest.createFunction(
                   typeof enrichmentData.dataQualityScore === 'number'
                     ? enrichmentData.dataQualityScore
                     : undefined,
+                tenderDisplayTitle: enrichmentData.displayTitle || undefined,
                 enrichedAt: new Date(),
               }
             : {};

@@ -75,6 +75,9 @@ export interface EnrichmentData {
   dataQualityScore?: number;
   municipalityType?: string | null;
   departmentLevel?: string | null;
+
+  // Human-readable display title
+  displayTitle?: string | null;
 }
 
 export interface EtendersQueryContext {
@@ -563,6 +566,82 @@ function calculateDataQualityScore(enrichment: EnrichmentData): number {
 }
 
 /**
+ * Generate human-readable display title
+ * Format: "{Buyer} - {Category}: {Short Description}"
+ *
+ * Examples:
+ * - "ESKOM - Disposals: 132/66kV 20MVA Transformer at Tweekoppies"
+ * - "KZN Public Works - Maintenance: KwaDukuza/Ilembe District Office"
+ * - "Companies Tribunal - Financial Services: External Audit Services"
+ */
+function generateDisplayTitle(
+  enrichment: EnrichmentData,
+  context: EtendersQueryContext,
+  description?: string
+): string | null {
+  const parts: string[] = [];
+
+  // 1. Buyer name (shortened if too long)
+  const buyer = context.buyerName || 'Government Entity';
+  const shortBuyer = buyer.length > 40 ? buyer.substring(0, 37) + '...' : buyer;
+  parts.push(shortBuyer);
+
+  // 2. Category (use detailed category, fallback to main category from context)
+  if (enrichment.detailedCategory) {
+    const category = enrichment.detailedCategory.split(':')[0].trim(); // Get main part before colon
+    parts.push(category);
+  } else if (enrichment.tenderType) {
+    parts.push(enrichment.tenderType.split('(')[0].trim()); // Remove parenthetical details
+  }
+
+  // 3. Key description snippet (extract meaningful terms from description)
+  if (description && description.length > 10) {
+    // Extract first meaningful sentence or phrase (max 80 chars)
+    let snippet = description
+      .replace(/\s+/g, ' ') // Normalize whitespace
+      .trim();
+
+    // Remove common prefixes
+    snippet = snippet
+      .replace(/^(appointment of|provision of|supply of|supply and|request for|tender for)\s+/i, '')
+      .replace(/^(the|a|an)\s+/i, '');
+
+    // Take first sentence or 80 chars, whichever is shorter
+    const firstSentenceMatch = snippet.match(/^[^.!?]+[.!?]/);
+    if (firstSentenceMatch) {
+      snippet = firstSentenceMatch[0].replace(/[.!?]$/, '').trim();
+    }
+
+    if (snippet.length > 80) {
+      snippet = snippet.substring(0, 77) + '...';
+    }
+
+    if (snippet.length > 10) {
+      parts.push(snippet);
+    }
+  }
+
+  // Fallback: if we only have buyer, add tender type category or location
+  if (parts.length === 1) {
+    if (enrichment.tenderTypeCategory) {
+      parts.push(enrichment.tenderTypeCategory);
+    } else if (enrichment.city || enrichment.province) {
+      const location = [enrichment.city, enrichment.province].filter(Boolean).join(', ');
+      parts.push(`Tender in ${location}`);
+    }
+  }
+
+  // Build final title
+  if (parts.length === 1) {
+    return parts[0]; // Just buyer name
+  } else if (parts.length === 2) {
+    return `${parts[0]} - ${parts[1]}`; // Buyer - Category
+  } else {
+    return `${parts[0]} - ${parts[1]}: ${parts[2]}`; // Buyer - Category: Description
+  }
+}
+
+/**
  * Convert eTenders API row to enrichment data
  */
 export function enrichFromEtendersRow(row: EtendersRow): EnrichmentData {
@@ -724,12 +803,19 @@ export async function enrichTenderFromEtenders(
 
   console.log(`⏳ Rate limiting delay: ${rateLimitDelay}ms`);
   await delay(rateLimitDelay); // Rate limiting
-  
+
   const enriched = enrichFromEtendersRow(row);
+
+  // Generate human-readable display title
+  if (ctx) {
+    enriched.displayTitle = generateDisplayTitle(enriched, ctx, row.description);
+  }
+
   console.log(`✅ Enrichment complete for ${tenderNumber}:`, {
     province: enriched.province || 'N/A',
     hasContact: !!(enriched.contactEmail || enriched.contactPerson),
     hasBriefing: !!(enriched.briefingDate || enriched.briefingVenue),
+    displayTitle: enriched.displayTitle || 'N/A',
   });
   return enriched;
 }

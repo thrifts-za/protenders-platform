@@ -24,6 +24,7 @@ export interface Tender {
   closingAt?: string;
   status?: string;
   detailedCategory?: string; // Detailed category from eTenders enrichment (91 categories)
+  displayTitle?: string; // Human-readable title: "{Buyer} - {Category}: {Description}"
 }
 
 export interface TenderDetails {

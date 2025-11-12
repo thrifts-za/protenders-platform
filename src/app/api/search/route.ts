@@ -201,6 +201,7 @@ export async function GET(request: NextRequest) {
           } : undefined,
           submissionMethod: submissionMethods.length > 0 ? submissionMethods : undefined,
         },
+        displayTitle: release.tenderDisplayTitle || undefined, // Human-readable display title
         publishedAt: release.publishedAt?.toISOString(),
         updatedAt: release.updatedAt?.toISOString(),
         closingAt: release.closingAt?.toISOString(),
