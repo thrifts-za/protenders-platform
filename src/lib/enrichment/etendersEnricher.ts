@@ -569,76 +569,93 @@ function calculateDataQualityScore(enrichment: EnrichmentData): number {
  * Generate human-readable display title
  * Format: "{Buyer} - {Category}: {Short Description}"
  *
+ * STRICT LENGTH LIMIT: Max 100 characters for clean one-line display
+ *
  * Examples:
- * - "ESKOM - Disposals: 132/66kV 20MVA Transformer at Tweekoppies"
- * - "KZN Public Works - Maintenance: KwaDukuza/Ilembe District Office"
- * - "Companies Tribunal - Financial Services: External Audit Services"
+ * - "ESKOM - Disposals: 132/66kV 20MVA Transformer"
+ * - "KZN Public Works - Maintenance: KwaDukuza District Office"
+ * - "Companies Tribunal - Financial Services: External Audit"
  */
 function generateDisplayTitle(
   enrichment: EnrichmentData,
   context: EtendersQueryContext,
   description?: string
 ): string | null {
-  const parts: string[] = [];
+  const MAX_TITLE_LENGTH = 100; // Strict limit for clean one-liner UI
+  const MAX_BUYER_LENGTH = 35; // Max buyer name length
+  const MAX_CATEGORY_LENGTH = 25; // Max category length
 
   // 1. Buyer name (shortened if too long)
   const buyer = context.buyerName || 'Government Entity';
-  const shortBuyer = buyer.length > 40 ? buyer.substring(0, 37) + '...' : buyer;
-  parts.push(shortBuyer);
+  const shortBuyer = buyer.length > MAX_BUYER_LENGTH
+    ? buyer.substring(0, MAX_BUYER_LENGTH - 3) + '...'
+    : buyer;
 
-  // 2. Category (use detailed category, fallback to main category from context)
+  // 2. Category (use detailed category, fallback to tender type)
+  let category = '';
   if (enrichment.detailedCategory) {
-    const category = enrichment.detailedCategory.split(':')[0].trim(); // Get main part before colon
-    parts.push(category);
+    category = enrichment.detailedCategory.split(':')[0].trim(); // Get main part before colon
   } else if (enrichment.tenderType) {
-    parts.push(enrichment.tenderType.split('(')[0].trim()); // Remove parenthetical details
+    category = enrichment.tenderType.split('(')[0].trim(); // Remove parenthetical details
+  } else if (enrichment.tenderTypeCategory) {
+    category = enrichment.tenderTypeCategory;
   }
 
-  // 3. Key description snippet (extract meaningful terms from description)
-  if (description && description.length > 10) {
-    // Extract first meaningful sentence or phrase (max 80 chars)
-    let snippet = description
+  // Truncate category if too long
+  if (category.length > MAX_CATEGORY_LENGTH) {
+    category = category.substring(0, MAX_CATEGORY_LENGTH - 3) + '...';
+  }
+
+  // 3. Calculate how much space we have left for description
+  // Format will be: "{buyer} - {category}: {description}"
+  const baseLength = shortBuyer.length + (category ? ` - ${category}: `.length : ` - `.length);
+  const remainingSpace = MAX_TITLE_LENGTH - baseLength;
+
+  let snippet = '';
+  if (description && description.length > 10 && remainingSpace > 20) {
+    // Extract first meaningful sentence or phrase
+    let desc = description
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
 
     // Remove common prefixes
-    snippet = snippet
+    desc = desc
       .replace(/^(appointment of|provision of|supply of|supply and|request for|tender for)\s+/i, '')
       .replace(/^(the|a|an)\s+/i, '');
 
-    // Take first sentence or 80 chars, whichever is shorter
-    const firstSentenceMatch = snippet.match(/^[^.!?]+[.!?]/);
+    // Take first sentence or remaining space, whichever is shorter
+    const firstSentenceMatch = desc.match(/^[^.!?]+[.!?]/);
     if (firstSentenceMatch) {
-      snippet = firstSentenceMatch[0].replace(/[.!?]$/, '').trim();
+      desc = firstSentenceMatch[0].replace(/[.!?]$/, '').trim();
     }
 
-    if (snippet.length > 80) {
-      snippet = snippet.substring(0, 77) + '...';
-    }
-
-    if (snippet.length > 10) {
-      parts.push(snippet);
-    }
-  }
-
-  // Fallback: if we only have buyer, add tender type category or location
-  if (parts.length === 1) {
-    if (enrichment.tenderTypeCategory) {
-      parts.push(enrichment.tenderTypeCategory);
-    } else if (enrichment.city || enrichment.province) {
-      const location = [enrichment.city, enrichment.province].filter(Boolean).join(', ');
-      parts.push(`Tender in ${location}`);
+    // Truncate to fit remaining space
+    if (desc.length > remainingSpace) {
+      snippet = desc.substring(0, remainingSpace - 3) + '...';
+    } else {
+      snippet = desc;
     }
   }
 
-  // Build final title
-  if (parts.length === 1) {
-    return parts[0]; // Just buyer name
-  } else if (parts.length === 2) {
-    return `${parts[0]} - ${parts[1]}`; // Buyer - Category
+  // Build final title with strict length enforcement
+  let finalTitle = '';
+  if (!category) {
+    // No category, just buyer (fallback scenario)
+    finalTitle = shortBuyer;
+  } else if (!snippet || snippet.length < 10) {
+    // Buyer - Category (no description or too short)
+    finalTitle = `${shortBuyer} - ${category}`;
   } else {
-    return `${parts[0]} - ${parts[1]}: ${parts[2]}`; // Buyer - Category: Description
+    // Full format: Buyer - Category: Description
+    finalTitle = `${shortBuyer} - ${category}: ${snippet}`;
   }
+
+  // Final safety check - ensure we never exceed max length
+  if (finalTitle.length > MAX_TITLE_LENGTH) {
+    finalTitle = finalTitle.substring(0, MAX_TITLE_LENGTH - 3) + '...';
+  }
+
+  return finalTitle;
 }
 
 /**
