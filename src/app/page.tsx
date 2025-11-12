@@ -154,49 +154,45 @@ export default function HomePage() {
       </section>
 
       {/* Funding CTA Section */}
-      <section className="w-full py-12 bg-green-50/30">
+      <section className="w-full py-8 bg-green-50/30">
         <div className="content-container">
-          <Card className="border-2 border-green-200 bg-green-50/50 shadow-lg">
-            <CardContent className="p-8 md:p-12">
-              <div className="flex flex-col items-center gap-6 text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-10 h-10 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div className="max-w-3xl">
-                  <div className="inline-block px-3 py-1 bg-green-600 text-white text-xs font-bold rounded mb-3">
-                    EXPANDED
+          <Card className="border border-green-200 bg-green-50/50">
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center gap-3 text-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <svg
+                      className="w-5 h-5 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
                   </div>
-                  <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
+                  <h2 className="text-xl md:text-2xl font-bold text-foreground">
                     Need Funding for Your Business?
                   </h2>
-                  <p className="text-lg text-muted-foreground mb-6">
-                    Discover 90+ SME funding opportunities from Government DFIs (IDC, SEFA, NEF, Land Bank) and Corporate ESD programs (FNB Vumela, Anglo Zimele, Sasol, MTN, and more).
-                    Get matched with grants, loans, and equity funding tailored to your business needs.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link href="/funding/match">
-                      <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
-                        Find Your Funding Match
-                      </Button>
-                    </Link>
-                    <Link href="/funding">
-                      <Button size="lg" variant="outline" className="border-green-600 text-green-700 hover:bg-green-50">
-                        Browse All Funding
-                      </Button>
-                    </Link>
-                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground max-w-2xl">
+                  Discover 90+ SME funding opportunities from Government DFIs and Corporate ESD programs. Get matched with grants, loans, and equity funding.
+                </p>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <Link href="/funding/match">
+                    <Button className="bg-green-600 hover:bg-green-700 text-white">
+                      Find Your Match
+                    </Button>
+                  </Link>
+                  <Link href="/funding">
+                    <Button variant="outline" className="border-green-600 text-green-700 hover:bg-green-50">
+                      Browse All Funding
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </CardContent>
