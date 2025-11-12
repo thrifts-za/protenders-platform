@@ -994,3 +994,69 @@ model WaitingListEntry {
   @@index([createdAt])
   @@index([userId])
 }
+
+// ============================================================================
+// PHASE 3: FUNDING DISCOVERY ENGINE
+// ============================================================================
+
+model FundingOpportunity {
+  id               String   @id @default(cuid())
+  source           String   // "pdf" | "idc" | "sefa" | "nef"
+  institution      String
+  programName      String
+  slug             String   @unique
+  fundingType      String   // "Grant" | "Loan" | "Equity" | "Hybrid"
+  minAmount        BigInt?  // cents or ZAR integer (using BigInt for large amounts)
+  maxAmount        BigInt?
+  amountNotes      String?
+  categories       String[] // Array of categories
+  provinces        String[] // Array of provinces
+  eligibility      String[] // Array of eligibility criteria
+  fundedIndustries String[] // Array of funded industries
+  purpose          String?
+  applyUrl         String?
+  contacts         Json?    // Contact information (email, phone, address)
+  lastSeenAt       DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  searchableText   String   @db.Text // Full-text search field
+  isActive         Boolean  @default(true)
+
+  savedFunding     SavedFunding[]
+
+  @@index([source])
+  @@index([slug])
+  @@index([categories])
+  @@index([provinces])
+  @@index([fundingType])
+  @@index([isActive])
+  @@index([minAmount])
+  @@index([maxAmount])
+}
+
+model SavedFunding {
+  id        String   @id @default(cuid())
+  userId    String
+  fundingId String
+  note      String?
+  status    String?  // "saved" | "applied" | "awarded" | "rejected"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  funding   FundingOpportunity @relation(fields: [fundingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fundingId])
+  @@index([userId])
+  @@index([fundingId])
+  @@index([createdAt])
+}
+
+model FundingSearch {
+  id         String   @id @default(cuid())
+  userId     String
+  filters    Json     // Search filter criteria
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
