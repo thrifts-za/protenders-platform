@@ -8,8 +8,37 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { MessageSquare, RefreshCw, Save } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  MessageSquare,
+  RefreshCw,
+  Eye,
+  AlertCircle,
+  CheckCircle,
+  Clock,
+  XCircle,
+  TrendingUp,
+  AlertTriangle,
+  Zap,
+  Mail,
+  FileText,
+  Calendar,
+  Tag,
+  Lightbulb,
+  Bug
+} from "lucide-react";
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+
+dayjs.extend(relativeTime);
 
 type FeedbackRow = {
   id: string;
@@ -34,6 +63,8 @@ export default function FeedbackPage() {
 
   const [status, setStatus] = useState<string>("all");
   const [q, setQ] = useState("");
+  const [selectedFeedback, setSelectedFeedback] = useState<FeedbackRow | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const totalPages = useMemo(() => Math.max(1, Math.ceil(total / limit)), [total, limit]);
 
@@ -47,7 +78,6 @@ export default function FeedbackPage() {
     params.set("page", String(page));
     params.set("limit", String(limit));
     if (status && status !== 'all') params.set("status", status);
-    // Simple search over title in-memory post-fetch for now
     return params.toString();
   };
 
@@ -78,18 +108,86 @@ export default function FeedbackPage() {
       });
       if (!res.ok) throw new Error('Update failed');
       setRows((prev) => prev.map((r) => r.id === id ? { ...r, status: newStatus } : r));
+      if (selectedFeedback?.id === id) {
+        setSelectedFeedback({ ...selectedFeedback, status: newStatus });
+      }
     } catch (e) {
       console.error(e);
       alert('Failed to update status');
     }
   }
 
+  const getStatusIcon = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return <span title="Pending"><Clock className="h-4 w-4 text-blue-500" /></span>;
+      case 'reviewed':
+        return <span title="Reviewed"><Eye className="h-4 w-4 text-yellow-500" /></span>;
+      case 'resolved':
+        return <span title="Resolved"><CheckCircle className="h-4 w-4 text-green-500" /></span>;
+      case 'dismissed':
+        return <span title="Dismissed"><XCircle className="h-4 w-4 text-red-500" /></span>;
+      default:
+        return <span title={status}><AlertCircle className="h-4 w-4 text-gray-400" /></span>;
+    }
+  };
+
+  const getPriorityIcon = (priority: string) => {
+    switch (priority.toLowerCase()) {
+      case 'critical':
+        return <span title="Critical"><Zap className="h-4 w-4 text-red-600" /></span>;
+      case 'high':
+        return <span title="High"><AlertTriangle className="h-4 w-4 text-orange-500" /></span>;
+      case 'medium':
+        return <span title="Medium"><TrendingUp className="h-4 w-4 text-yellow-500" /></span>;
+      case 'low':
+        return <span title="Low"><AlertCircle className="h-4 w-4 text-gray-500" /></span>;
+      default:
+        return <span title={priority}><AlertCircle className="h-4 w-4 text-gray-400" /></span>;
+    }
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'bug':
+        return <Bug className="h-4 w-4 text-red-500" />;
+      case 'feature':
+        return <Lightbulb className="h-4 w-4 text-blue-500" />;
+      case 'improvement':
+        return <TrendingUp className="h-4 w-4 text-green-500" />;
+      default:
+        return <MessageSquare className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const openDetails = (feedback: FeedbackRow) => {
+    setSelectedFeedback(feedback);
+    setDetailsOpen(true);
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">User Feedback</h1>
-        <p className="text-muted-foreground">Manage user feedback and feature requests</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">User Feedback</h1>
+          <p className="text-muted-foreground">Manage user feedback and feature requests</p>
+        </div>
+        <Button variant="outline" onClick={loadData}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
+        </Button>
       </div>
+
+      {/* Stats Card */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Total Feedback</p>
+          </div>
+          <p className="text-2xl font-bold">{total.toLocaleString()}</p>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -100,101 +198,277 @@ export default function FeedbackPage() {
         </CardHeader>
         <CardContent>
           {/* Controls */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
-            <div>
-              <Input placeholder="Search title..." value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} />
-            </div>
-            <div>
-              <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
-                <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  {statusOptions.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Select value={String(limit)} onValueChange={(v) => { setLimit(parseInt(v)); setPage(1); }}>
-                <SelectTrigger><SelectValue placeholder="Page size" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={loadData}><RefreshCw className="h-4 w-4 mr-2" />Refresh</Button>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+            <Input
+              placeholder="Search title..."
+              value={q}
+              onChange={(e) => { setQ(e.target.value); setPage(1); }}
+            />
+            <Select value={status} onValueChange={(v) => { setStatus(v); setPage(1); }}>
+              <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {statusOptions.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    <div className="flex items-center gap-2 capitalize">
+                      {getStatusIcon(s)}
+                      {s}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={String(limit)} onValueChange={(v) => { setLimit(parseInt(v)); setPage(1); }}>
+              <SelectTrigger><SelectValue placeholder="Page size" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <Separator className="my-3" />
-
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  <th className="text-left py-2 px-2">Title</th>
-                  <th className="text-left py-2 px-2">Type</th>
-                  <th className="text-left py-2 px-2">Priority</th>
-                  <th className="text-left py-2 px-2">Email</th>
-                  <th className="text-left py-2 px-2">Status</th>
-                  <th className="text-left py-2 px-2">Date</th>
-                  <th className="text-left py-2 px-2">Action</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[250px]">Title</TableHead>
+                  <TableHead className="w-[60px] text-center">Type</TableHead>
+                  <TableHead className="w-[60px] text-center">Priority</TableHead>
+                  <TableHead className="w-[180px]">Email</TableHead>
+                  <TableHead className="w-[60px] text-center">Status</TableHead>
+                  <TableHead className="w-[100px]">Date</TableHead>
+                  <TableHead className="w-[120px]">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {loading ? (
-                  <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">Loading feedback...</td></tr>
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                      Loading feedback...
+                    </TableCell>
+                  </TableRow>
                 ) : error ? (
-                  <tr><td colSpan={7} className="py-8 text-center text-red-600">{error}</td></tr>
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-8 text-center text-red-600">
+                      {error}
+                    </TableCell>
+                  </TableRow>
                 ) : rows.length === 0 ? (
-                  <tr><td colSpan={7} className="py-8 text-center text-muted-foreground">No feedback found</td></tr>
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                      No feedback found
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   rows.map((r) => (
-                    <tr key={r.id} className="border-b last:border-0 align-top">
-                      <td className="py-3 px-2 max-w-md">
-                        <div className="font-medium truncate" title={r.title}>{r.title}</div>
-                        <div className="text-xs text-muted-foreground line-clamp-2">{r.description}</div>
-                      </td>
-                      <td className="py-3 px-2">{r.type}</td>
-                      <td className="py-3 px-2">
-                        <Badge variant={r.priority === 'high' || r.priority === 'critical' ? 'destructive' : 'secondary'}>
-                          {r.priority}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-2 text-xs">{r.email || '-'}</td>
-                      <td className="py-3 px-2">
-                        <Badge variant={r.status === 'pending' ? 'secondary' : 'default'}>{r.status}</Badge>
-                      </td>
-                      <td className="py-3 px-2 text-xs">{new Date(r.createdAt).toLocaleString()}</td>
-                      <td className="py-3 px-2">
-                        <div className="flex items-center gap-2">
-                          <Select defaultValue={r.status} onValueChange={(v) => updateStatus(r.id, v)}>
-                            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Set status" /></SelectTrigger>
-                            <SelectContent>
-                              {statusOptions.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-                            </SelectContent>
-                          </Select>
-                          <Button variant="outline" size="sm" onClick={() => updateStatus(r.id, r.status)} title="Reapply status"><Save className="h-4 w-4" /></Button>
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <div className="max-w-[250px]">
+                          <p className="font-medium truncate" title={r.title}>
+                            {r.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate" title={r.description}>
+                            {r.description}
+                          </p>
                         </div>
-                      </td>
-                    </tr>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span title={r.type}>{getTypeIcon(r.type)}</span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {getPriorityIcon(r.priority)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-[180px]">
+                          <p className="text-xs truncate" title={r.email || '-'}>
+                            {r.email || '-'}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {getStatusIcon(r.status)}
+                      </TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {dayjs(r.createdAt).fromNow()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openDetails(r)}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
           <div className="flex items-center justify-between mt-4 text-sm">
             <div>Page {page} of {totalPages} · {total.toLocaleString()} total</div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>Prev</Button>
-              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                Prev
+              </Button>
+              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>
+                Next
+              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Details Modal */}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Feedback Details</DialogTitle>
+            <DialogDescription>
+              Complete information about this feedback submission
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedFeedback && (
+            <div className="space-y-6">
+              {/* Feedback Information */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Feedback Information
+                </h3>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <FileText className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-1">Title</p>
+                      <p className="font-medium">{selectedFeedback.title}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <MessageSquare className="h-5 w-5 text-primary mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground mb-1">Description</p>
+                      <p className="text-sm whitespace-pre-wrap">{selectedFeedback.description}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Classification */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Classification
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <Tag className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Type</p>
+                      <div className="flex items-center gap-2">
+                        {getTypeIcon(selectedFeedback.type)}
+                        <Badge variant="outline" className="capitalize">{selectedFeedback.type}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="mt-0.5">{getPriorityIcon(selectedFeedback.priority)}</div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Priority</p>
+                      <Badge
+                        variant={
+                          selectedFeedback.priority === 'critical' || selectedFeedback.priority === 'high'
+                            ? 'destructive'
+                            : 'secondary'
+                        }
+                        className="capitalize"
+                      >
+                        {selectedFeedback.priority}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <div className="mt-0.5">{getStatusIcon(selectedFeedback.status)}</div>
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Status</p>
+                      <Badge
+                        variant={
+                          selectedFeedback.status === 'resolved'
+                            ? 'default'
+                            : 'secondary'
+                        }
+                        className="capitalize"
+                      >
+                        {selectedFeedback.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact & Timeline */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Contact & Timeline
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedFeedback.email && (
+                    <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                      <Mail className="h-5 w-5 text-primary mt-0.5" />
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Email</p>
+                        <p className="font-medium break-all">{selectedFeedback.email}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                    <Calendar className="h-5 w-5 text-primary mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-1">Submitted</p>
+                      <p className="font-medium">{dayjs(selectedFeedback.createdAt).format('MMM D, YYYY')}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {dayjs(selectedFeedback.createdAt).fromNow()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Section */}
+              <div className="pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">Update Status</p>
+                  <Select
+                    value={selectedFeedback.status}
+                    onValueChange={(value) => {
+                      updateStatus(selectedFeedback.id, value);
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusOptions.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          <div className="flex items-center gap-2 capitalize">
+                            {getStatusIcon(s)}
+                            {s}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
