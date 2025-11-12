@@ -825,7 +825,7 @@ export async function enrichTenderFromEtenders(
 
   // Generate human-readable display title
   if (ctx) {
-    enriched.displayTitle = generateDisplayTitle(enriched, ctx, row.description);
+    enriched.displayTitle = generateDisplayTitle(enriched, ctx, ctx.title);
   }
 
   console.log(`✅ Enrichment complete for ${tenderNumber}:`, {
