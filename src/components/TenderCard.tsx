@@ -57,7 +57,7 @@ export function TenderCard({ tender }: TenderCardProps) {
       }`}>
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-4">
-            <h3 className="font-semibold text-lg text-card-foreground line-clamp-2">{title}</h3>
+            <h3 className="font-semibold text-lg text-card-foreground line-clamp-1 overflow-hidden text-ellipsis">{title}</h3>
             <div className="flex items-center gap-2 flex-shrink-0">
               {publishedAt && (
                 <Badge variant="outline" className="text-xs">

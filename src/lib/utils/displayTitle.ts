@@ -5,30 +5,58 @@
 
 import type { Tender } from '@/types/tender';
 
-const MAX_TITLE_LENGTH = 100;
-const MAX_BUYER_LENGTH = 35;
-const MAX_CATEGORY_LENGTH = 25;
+const MAX_TITLE_LENGTH = 80; // Reduced to ensure single line on cards
+const MAX_BUYER_LENGTH = 30;
+const MAX_CATEGORY_LENGTH = 20;
+
+/**
+ * Convert ALL-CAPS text to Title Case
+ */
+function toTitleCase(str: string): string {
+  // Check if string is mostly uppercase (>70% uppercase letters)
+  const uppercaseCount = (str.match(/[A-Z]/g) || []).length;
+  const totalLetters = (str.match(/[a-zA-Z]/g) || []).length;
+
+  if (totalLetters === 0) return str;
+
+  const uppercaseRatio = uppercaseCount / totalLetters;
+
+  // If mostly uppercase, convert to title case
+  if (uppercaseRatio > 0.7) {
+    return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  return str;
+}
 
 /**
  * Generate a human-readable display title for a tender
  * Format: "{Buyer} - {Category}: {Description snippet}"
  */
 export function generateDisplayTitle(tender: Tender): string {
-  const buyer = tender.buyer?.name || 'Government Entity';
-  const shortBuyer = buyer.length > MAX_BUYER_LENGTH
-    ? buyer.substring(0, MAX_BUYER_LENGTH - 3) + '...'
-    : buyer;
+  const buyer = toTitleCase(tender.buyer?.name || 'Government Entity');
+
+  // Smart truncation - find last space before limit to avoid cutting mid-word
+  let shortBuyer = buyer;
+  if (buyer.length > MAX_BUYER_LENGTH) {
+    const truncated = buyer.substring(0, MAX_BUYER_LENGTH - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    shortBuyer = lastSpace > 15 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
+  }
 
   // Use detailedCategory if available, otherwise mainProcurementCategory
   let category = '';
   if (tender.detailedCategory) {
-    category = tender.detailedCategory.split(':')[0].trim();
+    category = toTitleCase(tender.detailedCategory.split(':')[0].trim());
   } else if (tender.tender?.mainProcurementCategory) {
-    category = tender.tender.mainProcurementCategory;
+    category = toTitleCase(tender.tender.mainProcurementCategory);
   }
 
+  // Smart truncation for category
   if (category.length > MAX_CATEGORY_LENGTH) {
-    category = category.substring(0, MAX_CATEGORY_LENGTH - 3) + '...';
+    const truncated = category.substring(0, MAX_CATEGORY_LENGTH - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    category = lastSpace > 10 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
   }
 
   // Calculate remaining space for description
@@ -43,13 +71,13 @@ export function generateDisplayTitle(tender: Tender): string {
   // Prefer description over title if it's more meaningful
   const sourceText = rawDescription && rawDescription.length > 10 ? rawDescription : rawTitle;
 
-  if (sourceText && sourceText.length > 10 && remainingSpace > 20) {
-    let desc = sourceText
+  if (sourceText && sourceText.length > 10 && remainingSpace > 15) {
+    let desc = toTitleCase(sourceText)
       .replace(/\s+/g, ' ')
       .trim()
       // Remove common prefixes that don't add value
-      .replace(/^(appointment of|provision of|supply of|supply and|request for|tender for)\s+/i, '')
-      .replace(/^(the|a|an)\s+/i, '');
+      .replace(/^(Appointment Of|Provision Of|Supply Of|Supply And|Request For|Tender For)\s+/i, '')
+      .replace(/^(The|A|An)\s+/i, '');
 
     // Extract first sentence if available
     const firstSentenceMatch = desc.match(/^[^.!?]+[.!?]/);
@@ -57,9 +85,11 @@ export function generateDisplayTitle(tender: Tender): string {
       desc = firstSentenceMatch[0].replace(/[.!?]$/, '').trim();
     }
 
-    // Truncate to fit remaining space
+    // Smart truncation - cut at last space to avoid mid-word breaks
     if (desc.length > remainingSpace) {
-      snippet = desc.substring(0, remainingSpace - 3) + '...';
+      const truncated = desc.substring(0, remainingSpace - 3);
+      const lastSpace = truncated.lastIndexOf(' ');
+      snippet = lastSpace > 10 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
     } else {
       snippet = desc;
     }

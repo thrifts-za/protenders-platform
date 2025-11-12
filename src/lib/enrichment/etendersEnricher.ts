@@ -566,14 +566,33 @@ function calculateDataQualityScore(enrichment: EnrichmentData): number {
 }
 
 /**
+ * Convert ALL-CAPS text to Title Case
+ */
+function toTitleCase(str: string): string {
+  const uppercaseCount = (str.match(/[A-Z]/g) || []).length;
+  const totalLetters = (str.match(/[a-zA-Z]/g) || []).length;
+
+  if (totalLetters === 0) return str;
+
+  const uppercaseRatio = uppercaseCount / totalLetters;
+
+  // If mostly uppercase, convert to title case
+  if (uppercaseRatio > 0.7) {
+    return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  return str;
+}
+
+/**
  * Generate human-readable display title
  * Format: "{Buyer} - {Category}: {Short Description}"
  *
- * STRICT LENGTH LIMIT: Max 100 characters for clean one-line display
+ * STRICT LENGTH LIMIT: Max 80 characters for clean one-line display
  *
  * Examples:
- * - "ESKOM - Disposals: 132/66kV 20MVA Transformer"
- * - "KZN Public Works - Maintenance: KwaDukuza District Office"
+ * - "Eskom - Disposals: 132/66kV 20MVA Transformer"
+ * - "Kzn Public Works - Maintenance: Kwadukuza District Office"
  * - "Companies Tribunal - Financial Services: External Audit"
  */
 function generateDisplayTitle(
@@ -581,78 +600,83 @@ function generateDisplayTitle(
   context: EtendersQueryContext,
   description?: string
 ): string | null {
-  const MAX_TITLE_LENGTH = 100; // Strict limit for clean one-liner UI
-  const MAX_BUYER_LENGTH = 35; // Max buyer name length
-  const MAX_CATEGORY_LENGTH = 25; // Max category length
+  const MAX_TITLE_LENGTH = 80; // Strict limit for clean one-liner UI
+  const MAX_BUYER_LENGTH = 30; // Max buyer name length
+  const MAX_CATEGORY_LENGTH = 20; // Max category length
 
-  // 1. Buyer name (shortened if too long)
-  const buyer = context.buyerName || 'Government Entity';
-  const shortBuyer = buyer.length > MAX_BUYER_LENGTH
-    ? buyer.substring(0, MAX_BUYER_LENGTH - 3) + '...'
-    : buyer;
+  // 1. Buyer name - convert to title case and truncate smartly
+  const buyer = toTitleCase(context.buyerName || 'Government Entity');
 
-  // 2. Category (use detailed category, fallback to tender type)
-  let category = '';
-  if (enrichment.detailedCategory) {
-    category = enrichment.detailedCategory.split(':')[0].trim(); // Get main part before colon
-  } else if (enrichment.tenderType) {
-    category = enrichment.tenderType.split('(')[0].trim(); // Remove parenthetical details
-  } else if (enrichment.tenderTypeCategory) {
-    category = enrichment.tenderTypeCategory;
+  let shortBuyer = buyer;
+  if (buyer.length > MAX_BUYER_LENGTH) {
+    const truncated = buyer.substring(0, MAX_BUYER_LENGTH - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    shortBuyer = lastSpace > 15 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
   }
 
-  // Truncate category if too long
+  // 2. Category - convert to title case and truncate smartly
+  let category = '';
+  if (enrichment.detailedCategory) {
+    category = toTitleCase(enrichment.detailedCategory.split(':')[0].trim());
+  } else if (enrichment.tenderType) {
+    category = toTitleCase(enrichment.tenderType.split('(')[0].trim());
+  } else if (enrichment.tenderTypeCategory) {
+    category = toTitleCase(enrichment.tenderTypeCategory);
+  }
+
   if (category.length > MAX_CATEGORY_LENGTH) {
-    category = category.substring(0, MAX_CATEGORY_LENGTH - 3) + '...';
+    const truncated = category.substring(0, MAX_CATEGORY_LENGTH - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    category = lastSpace > 10 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
   }
 
   // 3. Calculate how much space we have left for description
-  // Format will be: "{buyer} - {category}: {description}"
   const baseLength = shortBuyer.length + (category ? ` - ${category}: `.length : ` - `.length);
   const remainingSpace = MAX_TITLE_LENGTH - baseLength;
 
   let snippet = '';
-  if (description && description.length > 10 && remainingSpace > 20) {
-    // Extract first meaningful sentence or phrase
-    let desc = description
-      .replace(/\s+/g, ' ') // Normalize whitespace
+  if (description && description.length > 10 && remainingSpace > 15) {
+    // Convert to title case and normalize
+    let desc = toTitleCase(description)
+      .replace(/\s+/g, ' ')
       .trim();
 
     // Remove common prefixes
     desc = desc
-      .replace(/^(appointment of|provision of|supply of|supply and|request for|tender for)\s+/i, '')
-      .replace(/^(the|a|an)\s+/i, '');
+      .replace(/^(Appointment Of|Provision Of|Supply Of|Supply And|Request For|Tender For)\s+/i, '')
+      .replace(/^(The|A|An)\s+/i, '');
 
-    // Take first sentence or remaining space, whichever is shorter
+    // Extract first sentence
     const firstSentenceMatch = desc.match(/^[^.!?]+[.!?]/);
     if (firstSentenceMatch) {
       desc = firstSentenceMatch[0].replace(/[.!?]$/, '').trim();
     }
 
-    // Truncate to fit remaining space
+    // Smart truncation - cut at last space to avoid mid-word breaks
     if (desc.length > remainingSpace) {
-      snippet = desc.substring(0, remainingSpace - 3) + '...';
+      const truncated = desc.substring(0, remainingSpace - 3);
+      const lastSpace = truncated.lastIndexOf(' ');
+      snippet = lastSpace > 10 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
     } else {
       snippet = desc;
     }
   }
 
-  // Build final title with strict length enforcement
+  // Build final title
   let finalTitle = '';
   if (!category) {
-    // No category, just buyer (fallback scenario)
     finalTitle = shortBuyer;
   } else if (!snippet || snippet.length < 10) {
-    // Buyer - Category (no description or too short)
     finalTitle = `${shortBuyer} - ${category}`;
   } else {
-    // Full format: Buyer - Category: Description
     finalTitle = `${shortBuyer} - ${category}: ${snippet}`;
   }
 
-  // Final safety check - ensure we never exceed max length
+  // Final safety check
   if (finalTitle.length > MAX_TITLE_LENGTH) {
-    finalTitle = finalTitle.substring(0, MAX_TITLE_LENGTH - 3) + '...';
+    const truncated = finalTitle.substring(0, MAX_TITLE_LENGTH - 3);
+    const lastSpace = truncated.lastIndexOf(' ');
+    finalTitle = lastSpace > 20 ? truncated.substring(0, lastSpace) + '...' : truncated + '...';
   }
 
   return finalTitle;
