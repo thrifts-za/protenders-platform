@@ -31,6 +31,17 @@ export default function NavigationMenu() {
       href: "/etenders",
     },
     {
+      name: "Funding",
+      items: [
+        { name: "All Funding", href: "/funding" },
+        { name: "Agriculture", href: "/funding?categories=Agriculture" },
+        { name: "Manufacturing", href: "/funding?categories=Manufacturing" },
+        { name: "Technology", href: "/funding?categories=Technology" },
+        { name: "Tourism", href: "/funding?categories=Tourism" },
+        { name: "Energy", href: "/funding?categories=Energy" },
+      ],
+    },
+    {
       name: "Provinces",
       href: "/provinces",
     },

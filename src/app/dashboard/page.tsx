@@ -8,6 +8,7 @@ import { SavedTenderList } from "@/components/dashboard/SavedTenderList";
 import { PortfolioInsights } from "@/components/dashboard/PortfolioInsights";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { Recommendations } from "@/components/dashboard/Recommendations";
+import { RecommendedFunding } from "@/components/dashboard/RecommendedFunding";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -273,6 +274,7 @@ export default function Dashboard() {
           {/* Right Sidebar */}
           <div className="space-y-6">
             <QuickActions tenders={savedTenders} onClearAll={handleClearAll} />
+            <RecommendedFunding />
             <Recommendations savedTenders={savedTenders} onSave={saveTender} />
           </div>
         </div>

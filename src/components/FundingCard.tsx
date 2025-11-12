@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Building2, Tag, DollarSign, MapPin, Target } from "lucide-react";
 import { formatRelativeDate } from "@/lib/date";
+import { trackFundingView } from "@/lib/analytics";
 
 interface FundingOpportunity {
   id: string;
@@ -91,7 +92,10 @@ export function FundingCard({ funding, matchScore, scoreBreakdown }: FundingCard
   };
 
   return (
-    <Link href={fundingUrl}>
+    <Link
+      href={fundingUrl}
+      onClick={() => trackFundingView(funding.id, funding.programName, funding.institution, 'search_results')}
+    >
       <Card className={`p-6 hover:shadow-lg transition-shadow cursor-pointer mb-3 ${
         matchScore && matchScore >= 75 ? "border-green-200" :
         matchScore && matchScore >= 50 ? "border-orange-200" : ""
