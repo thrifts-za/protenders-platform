@@ -8,14 +8,17 @@ import { createTenderUrlFromTitleAndDescription } from "@/lib/utils/slug";
 import { toSentenceCase } from "@/lib/utils";
 import type { Tender } from "@/types/tender";
 import { trackTenderView } from "@/lib/analytics";
+import { generateDisplayTitle, isTechnicalReference } from "@/lib/utils/displayTitle";
 
 interface TenderCardProps {
   tender: Tender;
 }
 
 export function TenderCard({ tender }: TenderCardProps) {
-  // Use display title if available (human-readable), otherwise fall back to technical title
-  const title = tender.displayTitle || tender.tender?.title || "Untitled Tender";
+  // Use display title if available, otherwise generate on-the-fly for better UX
+  const rawTitle = tender.tender?.title || "Untitled Tender";
+  const title = tender.displayTitle
+    || (isTechnicalReference(rawTitle) ? generateDisplayTitle(tender) : rawTitle);
   const description = tender.tender?.description || "";
   const buyerName = tender.buyer?.name || "";
   const category = tender.tender?.mainProcurementCategory || "";
