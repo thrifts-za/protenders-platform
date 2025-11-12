@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -23,7 +23,7 @@ import {
   Inbox,
   ClipboardList,
 } from "lucide-react";
-import { useState } from "react";
+import { NavBadge } from "@/components/admin/NavBadge";
 
 const navigation = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -32,15 +32,22 @@ const navigation = [
   { name: "Tenders", href: "/admin/tenders", icon: FolderOpen },
   { name: "Buyers", href: "/admin/buyers", icon: Building2 },
   { name: "Suppliers", href: "/admin/suppliers", icon: Users },
-  { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Waiting List", href: "/admin/waiting-list", icon: ClipboardList },
+  { name: "Users", href: "/admin/users", icon: Users, badgeKey: "users" },
+  { name: "Waiting List", href: "/admin/waiting-list", icon: ClipboardList, badgeKey: "waitingList" },
   { name: "Alerts", href: "/admin/alerts", icon: Bell },
-  { name: "Contact Submissions", href: "/admin/contact-submissions", icon: Inbox },
-  { name: "Feedback", href: "/admin/feedback", icon: MessageSquare },
+  { name: "Contact Submissions", href: "/admin/contact-submissions", icon: Inbox, badgeKey: "contactSubmissions" },
+  { name: "Feedback", href: "/admin/feedback", icon: MessageSquare, badgeKey: "feedback" },
   { name: "Config", href: "/admin/config", icon: Settings },
   { name: "Mail", href: "/admin/mail", icon: Mail },
   { name: "Audit Logs", href: "/admin/audit", icon: FileText },
 ];
+
+interface NotificationCounts {
+  users: number;
+  waitingList: number;
+  contactSubmissions: number;
+  feedback: number;
+}
 
 export default function AdminLayout({
   children,
@@ -51,9 +58,37 @@ export default function AdminLayout({
   const router = useRouter();
   const { user, loading, logout, isAuthenticated } = useAdminAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [notificationCounts, setNotificationCounts] = useState<NotificationCounts>({
+    users: 0,
+    waitingList: 0,
+    contactSubmissions: 0,
+    feedback: 0,
+  });
 
   // Don't protect the login page
   const isLoginPage = pathname === "/admin/login";
+
+  // Fetch notification counts
+  const fetchNotificationCounts = async () => {
+    try {
+      const response = await fetch('/api/admin/notifications/counts');
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationCounts(data.counts);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notification counts:', error);
+    }
+  };
+
+  // Auto-refresh notification counts every 60 seconds
+  useEffect(() => {
+    if (isAuthenticated && !isLoginPage) {
+      fetchNotificationCounts(); // Initial fetch
+      const interval = setInterval(fetchNotificationCounts, 60000); // Every 60s
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, isLoginPage]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated && !isLoginPage) {
@@ -125,6 +160,8 @@ export default function AdminLayout({
             {navigation.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               const Icon = item.icon;
+              const badgeCount = item.badgeKey ? notificationCounts[item.badgeKey as keyof NotificationCounts] : 0;
+
               return (
                 <Link
                   key={item.name}
@@ -138,6 +175,7 @@ export default function AdminLayout({
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
                   <span className="font-medium">{item.name}</span>
+                  {item.badgeKey && <NavBadge count={badgeCount} />}
                 </Link>
               );
             })}
