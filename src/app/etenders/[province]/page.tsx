@@ -129,9 +129,9 @@ export default async function ProvincialETenderPage({
         <div className="content-container py-12">
           <Breadcrumbs
             items={[
-              { name: 'Home', url: '/' },
-              { name: 'eTenders', url: '/etenders' },
-              { name: `${provinceData.name} eTenders` },
+              { label: 'Home', href: '/' },
+              { label: 'eTenders', href: '/etenders' },
+              { label: `${provinceData.name} eTenders`, href: `/etenders/${province}` },
             ]}
           />
 

@@ -1,39 +1,54 @@
 import { format, formatDistanceToNow, parseISO, isValid, differenceInDays } from "date-fns";
 
-export const formatDate = (dateString: string | undefined): string => {
-  if (!dateString) return "N/A";
+/**
+ * Normalize a date input to a Date object
+ * Handles string, Date, or undefined inputs from Prisma
+ */
+function normalizeDate(input: string | Date | undefined | null): Date | null {
+  if (!input) return null;
+
   try {
-    const date = parseISO(dateString);
-    if (!isValid(date)) return "Invalid date";
+    if (input instanceof Date) {
+      return isValid(input) ? input : null;
+    }
+    const parsed = parseISO(input);
+    return isValid(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+export const formatDate = (dateInput: string | Date | undefined): string => {
+  const date = normalizeDate(dateInput);
+  if (!date) return "N/A";
+  try {
     return format(date, "d MMM yyyy, HH:mm");
   } catch {
     return "Invalid date";
   }
 };
 
-export const formatRelativeDate = (dateString: string | undefined): string => {
-  if (!dateString) return "N/A";
+export const formatRelativeDate = (dateInput: string | Date | undefined): string => {
+  const date = normalizeDate(dateInput);
+  if (!date) return "N/A";
   try {
-    const date = parseISO(dateString);
-    if (!isValid(date)) return "Invalid date";
     return formatDistanceToNow(date, { addSuffix: true });
   } catch {
     return "Invalid date";
   }
 };
 
-export const getDaysUntilClose = (dateString: string | undefined): number | null => {
-  if (!dateString) return null;
+export const getDaysUntilClose = (dateInput: string | Date | undefined): number | null => {
+  const date = normalizeDate(dateInput);
+  if (!date) return null;
   try {
-    const date = parseISO(dateString);
-    if (!isValid(date)) return null;
     return differenceInDays(date, new Date());
   } catch {
     return null;
   }
 };
 
-export const isClosingSoon = (dateString: string | undefined, days: number = 7): boolean => {
-  const daysUntil = getDaysUntilClose(dateString);
+export const isClosingSoon = (dateInput: string | Date | undefined, days: number = 7): boolean => {
+  const daysUntil = getDaysUntilClose(dateInput);
   return daysUntil !== null && daysUntil >= 0 && daysUntil <= days;
 };

@@ -41,8 +41,8 @@ export default function BlogListClient() {
   const featuredPosts = blogPosts.filter((post) => post.featured);
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Blog" }
+    { label: "Home", href: "/" },
+    { label: "Blog" }
   ];
 
   return (

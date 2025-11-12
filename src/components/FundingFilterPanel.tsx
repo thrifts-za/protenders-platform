@@ -7,20 +7,35 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Checkbox from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { X, Search, RotateCcw, Loader2 } from "lucide-react";
+import {
+  X,
+  Search,
+  RotateCcw,
+  Loader2,
+  Factory,
+  Cpu,
+  Link2,
+  Wheat,
+  Laptop,
+  Pickaxe,
+  Leaf,
+  Briefcase,
+  MapPin
+} from "lucide-react";
 import { trackFilterChange } from "@/lib/analytics";
 
 interface FundingFilterPanelProps {
   onSearch: (params: FundingSearchParams) => void;
   facets?: FundingFacets;
   isLoadingFacets?: boolean;
+  initialValues?: FundingSearchParams;
 }
 
 export interface FundingSearchParams {
@@ -33,6 +48,7 @@ export interface FundingSearchParams {
   source?: string;
   institution?: string;
   page?: number;
+  pageSize?: number;
 }
 
 interface FundingFacets {
@@ -56,16 +72,88 @@ const AMOUNT_PRESETS = [
   { label: "R5M+", value: { min: 5000000 } },
 ];
 
-export const FundingFilterPanel = ({ onSearch, facets, isLoadingFacets }: FundingFilterPanelProps) => {
-  const [query, setQuery] = useState("");
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [selectedProvinces, setSelectedProvinces] = useState<string[]>([]);
-  const [fundingType, setFundingType] = useState<string>("any");
+/**
+ * Get icon for category with background
+ */
+function getCategoryIcon(category: string) {
+  const categoryLower = category.toLowerCase();
+
+  if (categoryLower.includes('manufacturing')) {
+    return (
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-blue-100">
+        <Factory className="h-3.5 w-3.5 text-blue-600" />
+      </span>
+    );
+  }
+  if (categoryLower.includes('technology')) {
+    return (
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-purple-100">
+        <Cpu className="h-3.5 w-3.5 text-purple-600" />
+      </span>
+    );
+  }
+  if (categoryLower.includes('supply chain')) {
+    return (
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-orange-100">
+        <Link2 className="h-3.5 w-3.5 text-orange-600" />
+      </span>
+    );
+  }
+  if (categoryLower.includes('agriculture')) {
+    return (
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-green-100">
+        <Wheat className="h-3.5 w-3.5 text-green-600" />
+      </span>
+    );
+  }
+  if (categoryLower.includes('ict')) {
+    return (
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-indigo-100">
+        <Laptop className="h-3.5 w-3.5 text-indigo-600" />
+      </span>
+    );
+  }
+  if (categoryLower.includes('mining')) {
+    return (
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-amber-100">
+        <Pickaxe className="h-3.5 w-3.5 text-amber-700" />
+      </span>
+    );
+  }
+  if (categoryLower.includes('green') || categoryLower.includes('environment')) {
+    return (
+      <span className="flex items-center justify-center w-6 h-6 rounded bg-emerald-100">
+        <Leaf className="h-3.5 w-3.5 text-emerald-600" />
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex items-center justify-center w-6 h-6 rounded bg-slate-100">
+      <Briefcase className="h-3.5 w-3.5 text-slate-600" />
+    </span>
+  );
+}
+
+/**
+ * Format category label - remove "General" prefix
+ */
+function formatCategoryLabel(category: string): string {
+  return category.replace(/^General\s+/i, '');
+}
+
+export const FundingFilterPanel = ({ onSearch, facets, isLoadingFacets, initialValues }: FundingFilterPanelProps) => {
+  const isFirstMount = useRef(true);
+
+  const [query, setQuery] = useState(initialValues?.q || "");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(initialValues?.categories || []);
+  const [selectedProvinces, setSelectedProvinces] = useState<string[]>(initialValues?.provinces || []);
+  const [fundingType, setFundingType] = useState<string>(initialValues?.fundingType || "any");
   const [amountPreset, setAmountPreset] = useState<string>("any");
-  const [amountMin, setAmountMin] = useState<string>("");
-  const [amountMax, setAmountMax] = useState<string>("");
-  const [source, setSource] = useState<string>("any");
-  const [institution, setInstitution] = useState<string>("");
+  const [amountMin, setAmountMin] = useState<string>(initialValues?.amountMin?.toString() || "");
+  const [amountMax, setAmountMax] = useState<string>(initialValues?.amountMax?.toString() || "");
+  const [source, setSource] = useState<string>(initialValues?.source || "any");
+  const [institution, setInstitution] = useState<string>(initialValues?.institution || "");
 
   const handleCategoryToggle = (category: string) => {
     const isActive = selectedCategories.includes(category);
@@ -126,8 +214,12 @@ export const FundingFilterPanel = ({ onSearch, facets, isLoadingFacets }: Fundin
     onSearch({ page: 1 });
   };
 
-  // Auto-search when filters change
+  // Auto-search when filters change (skip on first mount to preserve URL params)
   useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
     handleSearch();
   }, [selectedCategories, selectedProvinces, fundingType, source]);
 
@@ -229,7 +321,8 @@ export const FundingFilterPanel = ({ onSearch, facets, isLoadingFacets }: Fundin
                   <Checkbox
                     key={category}
                     id={`category-${category}`}
-                    label={`${category} (${count})`}
+                    label={formatCategoryLabel(category)}
+                    icon={getCategoryIcon(category)}
                     checked={selectedCategories.includes(category)}
                     onCheckedChange={() => handleCategoryToggle(category)}
                   />
@@ -240,7 +333,7 @@ export const FundingFilterPanel = ({ onSearch, facets, isLoadingFacets }: Fundin
                 <div className="flex flex-wrap gap-1 pt-2">
                   {selectedCategories.map((category) => (
                     <Badge key={category} variant="secondary" className="text-xs">
-                      {category}
+                      {formatCategoryLabel(category)}
                       <button
                         onClick={() => handleCategoryToggle(category)}
                         className="ml-1 hover:text-destructive"
@@ -263,7 +356,12 @@ export const FundingFilterPanel = ({ onSearch, facets, isLoadingFacets }: Fundin
                   <Checkbox
                     key={province}
                     id={`province-${province}`}
-                    label={`${province} (${count})`}
+                    label={province}
+                    icon={
+                      <span className="flex items-center justify-center w-6 h-6 rounded bg-primary/10">
+                        <MapPin className="h-3.5 w-3.5 text-primary" />
+                      </span>
+                    }
                     checked={selectedProvinces.includes(province)}
                     onCheckedChange={() => handleProvinceToggle(province)}
                   />
@@ -291,18 +389,26 @@ export const FundingFilterPanel = ({ onSearch, facets, isLoadingFacets }: Fundin
           {/* Source */}
           {facets && facets.sources.length > 0 && (
             <div className="space-y-2">
-              <Label>Data Source</Label>
+              <Label>Funding Source</Label>
               <Select value={source} onValueChange={setSource}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="any">All Sources</SelectItem>
-                  {facets.sources.map(([src, count]) => (
-                    <SelectItem key={src} value={src}>
-                      {src.toUpperCase()} ({count})
-                    </SelectItem>
-                  ))}
+                  {facets.sources.map(([src, count]) => {
+                    // Format source labels for better readability
+                    let label = src;
+                    if (src === 'corporate_esd') label = 'Corporate ESD';
+                    else if (src === 'pdf') label = 'Government DFIs';
+                    else label = src.toUpperCase();
+
+                    return (
+                      <SelectItem key={src} value={src}>
+                        {label} ({count})
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>

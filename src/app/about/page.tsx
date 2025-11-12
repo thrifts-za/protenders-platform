@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "About" }
+    { label: "Home", href: "/" },
+    { label: "About" }
   ];
 
   return (

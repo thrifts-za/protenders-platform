@@ -86,8 +86,8 @@ export default function TendersHub() {
   ];
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Browse Tenders' },
+    { label: 'Home', href: '/' },
+    { label: 'Browse Tenders' },
   ];
 
   return (

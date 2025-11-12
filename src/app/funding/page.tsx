@@ -1,35 +1,39 @@
 import { Metadata } from 'next';
-import FundingSearchClient from './FundingSearchClient';
+import FundingLandingPage from './FundingLandingPage';
 
 /**
- * Generate metadata for the funding search page
- * Phase 3: ProTender Fund Finder - SEO-optimized programmatic index
+ * Generate metadata for the funding landing page
+ * Phase 3: ProTender Fund Finder - SEO-optimized landing page
+ * Based on FLP.md specifications
  */
 export async function generateMetadata(): Promise<Metadata> {
   return {
-    title: 'Find SME Funding in South Africa | ProTender Fund Finder',
-    description: 'Search 40+ SME funding programs across IDC, dtic, NEF, SEFA, Land Bank, TIA and more. Grants, loans, equity funding for South African businesses.',
+    title: 'Find Business Funding in South Africa | SME Grants, Loans & Equity | ProTender',
+    description: 'Discover verified SME funding opportunities from IDC, SEFA, NEF, Land Bank, TIA, and more. Search by sector, amount, and location.',
     keywords: [
       'SME funding South Africa',
       'small business funding',
+      'funding for small businesses South Africa',
+      'business grants South Africa',
       'IDC funding',
-      'dtic grants',
-      'NEF funding',
       'SEFA loans',
+      'NEF funding',
       'Land Bank agriculture funding',
       'TIA technology funding',
+      'dtic grants',
       'government funding programs',
-      'business grants South Africa',
       'startup funding',
       'black business funding',
       'manufacturing funding',
       'agriculture funding',
       'technology funding',
       'funding opportunities',
+      'equity funding',
+      'business loans South Africa',
     ],
     openGraph: {
-      title: 'Find SME Funding in South Africa | ProTender Fund Finder',
-      description: 'Search 40+ SME funding programs across IDC, dtic, NEF, SEFA, Land Bank, TIA and more. Match your business to the right funding.',
+      title: 'Find Business Funding in South Africa | SME Grants, Loans & Equity',
+      description: 'Discover verified SME funding opportunities from IDC, SEFA, NEF, Land Bank, TIA, and more. Search by sector, amount, and location.',
       url: 'https://protenders.co.za/funding',
       type: 'website',
       images: [
@@ -37,14 +41,14 @@ export async function generateMetadata(): Promise<Metadata> {
           url: '/images/og-funding.png',
           width: 1200,
           height: 630,
-          alt: 'Search SME Funding on ProTenders',
+          alt: 'Find SME Funding on ProTenders',
         },
       ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Find SME Funding in South Africa | ProTender Fund Finder',
-      description: 'Search 40+ SME funding programs. Grants, loans, equity. Match your business profile.',
+      title: 'Find Business Funding in South Africa | ProTender',
+      description: 'Discover verified SME funding opportunities from top South African institutions.',
       images: ['/images/og-funding.png'],
     },
     alternates: {
@@ -54,10 +58,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Server Component - Renders the funding search client component
- * This pattern allows us to have server-side metadata while keeping
- * the interactive search features in a client component
+ * Server Component - Renders the funding landing page
+ * Comprehensive landing page with hero, categories, institutions, FAQ, and more
  */
 export default function FundingPage() {
-  return <FundingSearchClient />;
+  return <FundingLandingPage />;
 }

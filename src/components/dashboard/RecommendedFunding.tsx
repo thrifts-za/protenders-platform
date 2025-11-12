@@ -170,11 +170,17 @@ export function RecommendedFunding() {
       </div>
 
       {/* Browse More */}
-      <div className="mt-4 pt-4 border-t">
+      <div className="mt-4 pt-4 border-t space-y-2">
+        <Button variant="default" className="w-full" asChild>
+          <Link href="/funding/match" onClick={() => trackButtonClick('find_funding_match', 'dashboard')}>
+            <Target className="h-4 w-4 mr-2" />
+            Find Your Perfect Match
+          </Link>
+        </Button>
         <Button variant="outline" className="w-full" asChild>
           <Link href="/funding" onClick={() => trackButtonClick('browse_all_funding', 'dashboard')}>
             <ExternalLink className="h-4 w-4 mr-2" />
-            Browse All Funding Opportunities
+            Browse All Funding
           </Link>
         </Button>
       </div>

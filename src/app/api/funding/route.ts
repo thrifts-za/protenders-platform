@@ -9,9 +9,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { unstable_cache } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const revalidate = 300; // Revalidate every 5 minutes
 
 interface FundingSearchParams {
   q?: string; // Full-text search query
@@ -160,13 +162,36 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    // Execute query with pagination
+    // Execute query with pagination - select only necessary fields for performance
     const [opportunities, total] = await Promise.all([
       prisma.fundingOpportunity.findMany({
         where,
         skip,
         take: pageSize,
         orderBy,
+        select: {
+          id: true,
+          slug: true,
+          programName: true,
+          institution: true,
+          fundingType: true,
+          categories: true,
+          provinces: true,
+          purpose: true,
+          minAmount: true,
+          maxAmount: true,
+          amountNotes: true,
+          fundedIndustries: true,
+          eligibility: true,
+          applyUrl: true,
+          source: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          fundingCategory: true,
+          sector: true,
+          parentInstitution: true,
+        },
       }),
       prisma.fundingOpportunity.count({ where }),
     ]);

@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function TermsOfService() {
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Terms of Service' },
+    { label: 'Home', href: '/' },
+    { label: 'Terms of Service' },
   ];
 
   return (

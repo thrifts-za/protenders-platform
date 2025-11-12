@@ -32,13 +32,16 @@ export default function NavigationMenu() {
     },
     {
       name: "Funding",
+      href: "/funding",
       items: [
-        { name: "All Funding", href: "/funding" },
-        { name: "Agriculture", href: "/funding?categories=Agriculture" },
-        { name: "Manufacturing", href: "/funding?categories=Manufacturing" },
-        { name: "Technology", href: "/funding?categories=Technology" },
-        { name: "Tourism", href: "/funding?categories=Tourism" },
-        { name: "Energy", href: "/funding?categories=Energy" },
+        { name: "Find Your Match", href: "/funding/match" },
+        { name: "Browse All Funding", href: "/funding/search" },
+        { name: "Funding Guides", href: "/funding/guides" },
+        { name: "Agriculture", href: "/funding/search?categories=Agriculture" },
+        { name: "Manufacturing", href: "/funding/search?categories=Manufacturing" },
+        { name: "Technology", href: "/funding/search?categories=Technology" },
+        { name: "Tourism", href: "/funding/search?categories=Tourism" },
+        { name: "Energy", href: "/funding/search?categories=Energy" },
       ],
     },
     {
@@ -97,17 +100,45 @@ export default function NavigationMenu() {
               onMouseEnter={() => setActiveDropdown(item.name)}
               onMouseLeave={() => setActiveDropdown(null)}
             >
-              <button className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${
-                isAuthenticated && item.items.some(i => i.name === "Logout")
-                  ? "bg-primary/10 px-3 py-1.5 rounded-full text-primary font-semibold"
-                  : ""
-              }`}>
-                {isAuthenticated && item.items.some(i => i.name === "Logout") && (
-                  <User className="h-4 w-4" />
-                )}
-                {item.name}
-                <ChevronDown className="h-3 w-3" />
-              </button>
+              {item.href ? (
+                <Link
+                  href={item.href}
+                  className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${
+                    isAuthenticated && item.items.some(i => i.name === "Logout")
+                      ? "bg-primary/10 px-3 py-1.5 rounded-full text-primary font-semibold"
+                      : item.name === "Funding"
+                      ? "bg-green-50 px-3 py-1.5 rounded-full text-green-700 font-semibold hover:bg-green-100"
+                      : ""
+                  }`}
+                  onClick={() => trackNavigation(item.href!, 'main_menu')}
+                >
+                  {isAuthenticated && item.items.some(i => i.name === "Logout") && (
+                    <User className="h-4 w-4" />
+                  )}
+                  {item.name}
+                  {item.name === "Funding" && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-green-600 text-white rounded">NEW</span>
+                  )}
+                  <ChevronDown className="h-3 w-3" />
+                </Link>
+              ) : (
+                <button className={`text-sm font-medium hover:text-primary transition-colors flex items-center gap-1 ${
+                  isAuthenticated && item.items.some(i => i.name === "Logout")
+                    ? "bg-primary/10 px-3 py-1.5 rounded-full text-primary font-semibold"
+                    : item.name === "Funding"
+                    ? "bg-green-50 px-3 py-1.5 rounded-full text-green-700 font-semibold hover:bg-green-100"
+                    : ""
+                }`}>
+                  {isAuthenticated && item.items.some(i => i.name === "Logout") && (
+                    <User className="h-4 w-4" />
+                  )}
+                  {item.name}
+                  {item.name === "Funding" && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-green-600 text-white rounded">NEW</span>
+                  )}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              )}
 
               {/* Dropdown */}
               <div

@@ -48,8 +48,8 @@ export default function LatestTenders() {
   }
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Latest Tenders' },
+    { label: 'Home', href: '/' },
+    { label: 'Latest Tenders' },
   ];
 
   return (

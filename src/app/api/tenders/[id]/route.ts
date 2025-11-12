@@ -163,8 +163,9 @@ export async function GET(
 
       // Check if we have cached enrichment data
       const CACHE_VALIDITY_HOURS = 24; // How fresh the cache needs to be
-      const cacheIsValid = release.enrichedAt &&
-        (Date.now() - release.enrichedAt.getTime() < CACHE_VALIDITY_HOURS * 60 * 60 * 1000);
+      const enrichedDate = release.enrichedAt ? new Date(release.enrichedAt) : null;
+      const cacheIsValid = enrichedDate &&
+        (Date.now() - enrichedDate.getTime() < CACHE_VALIDITY_HOURS * 60 * 60 * 1000);
 
       // Parse cached briefing flags and documents from JSON fields
       let cachedBriefingFlags: any = null;

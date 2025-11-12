@@ -23,8 +23,8 @@ export default function Contact() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Contact Us' },
+    { label: 'Home', href: '/' },
+    { label: 'Contact Us' },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {

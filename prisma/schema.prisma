@@ -1001,7 +1001,7 @@ model WaitingListEntry {
 
 model FundingOpportunity {
   id               String   @id @default(cuid())
-  source           String   // "pdf" | "idc" | "sefa" | "nef"
+  source           String   // "pdf" | "idc" | "sefa" | "nef" | "corporate_esd"
   institution      String
   programName      String
   slug             String   @unique
@@ -1016,6 +1016,19 @@ model FundingOpportunity {
   purpose          String?
   applyUrl         String?
   contacts         Json?    // Contact information (email, phone, address)
+
+  // Enhanced fields for Corporate ESD and detailed information
+  contactPerson    String?      // Specific contact person name
+  contactPhone     String?      // Direct phone number
+  contactEmail     String?      // Direct email address
+  website          String?      // Institution website
+  applicationMethod String?     // How to apply (online, email, portal, etc.)
+  submissionRequirements String[] @default([]) // Array of required documents
+  fundingCategory  String?      // "Corporate ESD" | "Government" | "DFI" | "Private"
+  parentInstitution String?     // For sub-programs (e.g., "FNB" for Vumela programs)
+  sector           String?      // Primary sector focus
+  deadline         DateTime?    // Application deadline if applicable
+
   lastSeenAt       DateTime @updatedAt
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -1029,6 +1042,8 @@ model FundingOpportunity {
   @@index([categories])
   @@index([provinces])
   @@index([fundingType])
+  @@index([fundingCategory])
+  @@index([sector])
   @@index([isActive])
   @@index([minAmount])
   @@index([maxAmount])

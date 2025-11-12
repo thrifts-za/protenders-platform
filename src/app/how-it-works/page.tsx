@@ -167,8 +167,8 @@ export default function HowItWorks() {
   ];
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "How It Works" }
+    { label: "Home", href: "/" },
+    { label: "How It Works" }
   ];
 
   return (

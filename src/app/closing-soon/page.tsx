@@ -32,8 +32,8 @@ export default function ClosingSoon() {
   }, []);
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Closing Soon' },
+    { label: 'Home', href: '/' },
+    { label: 'Closing Soon' },
   ];
 
   return (

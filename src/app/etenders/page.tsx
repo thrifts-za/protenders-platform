@@ -50,8 +50,8 @@ export const metadata: Metadata = {
 
 export default function ETendersHubPage() {
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "eTenders Portal" }
+    { label: "Home", href: "/" },
+    { label: "eTenders Portal" }
   ];
 
   return (

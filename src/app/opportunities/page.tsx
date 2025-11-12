@@ -22,8 +22,8 @@ import {
 
 export default function Opportunities() {
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Opportunities' },
+    { label: 'Home', href: '/' },
+    { label: 'Opportunities' },
   ];
 
   const browseOptions = [
