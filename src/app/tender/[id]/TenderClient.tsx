@@ -429,22 +429,22 @@ export default function TenderClient() {
   };
 
   // Build breadcrumb items
-  const breadcrumbItems: Array<{ name: string; url?: string }> = [
-    { name: 'Home', url: '/' },
-    { name: 'eTenders', url: '/etenders' },
+  const breadcrumbItems: Array<{ label: string; href?: string }> = [
+    { label: 'Home', href: '/' },
+    { label: 'eTenders', href: '/etenders' },
   ];
 
   // Add category breadcrumb if available
   if (tender.detailedCategory) {
     breadcrumbItems.push({
-      name: `${tender.detailedCategory}`,
-      url: `/etenders/category/${createCategorySlug(tender.detailedCategory)}`,
+      label: `${tender.detailedCategory}`,
+      href: `/etenders/category/${createCategorySlug(tender.detailedCategory)}`,
     });
   }
 
   // Add current tender title (no URL for current page) - full title for SEO
   const tenderTitle = tender.tender?.title || "Tender Details";
-  breadcrumbItems.push({ name: tenderTitle });
+  breadcrumbItems.push({ label: tenderTitle, href: `/tender/${tender.ocid}` });
 
   return (
     <div className="min-h-screen bg-background">

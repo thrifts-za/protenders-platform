@@ -30,8 +30,8 @@ export default function ProvincesIndex() {
   });
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Provinces' },
+    { label: 'Home', href: '/' },
+    { label: 'Provinces' },
   ];
 
   return (

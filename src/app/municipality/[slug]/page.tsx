@@ -78,9 +78,9 @@ export default async function MunicipalityPage({ params }: { params: Promise<{ s
 
   // Generate structured data for SEO
   const breadcrumbSchema = generateBreadcrumbSchema([
-    { name: "Home", url: "/" },
-    { name: "Municipalities", url: "/municipalities" },
-    { name: municipality.name, url: `/municipality/${slug}` },
+    { name: "Home", url: "https://protenders.co.za/" },
+    { name: "Municipalities", url: "https://protenders.co.za/municipalities" },
+    { name: municipality.name, url: `https://protenders.co.za/municipality/${slug}` },
   ]);
 
   const serviceSchema = generateServiceSchema(
@@ -104,9 +104,9 @@ export default async function MunicipalityPage({ params }: { params: Promise<{ s
         {/* Breadcrumbs */}
         <Breadcrumbs
           items={[
-            { name: "Home", url: "/" },
-            { name: "Municipalities", url: "/municipalities" },
-            { name: municipality.name, url: `/municipality/${slug}` },
+            { label: "Home", href: "/" },
+            { label: "Municipalities", href: "/municipalities" },
+            { label: municipality.name, href: `/municipality/${slug}` },
           ]}
         />
 

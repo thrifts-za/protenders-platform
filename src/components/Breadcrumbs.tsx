@@ -5,8 +5,8 @@ import { ChevronRight } from "lucide-react";
 import { generateBreadcrumbSchema, renderStructuredData } from "@/lib/structured-data";
 
 interface BreadcrumbItem {
-  name: string;
-  url?: string;
+  label: string;
+  href?: string;
 }
 
 interface BreadcrumbsProps {
@@ -14,7 +14,12 @@ interface BreadcrumbsProps {
 }
 
 export default function Breadcrumbs({ items }: BreadcrumbsProps) {
-  const breadcrumbSchema = generateBreadcrumbSchema(items);
+  // Convert items to match schema format
+  const schemaItems = items.map(item => ({
+    name: item.label,
+    url: item.href
+  }));
+  const breadcrumbSchema = generateBreadcrumbSchema(schemaItems);
 
   return (
     <>
@@ -22,8 +27,9 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: renderStructuredData(breadcrumbSchema) }}
+        suppressHydrationWarning
       />
-      
+
       {/* Visual Breadcrumbs */}
       <nav aria-label="Breadcrumb" className="w-full border-b bg-background/50">
         <div className="content-container py-4">
@@ -34,13 +40,13 @@ export default function Breadcrumbs({ items }: BreadcrumbsProps) {
                 <li key={index} className="flex items-center gap-2">
                   {index > 0 && <ChevronRight className="h-4 w-4" />}
                   {isLast ? (
-                    <span className="text-foreground font-medium">{item.name}</span>
+                    <span className="text-foreground font-medium">{item.label}</span>
                   ) : (
                     <Link
-                      href={item.url || "#"}
+                      href={item.href || "#"}
                       className="hover:text-primary transition-colors"
                     >
-                      {item.name}
+                      {item.label}
                     </Link>
                   )}
                 </li>

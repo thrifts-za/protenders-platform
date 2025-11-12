@@ -31,8 +31,8 @@ export default function Insights() {
   }, []);
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Insights" }
+    { label: "Home", href: "/" },
+    { label: "Insights" }
   ];
 
   return (

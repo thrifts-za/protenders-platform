@@ -127,9 +127,9 @@ export default async function CategoryETenderPage({
         <div className="content-container py-12">
           <Breadcrumbs
             items={[
-              { name: 'Home', url: '/' },
-              { name: 'eTenders', url: '/etenders' },
-              { name: `${categoryData.name} eTenders` },
+              { label: 'Home', href: '/' },
+              { label: 'eTenders', href: '/etenders' },
+              { label: `${categoryData.name} eTenders`, href: `/etenders/category/${category}` },
             ]}
           />
 

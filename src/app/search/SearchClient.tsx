@@ -212,8 +212,8 @@ function SearchContent() {
   const totalPages = data ? Math.ceil(data.total / data.pageSize) : 0;
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Search Tenders' },
+    { label: 'Home', href: '/' },
+    { label: 'Search Tenders' },
   ];
 
   return (

@@ -994,3 +994,84 @@ model WaitingListEntry {
   @@index([createdAt])
   @@index([userId])
 }
+
+// ============================================================================
+// PHASE 3: FUNDING DISCOVERY ENGINE
+// ============================================================================
+
+model FundingOpportunity {
+  id               String   @id @default(cuid())
+  source           String   // "pdf" | "idc" | "sefa" | "nef" | "corporate_esd"
+  institution      String
+  programName      String
+  slug             String   @unique
+  fundingType      String   // "Grant" | "Loan" | "Equity" | "Hybrid"
+  minAmount        BigInt?  // cents or ZAR integer (using BigInt for large amounts)
+  maxAmount        BigInt?
+  amountNotes      String?
+  categories       String[] // Array of categories
+  provinces        String[] // Array of provinces
+  eligibility      String[] // Array of eligibility criteria
+  fundedIndustries String[] // Array of funded industries
+  purpose          String?
+  applyUrl         String?
+  contacts         Json?    // Contact information (email, phone, address)
+
+  // Enhanced fields for Corporate ESD and detailed information
+  contactPerson    String?      // Specific contact person name
+  contactPhone     String?      // Direct phone number
+  contactEmail     String?      // Direct email address
+  website          String?      // Institution website
+  applicationMethod String?     // How to apply (online, email, portal, etc.)
+  submissionRequirements String[] @default([]) // Array of required documents
+  fundingCategory  String?      // "Corporate ESD" | "Government" | "DFI" | "Private"
+  parentInstitution String?     // For sub-programs (e.g., "FNB" for Vumela programs)
+  sector           String?      // Primary sector focus
+  deadline         DateTime?    // Application deadline if applicable
+
+  lastSeenAt       DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  searchableText   String   @db.Text // Full-text search field
+  isActive         Boolean  @default(true)
+
+  savedFunding     SavedFunding[]
+
+  @@index([source])
+  @@index([slug])
+  @@index([categories])
+  @@index([provinces])
+  @@index([fundingType])
+  @@index([fundingCategory])
+  @@index([sector])
+  @@index([isActive])
+  @@index([minAmount])
+  @@index([maxAmount])
+}
+
+model SavedFunding {
+  id        String   @id @default(cuid())
+  userId    String
+  fundingId String
+  note      String?
+  status    String?  // "saved" | "applied" | "awarded" | "rejected"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  funding   FundingOpportunity @relation(fields: [fundingId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, fundingId])
+  @@index([userId])
+  @@index([fundingId])
+  @@index([createdAt])
+}
+
+model FundingSearch {
+  id         String   @id @default(cuid())
+  userId     String
+  filters    Json     // Search filter criteria
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}

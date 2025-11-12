@@ -64,8 +64,8 @@ export default function Alerts() {
   };
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Tender Alerts" }
+    { label: "Home", href: "/" },
+    { label: "Tender Alerts" }
   ];
 
   return (

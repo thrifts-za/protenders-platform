@@ -5,6 +5,7 @@ import { getAllMunicipalitySlugs } from '@/data/municipalities'
 import { getAllDepartmentSlugs } from '@/data/departments'
 import { prisma } from '@/lib/prisma'
 import { getTenderSlug } from '@/lib/utils/tender-lookup'
+import { fundingGuides } from '@/data/fundingGuides'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://protenders.co.za'
@@ -100,6 +101,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/categories`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/municipalities`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/departments`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
@@ -220,6 +233,72 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // Funding pages - Phase 3: ProTender Fund Finder
+  const fundingPages = [
+    {
+      url: `${baseUrl}/funding`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/funding/search`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/funding/match`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/funding/guides`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.85,
+    },
+  ]
+
+  // Funding guides pages - SEO content
+  const fundingGuidesPages: MetadataRoute.Sitemap = fundingGuides.map((guide) => ({
+    url: `${baseUrl}/funding/guides/${guide.slug}`,
+    lastModified: guide.updatedDate ? new Date(guide.updatedDate) : new Date(guide.publishedDate),
+    changeFrequency: 'monthly' as const,
+    priority: guide.featured ? 0.85 : 0.80,
+  }))
+
+  // Funding opportunity detail pages
+  let fundingDetailPages: MetadataRoute.Sitemap = []
+  try {
+    const activeFunding = await prisma.fundingOpportunity.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        slug: true,
+        updatedAt: true,
+        programName: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    })
+
+    fundingDetailPages = activeFunding.map((funding) => ({
+      url: `${baseUrl}/funding/${funding.slug}`,
+      lastModified: funding.updatedAt || new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
+
+    console.log(`✅ Generated ${fundingDetailPages.length} funding opportunity URLs for sitemap`)
+  } catch (error) {
+    console.error('Error generating funding sitemap entries:', error)
+    // Continue without funding pages if there's an error
+  }
+
   // Tender pages (limit to active tenders to keep sitemap manageable)
   // Using slug field for fast lookups and SEO-friendly URLs
   let tenderPages: MetadataRoute.Sitemap = []
@@ -230,18 +309,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         closingAt: {
           gte: new Date(),
         },
-        tenderTitle: {
-          not: null,
-        },
-        slug: {
-          not: null, // Only include tenders with slugs for better SEO
-        },
       },
       select: {
         slug: true,
         ocid: true,
         updatedAt: true,
         closingAt: true,
+        tenderTitle: true,
       },
       take: 10000, // Limit for sitemap size (max recommended is 50k URLs)
       orderBy: {
@@ -249,12 +323,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       },
     })
 
-    tenderPages = activeTenders.map((tender) => ({
-      url: `${baseUrl}/tender/${tender.slug || tender.ocid}`,
-      lastModified: tender.updatedAt || new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 0.6,
-    }))
+    // Filter out tenders without titles and create sitemap entries
+    tenderPages = activeTenders
+      .filter((tender) => tender.tenderTitle)
+      .map((tender) => ({
+        url: `${baseUrl}/tender/${tender.slug || tender.ocid}`,
+        lastModified: tender.updatedAt || new Date(),
+        changeFrequency: 'daily' as const,
+        priority: 0.6,
+      }))
+
+    console.log(`✅ Generated ${tenderPages.length} tender URLs for sitemap`)
   } catch (error) {
     console.error('Error generating tender sitemap entries:', error)
     // Continue without tender pages if there's an error
@@ -265,6 +344,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     eTendersHub,
     ...provincialETenderPages,
     ...categoryETenderPages,
+    ...fundingPages,
+    ...fundingGuidesPages,
+    ...fundingDetailPages,
     ...provincePages,
     ...categoryPages,
     ...municipalityPages,

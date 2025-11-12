@@ -104,9 +104,9 @@ export default async function DepartmentPage({ params }: { params: Promise<{ slu
         {/* Breadcrumbs */}
         <Breadcrumbs
           items={[
-            { name: "Home", url: "/" },
-            { name: "Departments", url: "/departments" },
-            { name: department.name, url: `/department/${slug}` },
+            { label: "Home", href: "/" },
+            { label: "Departments", href: "/departments" },
+            { label: department.name, href: `/department/${slug}` },
           ]}
         />
 

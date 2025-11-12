@@ -227,3 +227,124 @@ export function identifyUser(userId: string, properties?: Record<string, any>) {
     }
   }
 }
+
+/**
+ * Track funding opportunity view events
+ * Phase 3: ProTender Fund Finder
+ */
+export function trackFundingView(
+  fundingId: string,
+  fundingName: string,
+  institution: string,
+  source?: string
+) {
+  trackEvent('Funding Viewed', {
+    funding_id: fundingId,
+    funding_name: fundingName,
+    institution,
+    source: source || 'direct',
+  });
+}
+
+/**
+ * Track funding filter application
+ * Phase 3: ProTender Fund Finder
+ */
+export function trackFundingFilterApplied(filters: Record<string, any>) {
+  trackEvent('Funding Filter Applied', {
+    has_categories: !!filters.categories,
+    has_provinces: !!filters.provinces,
+    has_funding_type: !!filters.fundingType,
+    has_amount_filter: !!(filters.amountMin || filters.amountMax),
+    has_institution: !!filters.institution,
+    ...filters,
+  });
+}
+
+/**
+ * Track funding save events
+ * Phase 3: ProTender Fund Finder
+ */
+export function trackFundingSaved(
+  fundingId: string,
+  fundingName: string,
+  institution: string
+) {
+  trackEvent('Funding Saved', {
+    funding_id: fundingId,
+    funding_name: fundingName,
+    institution,
+  });
+}
+
+/**
+ * Track funding application click
+ * Phase 3: ProTender Fund Finder
+ */
+export function trackFundingApplication(
+  fundingId: string,
+  fundingName: string,
+  institution: string,
+  applyUrl: string
+) {
+  trackEvent('Funding Application Started', {
+    funding_id: fundingId,
+    funding_name: fundingName,
+    institution,
+    apply_url: applyUrl,
+  });
+}
+
+/**
+ * Track funding match algorithm usage
+ * Phase 3: ProTender Fund Finder
+ */
+export function trackFundingMatch(
+  profile: Record<string, any>,
+  matchCount: number,
+  topScore: number
+) {
+  trackEvent('Funding Match Performed', {
+    has_industry: !!profile.industry,
+    has_turnover: !!profile.turnover,
+    has_province: !!profile.province,
+    has_funding_amount: !!profile.fundingAmount,
+    match_count: matchCount,
+    top_score: topScore,
+    ...profile,
+  });
+}
+
+/**
+ * Track funding search
+ * Phase 3: ProTender Fund Finder
+ */
+export function trackFundingSearch(
+  query: string,
+  filters?: Record<string, any>,
+  resultsCount?: number
+) {
+  trackEvent('Funding Search Performed', {
+    query,
+    query_length: query.length,
+    has_filters: !!filters && Object.keys(filters).length > 0,
+    results_count: resultsCount,
+    ...filters,
+  });
+}
+
+/**
+ * Track funding contact info view
+ * Phase 3: ProTender Fund Finder
+ */
+export function trackFundingContactView(
+  fundingId: string,
+  institution: string,
+  contactType: 'email' | 'phone' | 'address'
+) {
+  trackEvent('Funding Contact Viewed', {
+    funding_id: fundingId,
+    institution,
+    contact_type: contactType,
+  });
+}

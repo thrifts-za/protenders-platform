@@ -129,8 +129,8 @@ export default function FAQ() {
   ];
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "FAQ" }
+    { label: "Home", href: "/" },
+    { label: "FAQ" }
   ];
 
   return (

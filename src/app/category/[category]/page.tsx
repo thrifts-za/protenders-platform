@@ -117,9 +117,9 @@ export default async function CategoryPage({ params }: { params: Promise<{ categ
       {/* Breadcrumbs */}
       <Breadcrumbs
         items={[
-          { name: "Home", url: "/" },
-          { name: "Categories", url: "/categories" },
-          { name: categoryData.name, url: `/category/${category}` },
+          { label: "Home", href: "/" },
+          { label: "Categories", href: "/categories" },
+          { label: categoryData.name, href: `/category/${category}` },
         ]}
       />
       

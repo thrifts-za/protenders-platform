@@ -31,8 +31,8 @@ export default function PublicSectorTenders() {
   }, []);
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Public Sector Tenders" }
+    { label: "Home", href: "/" },
+    { label: "Public Sector Tenders" }
   ];
 
   return (

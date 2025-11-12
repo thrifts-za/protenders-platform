@@ -89,8 +89,8 @@ export default function ResourcesHub() {
   ];
 
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Resources' },
+    { label: 'Home', href: '/' },
+    { label: 'Resources' },
   ];
 
   return (

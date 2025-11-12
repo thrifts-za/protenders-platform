@@ -233,8 +233,8 @@ export default function CategoriesPage() {
   const totalCategories = categoryGroups.reduce((sum, group) => sum + group.categories.length, 0);
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Categories" }
+    { label: "Home", href: "/" },
+    { label: "Categories" }
   ];
 
   return (

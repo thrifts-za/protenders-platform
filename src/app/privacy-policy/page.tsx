@@ -10,8 +10,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicy() {
   const breadcrumbItems = [
-    { name: 'Home', url: '/' },
-    { name: 'Privacy Policy' },
+    { label: 'Home', href: '/' },
+    { label: 'Privacy Policy' },
   ];
 
   return (

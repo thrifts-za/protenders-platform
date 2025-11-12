@@ -367,8 +367,8 @@ export default function TenderGlossary() {
   const availableLetters = Object.keys(termsByLetter);
 
   const breadcrumbItems = [
-    { name: "Home", url: "/" },
-    { name: "Glossary" }
+    { label: "Home", href: "/" },
+    { label: "Glossary" }
   ];
 
   return (
