@@ -120,13 +120,13 @@ export default function HomePage() {
             <p className="text-sm text-muted-foreground">Active Tenders</p>
           </div>
           <div className="p-6 bg-card rounded-lg border text-center">
-            <p className="text-3xl md:text-4xl font-bold text-green-600 mb-2">
+            <p className="text-3xl md:text-4xl font-bold text-primary mb-2">
               90+
             </p>
             <p className="text-sm text-muted-foreground">Funding Programs</p>
           </div>
           <div className="p-6 bg-card rounded-lg border text-center">
-            <p className="text-3xl md:text-4xl font-bold text-green-600 mb-2">
+            <p className="text-3xl md:text-4xl font-bold text-primary mb-2">
               40+
             </p>
             <p className="text-sm text-muted-foreground">ESD Funding</p>
@@ -145,9 +145,9 @@ export default function HomePage() {
           </div>
           <div className="p-6 bg-card rounded-lg border text-center">
             <p className="text-3xl md:text-4xl font-bold text-primary mb-2">
-              AI-Powered
+              Alerts
             </p>
-            <p className="text-sm text-muted-foreground">Alerts</p>
+            <p className="text-sm text-muted-foreground">Smart Notifications</p>
           </div>
         </div>
         </div>
@@ -158,25 +158,23 @@ export default function HomePage() {
         <div className="content-container">
           <Card className="border-2 border-green-200 bg-green-50/50 shadow-lg">
             <CardContent className="p-8 md:p-12">
-              <div className="flex flex-col md:flex-row items-center gap-8">
-                <div className="flex-shrink-0">
-                  <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-10 h-10 text-green-600"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                  </div>
+              <div className="flex flex-col items-center gap-6 text-center">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-10 h-10 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
                 </div>
-                <div className="flex-1 text-center md:text-left">
+                <div className="max-w-3xl">
                   <div className="inline-block px-3 py-1 bg-green-600 text-white text-xs font-bold rounded mb-3">
                     EXPANDED
                   </div>
@@ -187,7 +185,7 @@ export default function HomePage() {
                     Discover 90+ SME funding opportunities from Government DFIs (IDC, SEFA, NEF, Land Bank) and Corporate ESD programs (FNB Vumela, Anglo Zimele, Sasol, MTN, and more).
                     Get matched with grants, loans, and equity funding tailored to your business needs.
                   </p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Link href="/funding/match">
                       <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white">
                         Find Your Funding Match
