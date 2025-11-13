@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft, BarChart3, TrendingUp, DollarSign, Building2, Shield, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import PaymentAnalytics from "@/components/PaymentAnalytics";
 
 export const metadata: Metadata = {
   title: "Procurement Insights",
@@ -92,6 +93,18 @@ export default function InsightsPage() {
               Analyze which suppliers do business with the state and monitor contract awards
             </p>
           </div>
+        </div>
+
+        {/* Interactive Analytics */}
+        <div className="mb-8">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">Payment Analytics</h2>
+            <p className="text-sm text-muted-foreground">
+              Interactive analysis of BAS/CSD payment data • Real-time insights from {' '}
+              <span className="font-medium text-foreground">29,999+ transactions</span>
+            </p>
+          </div>
+          <PaymentAnalytics />
         </div>
 
         {/* PowerBI Dashboard */}
