@@ -6,6 +6,7 @@ import { getAllDepartmentSlugs } from '@/data/departments'
 import { prisma } from '@/lib/prisma'
 import { getTenderSlug } from '@/lib/utils/tender-lookup'
 import { fundingGuides } from '@/data/fundingGuides'
+import { blogPosts } from '@/data/blogPosts'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://protenders.co.za'
@@ -269,6 +270,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: guide.featured ? 0.85 : 0.80,
   }))
 
+  // Blog posts - SEO content
+  const blogPostPages: MetadataRoute.Sitemap = blogPosts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: post.updatedDate ? new Date(post.updatedDate) : new Date(post.publishedDate),
+    changeFrequency: 'monthly' as const,
+    priority: post.featured ? 0.85 : 0.75,
+  }))
+
   // Funding opportunity detail pages
   let fundingDetailPages: MetadataRoute.Sitemap = []
   try {
@@ -347,6 +356,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...fundingPages,
     ...fundingGuidesPages,
     ...fundingDetailPages,
+    ...blogPostPages,
     ...provincePages,
     ...categoryPages,
     ...municipalityPages,

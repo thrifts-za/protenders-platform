@@ -51,16 +51,13 @@ export default function NavigationMenu() {
     {
       name: "Resources",
       items: [
+        { name: "Procurement Insights", href: "/insights" },
         { name: "How It Works", href: "/how-it-works" },
         { name: "Blog", href: "/blog" },
         { name: "FAQ", href: "/faq" },
         { name: "Glossary", href: "/glossary" },
         { name: "All Resources", href: "/resources" },
       ],
-    },
-    {
-      name: "Alerts",
-      href: "/alerts",
     },
     {
       name: "About",

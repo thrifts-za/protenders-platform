@@ -25,7 +25,12 @@ import FloatingContributeButton from "@/components/FloatingContributeButton";
 import AmbientGradient from "@/components/AmbientGradient";
 import MixpanelProvider from "@/components/MixpanelProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  fallback: ["system-ui", "arial"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://protenders.co.za"),

@@ -1075,3 +1075,41 @@ model FundingSearch {
   @@index([userId])
   @@index([createdAt])
 }
+
+// BAS/CSD Procurement Payment Transactions
+// Data from National Treasury's Procurement Payments Dashboard
+model ProcurementPayment {
+  id                  String   @id @default(cuid())
+  province            String
+  department          String
+  fiscalYear          String
+  supplierName        String
+  scoaItem            String   // Standard Chart of Accounts item
+  unspscFamily        String   // UNSPSC (Universal Standard Products and Services Code) family
+  classTitle          String
+  transactionAmount   Decimal  @db.Decimal(15, 2)
+
+  // Normalized/cleaned fields for better querying
+  supplierNameNorm    String?  // Normalized supplier name (lowercase, trimmed)
+  provinceCode        String?  // Province code (GP, WC, KZN, etc.)
+  departmentCode      String?  // Extracted department code
+
+  // Metadata
+  dataSource          String   @default("BAS/CSD") // Data source identifier
+  importBatch         String?  // Batch ID for tracking imports
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([supplierName])
+  @@index([supplierNameNorm])
+  @@index([province])
+  @@index([provinceCode])
+  @@index([department])
+  @@index([departmentCode])
+  @@index([fiscalYear])
+  @@index([unspscFamily])
+  @@index([transactionAmount])
+  @@index([createdAt])
+  @@index([importBatch])
+  @@map("procurement_payments")
+}
