@@ -44,8 +44,17 @@ export const tenderSyncFunction = inngest.createFunction(
   {
     id: 'tender-sync',
     name: 'Tender Sync - OCDS Data Ingestion',
-    // Retries: Automatic with exponential backoff (3 attempts)
+    // Retries: Automatic with exponential backoff for external API failures
+    // Wait times: 1min, 5min, 15min (good for API outages that may self-resolve)
     retries: 3,
+    onFailure: async ({ error }) => {
+      // Log external API failures for monitoring
+      if (error.name?.includes('ExternalAPI')) {
+        console.error(`🚨 External OCDS API failure after all retries: ${error.message}`);
+      } else {
+        console.error(`🚨 Application error in tender sync: ${error.message}`);
+      }
+    },
     // Concurrency: Only 1 sync at a time to avoid conflicts
     concurrency: {
       limit: 1,
@@ -100,7 +109,77 @@ export const tenderSyncFunction = inngest.createFunction(
         };
       });
 
-      // Step 3: Fetch OCDS releases (with retry)
+      // Step 3: Health check - Test API availability before full sync
+      const apiHealth = await step.run('check-api-health', async () => {
+        const base = `${(OCDS_API_BASE || 'https://ocds-api.etenders.gov.za').replace(/\/$/, '')}/api/OCDSReleases`;
+        const healthUrl = `${base}?PageNumber=1&PageSize=1`;
+
+        console.log(`🏥 Checking OCDS API health: ${healthUrl}`);
+
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for health check
+
+          const res = await fetch(healthUrl, {
+            headers: { Accept: 'application/json' },
+            cache: 'no-store',
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!res.ok) {
+            return {
+              healthy: false,
+              status: res.status,
+              statusText: res.statusText,
+              error: `External API returned ${res.status} ${res.statusText}`,
+            };
+          }
+
+          console.log(`✅ API health check passed`);
+          return { healthy: true, status: res.status, statusText: res.statusText, error: null };
+        } catch (err: any) {
+          return {
+            healthy: false,
+            status: 0,
+            statusText: 'Network Error',
+            error: err.name === 'AbortError'
+              ? 'External API timeout - no response within 15 seconds'
+              : `External API network error: ${err.message}`,
+          };
+        }
+      });
+
+      // If API is unhealthy, fail gracefully with clear messaging
+      if (!apiHealth.healthy) {
+        const externalApiError = new Error(
+          `External OCDS API is unavailable: ${apiHealth.error}. This is an infrastructure issue on the eTenders.gov.za side, not a ProTenders application error.`
+        );
+        externalApiError.name = 'ExternalAPIError';
+
+        await step.run('update-job-log-external-api-failure', async () => {
+          await prisma.jobLog.update({
+            where: { id: job.id },
+            data: {
+              status: 'FAILED',
+              finishedAt: new Date(),
+              note: `External API Unavailable: ${apiHealth.error}. The eTenders OCDS API is experiencing issues. This will auto-retry.`,
+              metadata: JSON.stringify({
+                source: 'inngest',
+                triggeredBy,
+                failureType: 'EXTERNAL_API_UNAVAILABLE',
+                apiStatus: apiHealth.status,
+                apiError: apiHealth.error,
+              }),
+            },
+          });
+        });
+
+        throw externalApiError;
+      }
+
+      // Step 4: Fetch OCDS releases (with retry)
       const releases = await step.run('fetch-ocds-releases', async () => {
         const base = `${(OCDS_API_BASE || 'https://ocds-api.etenders.gov.za').replace(/\/$/, '')}/api/OCDSReleases`;
         const url = `${base}?PageNumber=1&PageSize=2000&dateFrom=${dateRange.fromStr}&dateTo=${dateRange.toStr}`;
@@ -120,20 +199,42 @@ export const tenderSyncFunction = inngest.createFunction(
           clearTimeout(timeoutId);
 
           if (!res.ok) {
-            throw new Error(`OCDS API error: ${res.status} ${res.statusText}`);
+            const error = new Error(
+              `External OCDS API error: ${res.status} ${res.statusText}. This is an eTenders.gov.za infrastructure issue.`
+            );
+            error.name = 'ExternalAPIError';
+            throw error;
           }
 
           const data = await res.json();
           const releasesData = data.releases || [];
           console.log(`✅ Fetched ${releasesData.length} releases`);
           return releasesData;
-        } catch (err) {
+        } catch (err: any) {
           clearTimeout(timeoutId);
+
+          // Wrap network errors to distinguish from app errors
+          if (err.name === 'AbortError') {
+            const timeoutError = new Error(
+              'External OCDS API timeout after 60 seconds. The eTenders API is slow or unresponsive.'
+            );
+            timeoutError.name = 'ExternalAPITimeout';
+            throw timeoutError;
+          }
+
+          if (err.name !== 'ExternalAPIError') {
+            const networkError = new Error(
+              `External OCDS API network failure: ${err.message}`
+            );
+            networkError.name = 'ExternalAPINetworkError';
+            throw networkError;
+          }
+
           throw err;
         }
       });
 
-      // Step 4: Determine enrichment strategy
+      // Step 5: Determine enrichment strategy
       const enrichmentConfig = await step.run('configure-enrichment', async () => {
         const enableEnrichment = process.env.ENABLE_ENRICHMENT === 'true';
 
@@ -188,7 +289,7 @@ export const tenderSyncFunction = inngest.createFunction(
         };
       });
 
-      // Step 5: Enrich tenders (parallel steps for each tender)
+      // Step 6: Enrich tenders (parallel steps for each tender)
       const enrichmentResults = await Promise.all(
         enrichmentConfig.releasesToEnrich.map((item, index) =>
           step.run(`enrich-tender-${index}`, async () => {
@@ -229,7 +330,7 @@ export const tenderSyncFunction = inngest.createFunction(
         )
       );
 
-      // Step 6: Save to database (batch upsert)
+      // Step 7: Save to database (batch upsert)
       const dbResults = await step.run('save-to-database', async () => {
         let added = 0;
         let updated = 0;
@@ -395,7 +496,7 @@ export const tenderSyncFunction = inngest.createFunction(
         return { added, updated, skipped };
       });
 
-      // Step 7: Update sync state cursor
+      // Step 8: Update sync state cursor
       await step.run('update-sync-state', async () => {
         const syncStateId = 'ocds_etenders_sa';
         await prisma.syncState.upsert({
@@ -428,7 +529,7 @@ export const tenderSyncFunction = inngest.createFunction(
         duration,
       };
 
-      // Step 8: Update job log with success
+      // Step 9: Update job log with success
       await step.run('update-job-log-success', async () => {
         await prisma.jobLog.update({
           where: { id: job.id },
@@ -443,15 +544,32 @@ export const tenderSyncFunction = inngest.createFunction(
 
       console.log(`✅ Sync completed in ${duration}ms`);
       return result;
-    } catch (error) {
-      // Update job log with failure
+    } catch (error: any) {
+      // Categorize the error type for better debugging
+      const isExternalAPIError = error.name?.includes('ExternalAPI') || error.name?.includes('ExternalAPITimeout');
+      const errorCategory = isExternalAPIError ? 'EXTERNAL_API_FAILURE' : 'APPLICATION_ERROR';
+
+      // Update job log with categorized failure
       await step.run('update-job-log-failure', async () => {
+        const errorMessage = error instanceof Error ? error.message : 'Sync failed';
+        const userFriendlyNote = isExternalAPIError
+          ? `External API Issue: ${errorMessage.split('.')[0]}. This is not a ProTenders error - the eTenders API is experiencing problems.`
+          : `Application Error: ${errorMessage}`;
+
         await prisma.jobLog.update({
           where: { id: job.id },
           data: {
             status: 'FAILED',
             finishedAt: new Date(),
-            note: error instanceof Error ? error.message : 'Sync failed',
+            note: userFriendlyNote,
+            metadata: JSON.stringify({
+              source: 'inngest',
+              triggeredBy,
+              errorCategory,
+              errorName: error.name,
+              errorMessage: errorMessage,
+              isExternalAPIError,
+            }),
           },
         });
       });
