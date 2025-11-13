@@ -31,21 +31,49 @@ const colors = [
 
 export function DidYouKnow() {
   const [factIndex, setFactIndex] = useState(0);
+  const [displayedText, setDisplayedText] = useState('');
+  const [isTyping, setIsTyping] = useState(true);
 
   useEffect(() => {
-    // Get day of year to rotate facts daily
-    const today = new Date();
-    const start = new Date(today.getFullYear(), 0, 0);
-    const diff = today.getTime() - start.getTime();
-    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
-    setFactIndex(dayOfYear % facts.length);
+    // Rotate through facts every 8 seconds
+    const rotateInterval = setInterval(() => {
+      setIsTyping(false);
+      setTimeout(() => {
+        setFactIndex((prev) => (prev + 1) % facts.length);
+        setDisplayedText('');
+        setIsTyping(true);
+      }, 500); // Wait for fade out
+    }, 8000);
+
+    return () => clearInterval(rotateInterval);
   }, []);
+
+  useEffect(() => {
+    if (!isTyping) return;
+
+    const currentFact = facts[factIndex];
+    let currentIndex = 0;
+
+    const typingInterval = setInterval(() => {
+      if (currentIndex <= currentFact.length) {
+        setDisplayedText(currentFact.slice(0, currentIndex));
+        currentIndex++;
+      } else {
+        clearInterval(typingInterval);
+      }
+    }, 50); // Typing speed
+
+    return () => clearInterval(typingInterval);
+  }, [factIndex, isTyping]);
 
   return (
     <div className="mb-4">
-      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${colors[factIndex]} text-white text-xs font-medium shadow-lg hover:shadow-xl transition-shadow`}>
-        <Sparkles className="h-3.5 w-3.5" />
-        <span>{facts[factIndex]}</span>
+      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${colors[factIndex]} text-white text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-500`}>
+        <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+        <span className="min-w-[200px]">
+          {displayedText}
+          <span className="inline-block w-[2px] h-3 bg-white ml-0.5 animate-pulse"></span>
+        </span>
       </div>
     </div>
   );
