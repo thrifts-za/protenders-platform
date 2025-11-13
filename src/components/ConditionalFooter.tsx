@@ -1,12 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
-
-const Footer = dynamic(() => import('./Footer'), {
-  loading: () => <div className="w-full h-64 bg-card border-t mt-auto" />,
-  ssr: true,
-});
+import Footer from './Footer';
 
 export default function ConditionalFooter() {
   const pathname = usePathname();
