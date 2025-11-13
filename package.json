@@ -14,7 +14,9 @@
     "backfill:save": "npx tsx scripts/backfill-ocds-save.ts",
     "import:backfill": "npx tsx scripts/import-backfill.ts",
     "extract:docs": "npx tsx scripts/extract-docs.ts",
-    "create:admin": "npx tsx scripts/create-admin.ts"
+    "create:admin": "npx tsx scripts/create-admin.ts",
+    "import:payments": "bash scripts/run-with-env.sh npx tsx scripts/import-procurement-payments.ts",
+    "import:payments:dry": "bash scripts/run-with-env.sh npx tsx scripts/import-procurement-payments.ts --dry-run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
@@ -41,6 +43,7 @@
     "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "csv-parse": "^6.1.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.19",
     "inngest": "^3.45.0",
