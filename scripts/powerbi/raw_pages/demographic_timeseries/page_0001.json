@@ -1,0 +1,208 @@
+{
+  "jobIds": [
+    "8b605d49-8bdc-4594-b2f0-0465808317fc"
+  ],
+  "results": [
+    {
+      "jobId": "8b605d49-8bdc-4594-b2f0-0465808317fc",
+      "result": {
+        "data": {
+          "timestamp": "2025-11-13T19:02:50.213Z",
+          "rootActivityId": "8f9471bd-9002-4bed-9f2d-67fb8af832a3",
+          "descriptor": {
+            "Select": [
+              {
+                "Kind": 2,
+                "Value": "M0",
+                "Format": "\"R\"\\ #,0.00;\"R\"-#,0.00;\"R\"\\ #,0.00",
+                "Name": "DW_BAS_DATA.Spend on Black Owned"
+              },
+              {
+                "Kind": 2,
+                "Value": "M1",
+                "Format": "\"R\"\\ #,0.00;\"R\"-#,0.00;\"R\"\\ #,0.00",
+                "Name": "DW_BAS_DATA.Spend on Women"
+              },
+              {
+                "Kind": 2,
+                "Value": "M2",
+                "Format": "\"R\"\\ #,0.00;\"R\"-#,0.00;\"R\"\\ #,0.00",
+                "Name": "DW_BAS_DATA.Spend on Youth"
+              },
+              null,
+              {
+                "Kind": 1,
+                "Depth": 0,
+                "Value": "G0",
+                "GroupKeys": [
+                  {
+                    "Source": {
+                      "Entity": "LocalDateTable_dc4254cc-1bf1-491e-90de-cca4047d46fd",
+                      "Property": "Month"
+                    },
+                    "Calc": "G0",
+                    "IsSameAsSelect": true
+                  }
+                ],
+                "Name": "DW_BAS_DATA.PostDate.Variation.Date Hierarchy.Month"
+              }
+            ],
+            "Expressions": {
+              "Primary": {
+                "Groupings": [
+                  {
+                    "Keys": [
+                      {
+                        "Source": {
+                          "Entity": "LocalDateTable_dc4254cc-1bf1-491e-90de-cca4047d46fd",
+                          "Property": "Month"
+                        },
+                        "Select": 4
+                      }
+                    ],
+                    "Member": "DM0"
+                  }
+                ]
+              }
+            },
+            "Version": 2
+          },
+          "metrics": {
+            "Version": "1.0.0",
+            "Events": [
+              {
+                "Id": "20e0cd08-9336-4891-b3ad-50a55387ecc2",
+                "Name": "Execute Semantic Query",
+                "Component": "DSE",
+                "Start": "2025-11-13T19:02:50.2292082Z",
+                "End": "2025-11-13T19:02:50.2917174Z"
+              },
+              {
+                "Id": "2562cef5-eb53-4e54-9340-09a8f4c4f059",
+                "ParentId": "20e0cd08-9336-4891-b3ad-50a55387ecc2",
+                "Name": "Execute DAX Query",
+                "Component": "DSE",
+                "Start": "2025-11-13T19:02:50.2292082Z",
+                "End": "2025-11-13T19:02:50.2917174Z",
+                "Metrics": {
+                  "RowCount": 6
+                }
+              },
+              {
+                "Id": "F3F832C1-B39E-4975-A784-E3794CCF7C0A",
+                "ParentId": "2562cef5-eb53-4e54-9340-09a8f4c4f059",
+                "Name": "Execute Query",
+                "Component": "AS",
+                "Start": "2025-11-13T19:02:50.247Z",
+                "End": "2025-11-13T19:02:50.29Z"
+              },
+              {
+                "Id": "A086E8C8-EA4A-4690-88BD-10ADF0F28E68",
+                "ParentId": "F3F832C1-B39E-4975-A784-E3794CCF7C0A",
+                "Name": "Serialize Rowset",
+                "Component": "AS",
+                "Start": "2025-11-13T19:02:50.29Z",
+                "End": "2025-11-13T19:02:50.29Z"
+              }
+            ]
+          },
+          "fromCache": false,
+          "dsr": {
+            "Version": 2,
+            "MinorVersion": 1,
+            "DS": [
+              {
+                "N": "DS0",
+                "PH": [
+                  {
+                    "DM0": [
+                      {
+                        "S": [
+                          {
+                            "N": "G0",
+                            "T": 1,
+                            "DN": "D0"
+                          },
+                          {
+                            "N": "M0",
+                            "T": 3
+                          },
+                          {
+                            "N": "M1",
+                            "T": 3
+                          },
+                          {
+                            "N": "M2",
+                            "T": 3
+                          }
+                        ],
+                        "C": [
+                          0,
+                          "3860641220.7800193",
+                          "1295588399.9099979",
+                          735986699.29
+                        ]
+                      },
+                      {
+                        "C": [
+                          1,
+                          "7218124641.3300419",
+                          "2675926855.4000206",
+                          "1415113012.8899996"
+                        ]
+                      },
+                      {
+                        "C": [
+                          2,
+                          "6054589044.6399841",
+                          2328207270.03,
+                          "1207126494.0299964"
+                        ]
+                      },
+                      {
+                        "C": [
+                          3,
+                          "6631223658.81001",
+                          "2417882696.2199974",
+                          "1377524900.2399993"
+                        ]
+                      },
+                      {
+                        "C": [
+                          4,
+                          "6271966381.0499878",
+                          "2377279524.8900185",
+                          "1112857666.1299992"
+                        ]
+                      },
+                      {
+                        "C": [
+                          5,
+                          "7378518047.409956",
+                          "2585241347.19001",
+                          "1579802111.3700008"
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "IC": true,
+                "HAD": true,
+                "ValueDicts": {
+                  "D0": [
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September"
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

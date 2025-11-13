@@ -1,0 +1,242 @@
+{
+  "version": "1.0.0",
+  "queries": [
+    {
+      "Query": {
+        "Commands": [
+          {
+            "SemanticQueryDataShapeCommand": {
+              "Query": {
+                "Version": 2,
+                "From": [
+                  {
+                    "Name": "d",
+                    "Entity": "DW_BAS_DATA",
+                    "Type": 0
+                  },
+                  {
+                    "Name": "s",
+                    "Entity": "SupplierSubTypeMapping",
+                    "Type": 0
+                  },
+                  {
+                    "Name": "f",
+                    "Entity": "Fiscal_Year",
+                    "Type": 0
+                  }
+                ],
+                "Select": [
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "d"
+                        }
+                      },
+                      "Property": "Spend on Black Owned"
+                    },
+                    "Name": "DW_BAS_DATA.Spend on Black Owned",
+                    "NativeReferenceName": "Spend on Black Owned"
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "d"
+                        }
+                      },
+                      "Property": "Spend on Women"
+                    },
+                    "Name": "DW_BAS_DATA.Spend on Women",
+                    "NativeReferenceName": "Spend on Women"
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "d"
+                        }
+                      },
+                      "Property": "Spend on Youth"
+                    },
+                    "Name": "DW_BAS_DATA.Spend on Youth",
+                    "NativeReferenceName": "Spend on Youth"
+                  },
+                  {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "PropertyVariationSource": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Source": "d"
+                                }
+                              },
+                              "Name": "Variation",
+                              "Property": "PostDate"
+                            }
+                          },
+                          "Hierarchy": "Date Hierarchy"
+                        }
+                      },
+                      "Level": "Year"
+                    },
+                    "Name": "DW_BAS_DATA.PostDate.Variation.Date Hierarchy.Year",
+                    "NativeReferenceName": "PostDate Year"
+                  },
+                  {
+                    "HierarchyLevel": {
+                      "Expression": {
+                        "Hierarchy": {
+                          "Expression": {
+                            "PropertyVariationSource": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Source": "d"
+                                }
+                              },
+                              "Name": "Variation",
+                              "Property": "PostDate"
+                            }
+                          },
+                          "Hierarchy": "Date Hierarchy"
+                        }
+                      },
+                      "Level": "Month"
+                    },
+                    "Name": "DW_BAS_DATA.PostDate.Variation.Date Hierarchy.Month",
+                    "NativeReferenceName": "PostDate Month"
+                  }
+                ],
+                "Where": [
+                  {
+                    "Condition": {
+                      "Not": {
+                        "Expression": {
+                          "In": {
+                            "Expressions": [
+                              {
+                                "Column": {
+                                  "Expression": {
+                                    "SourceRef": {
+                                      "Source": "s"
+                                    }
+                                  },
+                                  "Property": "Supplier Sub Type"
+                                }
+                              }
+                            ],
+                            "Values": [
+                              [
+                                {
+                                  "Literal": {
+                                    "Value": "null"
+                                  }
+                                }
+                              ]
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "Condition": {
+                      "In": {
+                        "Expressions": [
+                          {
+                            "Column": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Source": "f"
+                                }
+                              },
+                              "Property": "Fiscal_Year"
+                            }
+                          }
+                        ],
+                        "Values": [
+                          [
+                            {
+                              "Literal": {
+                                "Value": "'2025/26'"
+                              }
+                            }
+                          ]
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "OrderBy": [
+                  {
+                    "Direction": 1,
+                    "Expression": {
+                      "HierarchyLevel": {
+                        "Expression": {
+                          "Hierarchy": {
+                            "Expression": {
+                              "PropertyVariationSource": {
+                                "Expression": {
+                                  "SourceRef": {
+                                    "Source": "d"
+                                  }
+                                },
+                                "Name": "Variation",
+                                "Property": "PostDate"
+                              }
+                            },
+                            "Hierarchy": "Date Hierarchy"
+                          }
+                        },
+                        "Level": "Month"
+                      }
+                    }
+                  }
+                ]
+              },
+              "Binding": {
+                "Primary": {
+                  "Groupings": [
+                    {
+                      "Projections": [
+                        0,
+                        1,
+                        2,
+                        4
+                      ]
+                    }
+                  ]
+                },
+                "DataReduction": {
+                  "DataVolume": 4,
+                  "Primary": {
+                    "Window": {
+                      "Count": 1000
+                    }
+                  }
+                },
+                "Version": 1
+              },
+              "ExecutionMetricsKind": 1
+            }
+          }
+        ]
+      },
+      "CacheKey": "{\"Commands\":[{\"SemanticQueryDataShapeCommand\":{\"Query\":{\"Version\":2,\"From\":[{\"Name\":\"d\",\"Entity\":\"DW_BAS_DATA\",\"Type\":0},{\"Name\":\"s\",\"Entity\":\"SupplierSubTypeMapping\",\"Type\":0},{\"Name\":\"f\",\"Entity\":\"Fiscal_Year\",\"Type\":0}],\"Select\":[{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Property\":\"Spend on Black Owned\"},\"Name\":\"DW_BAS_DATA.Spend on Black Owned\",\"NativeReferenceName\":\"Spend on Black Owned\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Property\":\"Spend on Women\"},\"Name\":\"DW_BAS_DATA.Spend on Women\",\"NativeReferenceName\":\"Spend on Women\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Property\":\"Spend on Youth\"},\"Name\":\"DW_BAS_DATA.Spend on Youth\",\"NativeReferenceName\":\"Spend on Youth\"},{\"HierarchyLevel\":{\"Expression\":{\"Hierarchy\":{\"Expression\":{\"PropertyVariationSource\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Name\":\"Variation\",\"Property\":\"PostDate\"}},\"Hierarchy\":\"Date Hierarchy\"}},\"Level\":\"Year\"},\"Name\":\"DW_BAS_DATA.PostDate.Variation.Date Hierarchy.Year\",\"NativeReferenceName\":\"PostDate Year\"},{\"HierarchyLevel\":{\"Expression\":{\"Hierarchy\":{\"Expression\":{\"PropertyVariationSource\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Name\":\"Variation\",\"Property\":\"PostDate\"}},\"Hierarchy\":\"Date Hierarchy\"}},\"Level\":\"Month\"},\"Name\":\"DW_BAS_DATA.PostDate.Variation.Date Hierarchy.Month\",\"NativeReferenceName\":\"PostDate Month\"}],\"Where\":[{\"Condition\":{\"Not\":{\"Expression\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"s\"}},\"Property\":\"Supplier Sub Type\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"null\"}}]]}}}}},{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"f\"}},\"Property\":\"Fiscal_Year\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"'2025/26'\"}}]]}}}],\"OrderBy\":[{\"Direction\":1,\"Expression\":{\"HierarchyLevel\":{\"Expression\":{\"Hierarchy\":{\"Expression\":{\"PropertyVariationSource\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Name\":\"Variation\",\"Property\":\"PostDate\"}},\"Hierarchy\":\"Date Hierarchy\"}},\"Level\":\"Month\"}}}]},\"Binding\":{\"Primary\":{\"Groupings\":[{\"Projections\":[0,1,2,4]}]},\"DataReduction\":{\"DataVolume\":4,\"Primary\":{\"Window\":{\"Count\":1000}}},\"Version\":1},\"ExecutionMetricsKind\":1}}]}",
+      "QueryId": "",
+      "ApplicationContext": {
+        "DatasetId": "e1385346-bfd6-4efe-a9c7-b878b9383d5e",
+        "Sources": [
+          {
+            "ReportId": "c72a2bf2-f436-4662-85de-ba4312f4d595",
+            "VisualId": "0a2960bd9a7757026b7e"
+          }
+        ]
+      }
+    }
+  ],
+  "cancelQueries": [],
+  "modelId": 2670170
+}

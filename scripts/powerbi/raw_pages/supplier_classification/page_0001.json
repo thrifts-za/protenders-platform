@@ -1,0 +1,191 @@
+{
+  "jobIds": [
+    "0acef6aa-58f3-4f4b-98c5-26900113f9cd"
+  ],
+  "results": [
+    {
+      "jobId": "0acef6aa-58f3-4f4b-98c5-26900113f9cd",
+      "result": {
+        "data": {
+          "timestamp": "2025-11-13T19:02:50.229Z",
+          "rootActivityId": "a495c49a-0563-4b44-9d7c-f2ad8c9207d2",
+          "descriptor": {
+            "Select": [
+              {
+                "Kind": 1,
+                "Depth": 0,
+                "Value": "G0",
+                "GroupKeys": [
+                  {
+                    "Source": {
+                      "Entity": "DW_BAS_DATA",
+                      "Property": "SupplierType"
+                    },
+                    "Calc": "G0",
+                    "IsSameAsSelect": true
+                  }
+                ],
+                "Name": "DW_BAS_DATA.SupplierType"
+              },
+              {
+                "Kind": 2,
+                "Value": "M0",
+                "Format": "\"R\"\\ #,0.00;\"R\"-#,0.00;\"R\"\\ #,0.00",
+                "Name": "Sum(DW_BAS_DATA.TotalTransAmount)"
+              },
+              null
+            ],
+            "Expressions": {
+              "Primary": {
+                "Groupings": [
+                  {
+                    "Keys": [
+                      {
+                        "Source": {
+                          "Entity": "DW_BAS_DATA",
+                          "Property": "SupplierType"
+                        },
+                        "Select": 0
+                      }
+                    ],
+                    "Member": "DM0"
+                  }
+                ]
+              }
+            },
+            "Limits": {
+              "Primary": {
+                "Id": "L0",
+                "Top": {
+                  "Count": 1000
+                }
+              }
+            },
+            "Version": 2
+          },
+          "metrics": {
+            "Version": "1.0.0",
+            "Events": [
+              {
+                "Id": "77c4a3e7-8e92-44f0-b5b8-b2b0a92473b0",
+                "Name": "Execute Semantic Query",
+                "Component": "DSE",
+                "Start": "2025-11-13T19:02:50.2292082Z",
+                "End": "2025-11-13T19:02:50.3073418Z"
+              },
+              {
+                "Id": "759f790e-1a58-4bff-9dfb-1281cec49d2d",
+                "ParentId": "77c4a3e7-8e92-44f0-b5b8-b2b0a92473b0",
+                "Name": "Execute DAX Query",
+                "Component": "DSE",
+                "Start": "2025-11-13T19:02:50.2292082Z",
+                "End": "2025-11-13T19:02:50.3073418Z",
+                "Metrics": {
+                  "RowCount": 9
+                }
+              },
+              {
+                "Id": "18B6DD0E-3244-4786-9DE5-43502079A35D",
+                "ParentId": "759f790e-1a58-4bff-9dfb-1281cec49d2d",
+                "Name": "Execute Query",
+                "Component": "AS",
+                "Start": "2025-11-13T19:02:50.277Z",
+                "End": "2025-11-13T19:02:50.297Z"
+              },
+              {
+                "Id": "7BA851E6-31EB-4FAB-B8FD-D5FD651BCD8C",
+                "ParentId": "18B6DD0E-3244-4786-9DE5-43502079A35D",
+                "Name": "Serialize Rowset",
+                "Component": "AS",
+                "Start": "2025-11-13T19:02:50.297Z",
+                "End": "2025-11-13T19:02:50.297Z"
+              }
+            ]
+          },
+          "fromCache": false,
+          "dsr": {
+            "Version": 2,
+            "MinorVersion": 1,
+            "DS": [
+              {
+                "N": "DS0",
+                "PH": [
+                  {
+                    "DM0": [
+                      {
+                        "S": [
+                          {
+                            "N": "G0",
+                            "T": 1
+                          },
+                          {
+                            "N": "M0",
+                            "T": 3
+                          }
+                        ],
+                        "C": [
+                          "CIPC Company",
+                          54401841400.2
+                        ]
+                      },
+                      {
+                        "C": [
+                          "Null",
+                          "29805798366.390015"
+                        ]
+                      },
+                      {
+                        "C": [
+                          "Government Entity",
+                          "5343528314.3300018"
+                        ]
+                      },
+                      {
+                        "C": [
+                          "State Owned Entity",
+                          "2504860745.2999992"
+                        ]
+                      },
+                      {
+                        "C": [
+                          "Unincorporated Body of Persons",
+                          "526098932.99000025"
+                        ]
+                      },
+                      {
+                        "C": [
+                          "Individual",
+                          "500054102.21999806"
+                        ]
+                      },
+                      {
+                        "C": [
+                          "Non Profit Organisation (Department of Social Dev)",
+                          "205089580.9499999"
+                        ]
+                      },
+                      {
+                        "C": [
+                          "Inter-vivos Trust",
+                          "180457065.45000011"
+                        ]
+                      },
+                      {
+                        "C": [
+                          "Foreign Company",
+                          314944.22
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "IC": true,
+                "HAD": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
