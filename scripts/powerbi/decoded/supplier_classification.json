@@ -1,0 +1,56 @@
+[
+  {
+    "C": [
+      "CIPC Company",
+      54401841400.2
+    ]
+  },
+  {
+    "C": [
+      "Null",
+      "29805798366.390015"
+    ]
+  },
+  {
+    "C": [
+      "Government Entity",
+      "5343528314.3300018"
+    ]
+  },
+  {
+    "C": [
+      "State Owned Entity",
+      "2504860745.2999992"
+    ]
+  },
+  {
+    "C": [
+      "Unincorporated Body of Persons",
+      "526098932.99000025"
+    ]
+  },
+  {
+    "C": [
+      "Individual",
+      "500054102.21999806"
+    ]
+  },
+  {
+    "C": [
+      "Non Profit Organisation (Department of Social Dev)",
+      "205089580.9499999"
+    ]
+  },
+  {
+    "C": [
+      "Inter-vivos Trust",
+      "180457065.45000011"
+    ]
+  },
+  {
+    "C": [
+      "Foreign Company",
+      314944.22
+    ]
+  }
+]
