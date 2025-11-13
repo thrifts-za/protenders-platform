@@ -48,7 +48,7 @@ export function DidYouKnow() {
         // Wait before starting to delete
         const timeout = setTimeout(() => {
           setIsDeleting(true);
-        }, 3000); // Display for 3 seconds
+        }, 6000); // Display for 6 seconds
         return () => clearTimeout(timeout);
       }
     } else {
