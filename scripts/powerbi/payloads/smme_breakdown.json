@@ -1,0 +1,188 @@
+{
+  "version": "1.0.0",
+  "queries": [
+    {
+      "Query": {
+        "Commands": [
+          {
+            "SemanticQueryDataShapeCommand": {
+              "Query": {
+                "Version": 2,
+                "From": [
+                  {
+                    "Name": "d",
+                    "Entity": "DW_BAS_DATA",
+                    "Type": 0
+                  },
+                  {
+                    "Name": "m",
+                    "Entity": "Mapped BAS Data",
+                    "Type": 0
+                  },
+                  {
+                    "Name": "f",
+                    "Entity": "Fiscal_Year",
+                    "Type": 0
+                  }
+                ],
+                "Select": [
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "d"
+                        }
+                      },
+                      "Property": "SMME"
+                    },
+                    "Name": "DW_BAS_DATA.SMME",
+                    "NativeReferenceName": "SMME"
+                  },
+                  {
+                    "Measure": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "d"
+                        }
+                      },
+                      "Property": "Procurement Spend"
+                    },
+                    "Name": "DW_BAS_DATA.Procurement Spend",
+                    "NativeReferenceName": "Total Spend"
+                  },
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
+                        }
+                      },
+                      "Property": "Segment Title"
+                    },
+                    "Name": "Mapped BAS Data.Segment Title",
+                    "NativeReferenceName": "Segment Title"
+                  },
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
+                        }
+                      },
+                      "Property": "Family Title"
+                    },
+                    "Name": "Mapped BAS Data.Family Title",
+                    "NativeReferenceName": "Family Title"
+                  },
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
+                        }
+                      },
+                      "Property": "Class Title"
+                    },
+                    "Name": "Mapped BAS Data.Class Title",
+                    "NativeReferenceName": "Class Title"
+                  },
+                  {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Source": "m"
+                        }
+                      },
+                      "Property": "Commodity Title"
+                    },
+                    "Name": "Mapped BAS Data.Commodity Title",
+                    "NativeReferenceName": "Commodity Title"
+                  }
+                ],
+                "Where": [
+                  {
+                    "Condition": {
+                      "In": {
+                        "Expressions": [
+                          {
+                            "Column": {
+                              "Expression": {
+                                "SourceRef": {
+                                  "Source": "f"
+                                }
+                              },
+                              "Property": "Fiscal_Year"
+                            }
+                          }
+                        ],
+                        "Values": [
+                          [
+                            {
+                              "Literal": {
+                                "Value": "'2025/26'"
+                              }
+                            }
+                          ]
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "OrderBy": [
+                  {
+                    "Direction": 2,
+                    "Expression": {
+                      "Measure": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "d"
+                          }
+                        },
+                        "Property": "Procurement Spend"
+                      }
+                    }
+                  }
+                ]
+              },
+              "Binding": {
+                "Primary": {
+                  "Groupings": [
+                    {
+                      "Projections": [
+                        1,
+                        2
+                      ]
+                    }
+                  ]
+                },
+                "DataReduction": {
+                  "DataVolume": 4,
+                  "Primary": {
+                    "Window": {
+                      "Count": 1000
+                    }
+                  }
+                },
+                "Version": 1
+              },
+              "ExecutionMetricsKind": 1
+            }
+          }
+        ]
+      },
+      "CacheKey": "{\"Commands\":[{\"SemanticQueryDataShapeCommand\":{\"Query\":{\"Version\":2,\"From\":[{\"Name\":\"d\",\"Entity\":\"DW_BAS_DATA\",\"Type\":0},{\"Name\":\"m\",\"Entity\":\"Mapped BAS Data\",\"Type\":0},{\"Name\":\"f\",\"Entity\":\"Fiscal_Year\",\"Type\":0}],\"Select\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Property\":\"SMME\"},\"Name\":\"DW_BAS_DATA.SMME\",\"NativeReferenceName\":\"SMME\"},{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Property\":\"Procurement Spend\"},\"Name\":\"DW_BAS_DATA.Procurement Spend\",\"NativeReferenceName\":\"Total Spend\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"m\"}},\"Property\":\"Segment Title\"},\"Name\":\"Mapped BAS Data.Segment Title\",\"NativeReferenceName\":\"Segment Title\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"m\"}},\"Property\":\"Family Title\"},\"Name\":\"Mapped BAS Data.Family Title\",\"NativeReferenceName\":\"Family Title\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"m\"}},\"Property\":\"Class Title\"},\"Name\":\"Mapped BAS Data.Class Title\",\"NativeReferenceName\":\"Class Title\"},{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"m\"}},\"Property\":\"Commodity Title\"},\"Name\":\"Mapped BAS Data.Commodity Title\",\"NativeReferenceName\":\"Commodity Title\"}],\"Where\":[{\"Condition\":{\"In\":{\"Expressions\":[{\"Column\":{\"Expression\":{\"SourceRef\":{\"Source\":\"f\"}},\"Property\":\"Fiscal_Year\"}}],\"Values\":[[{\"Literal\":{\"Value\":\"'2025/26'\"}}]]}}}],\"OrderBy\":[{\"Direction\":2,\"Expression\":{\"Measure\":{\"Expression\":{\"SourceRef\":{\"Source\":\"d\"}},\"Property\":\"Procurement Spend\"}}}]},\"Binding\":{\"Primary\":{\"Groupings\":[{\"Projections\":[1,2]}]},\"DataReduction\":{\"DataVolume\":4,\"Primary\":{\"Window\":{\"Count\":1000}}},\"Version\":1},\"ExecutionMetricsKind\":1}}]}",
+      "QueryId": "",
+      "ApplicationContext": {
+        "DatasetId": "e1385346-bfd6-4efe-a9c7-b878b9383d5e",
+        "Sources": [
+          {
+            "ReportId": "c72a2bf2-f436-4662-85de-ba4312f4d595",
+            "VisualId": "280169320d5ac41886da"
+          }
+        ]
+      }
+    }
+  ],
+  "cancelQueries": [],
+  "modelId": 2670170
+}

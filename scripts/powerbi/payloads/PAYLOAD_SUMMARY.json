@@ -1,0 +1,83 @@
+{
+  "extraction_metadata": {
+    "source_files": [
+      "data/Latest.har",
+      "data/Black Owned.har"
+    ],
+    "extraction_date": "2025-11-13",
+    "powerbi_endpoint": "https://wabi-north-europe-l-primary-api.analysis.windows.net/public/reports/querydata?synchronous=true",
+    "resource_key": "4112cc95-bcc9-4702-96db-26c9dd801c08",
+    "model_id": 2670170
+  },
+  "payloads": {
+    "pppfa_categories": {
+      "file": "pppfa_categories.json",
+      "description": "PPPFA Table with all 6 demographic categories",
+      "source_har": "Latest.har",
+      "payload_index": 20,
+      "entities": [
+        "PPPFA Table",
+        "Fiscal_Year"
+      ],
+      "fields": [
+        "PPPFA"
+      ],
+      "categories_included": [
+        "Black Owned",
+        "Women Owned",
+        "Youth Owned",
+        "Disabled Owned",
+        "Military Veteran Owned",
+        "Rural Township Owned"
+      ]
+    },
+    "demographic_timeseries": {
+      "file": "demographic_timeseries.json",
+      "description": "Monthly breakdown of demographic spend",
+      "source_har": "Latest.har",
+      "payload_index": 13,
+      "entities": [
+        "DW_BAS_DATA",
+        "SupplierSubTypeMapping",
+        "Fiscal_Year"
+      ],
+      "fields": [
+        "Spend on Black Owned",
+        "Spend on Women",
+        "Spend on Youth",
+        "MonthYear/PostDate"
+      ]
+    },
+    "supplier_classification": {
+      "file": "supplier_classification.json",
+      "description": "Supplier types breakdown",
+      "source_har": "Latest.har",
+      "payload_index": 14,
+      "entities": [
+        "DW_BAS_DATA",
+        "Fiscal_Year"
+      ],
+      "fields": [
+        "SupplierType",
+        "SupplierSubType",
+        "TotalTransAmount"
+      ]
+    },
+    "smme_breakdown": {
+      "file": "smme_breakdown.json",
+      "description": "SMME classification breakdown",
+      "source_har": "Latest.har",
+      "payload_index": 11,
+      "entities": [
+        "DW_BAS_DATA",
+        "Mapped BAS Data",
+        "Fiscal_Year"
+      ],
+      "fields": [
+        "SMME",
+        "Procurement Spend",
+        "Segment Title"
+      ]
+    }
+  }
+}

@@ -1,0 +1,136 @@
+{
+  "jobIds": [
+    "d702f6fc-f2e1-48a5-8118-e6609a415ce1"
+  ],
+  "results": [
+    {
+      "jobId": "d702f6fc-f2e1-48a5-8118-e6609a415ce1",
+      "result": {
+        "data": {
+          "timestamp": "2025-11-13T19:23:02.219Z",
+          "rootActivityId": "5a397dc7-2272-42cb-806e-5713cd8269e4",
+          "descriptor": {
+            "Select": [
+              {
+                "Kind": 1,
+                "Depth": 0,
+                "Value": "G0",
+                "GroupKeys": [
+                  {
+                    "Source": {
+                      "Entity": "PPPFA Table",
+                      "Property": "PPPFA "
+                    },
+                    "Calc": "G0",
+                    "IsSameAsSelect": true
+                  }
+                ],
+                "Name": "PPPFA Table.PPPFA "
+              }
+            ],
+            "Expressions": {
+              "Primary": {
+                "Groupings": [
+                  {
+                    "Keys": [
+                      {
+                        "Source": {
+                          "Entity": "PPPFA Table",
+                          "Property": "PPPFA "
+                        },
+                        "Select": 0
+                      }
+                    ],
+                    "Member": "DM0"
+                  }
+                ]
+              }
+            },
+            "Version": 2
+          },
+          "metrics": {
+            "Version": "1.0.0",
+            "Events": [
+              {
+                "Id": "be32f738-d056-4d9e-a166-81977378ae9e",
+                "Name": "Execute Semantic Query",
+                "Component": "DSE",
+                "Start": "2025-11-13T19:23:02.219233Z",
+                "End": "2025-11-13T19:23:02.2504746Z"
+              },
+              {
+                "Id": "30c118e9-16ef-49a1-87db-03d0632ea5ad",
+                "ParentId": "be32f738-d056-4d9e-a166-81977378ae9e",
+                "Name": "Execute DAX Query",
+                "Component": "DSE",
+                "Start": "2025-11-13T19:23:02.219233Z",
+                "End": "2025-11-13T19:23:02.2504746Z",
+                "Metrics": {
+                  "RowCount": 6
+                }
+              },
+              {
+                "Id": "7E36FA2D-56F3-4144-9830-B4F07346B2D4",
+                "ParentId": "30c118e9-16ef-49a1-87db-03d0632ea5ad",
+                "Name": "Execute Query",
+                "Component": "AS",
+                "Start": "2025-11-13T19:23:02.247Z",
+                "End": "2025-11-13T19:23:02.25Z"
+              },
+              {
+                "Id": "D3B5F384-CB1D-4DB0-AE7D-051F4665D914",
+                "ParentId": "7E36FA2D-56F3-4144-9830-B4F07346B2D4",
+                "Name": "Serialize Rowset",
+                "Component": "AS",
+                "Start": "2025-11-13T19:23:02.25Z",
+                "End": "2025-11-13T19:23:02.25Z"
+              }
+            ]
+          },
+          "fromCache": false,
+          "dsr": {
+            "Version": 2,
+            "MinorVersion": 1,
+            "DS": [
+              {
+                "N": "DS0",
+                "PH": [
+                  {
+                    "DM0": [
+                      {
+                        "S": [
+                          {
+                            "N": "G0",
+                            "T": 1
+                          }
+                        ],
+                        "G0": "Black Owned"
+                      },
+                      {
+                        "G0": "Disabled Owned"
+                      },
+                      {
+                        "G0": "Military Veteran Owned"
+                      },
+                      {
+                        "G0": "Rural Township Owned"
+                      },
+                      {
+                        "G0": "Women Owned"
+                      },
+                      {
+                        "G0": "Youth Owned"
+                      }
+                    ]
+                  }
+                ],
+                "IC": true,
+                "HAD": true
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
