@@ -42,13 +42,13 @@ export function DidYouKnow() {
       if (displayedText.length < currentFact.length) {
         const timeout = setTimeout(() => {
           setDisplayedText(currentFact.slice(0, displayedText.length + 1));
-        }, 50); // Typing speed
+        }, 100); // Typing speed (slower for readability)
         return () => clearTimeout(timeout);
       } else {
         // Wait before starting to delete
         const timeout = setTimeout(() => {
           setIsDeleting(true);
-        }, 5000); // Display for 5 seconds
+        }, 3000); // Display for 3 seconds
         return () => clearTimeout(timeout);
       }
     } else {
@@ -56,7 +56,7 @@ export function DidYouKnow() {
       if (displayedText.length > 0) {
         const timeout = setTimeout(() => {
           setDisplayedText(displayedText.slice(0, -1));
-        }, 30); // Faster delete speed
+        }, 50); // Delete speed
         return () => clearTimeout(timeout);
       } else {
         // Move to next fact
