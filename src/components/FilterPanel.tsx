@@ -87,7 +87,7 @@ export const FilterPanel = ({ onSearch, onSaveSearch }: FilterPanelProps) => {
   };
 
   return (
-    <div className="space-y-6 p-6 bg-card rounded-lg border">
+    <div className="space-y-6 p-4 sm:p-6 bg-card rounded-lg border">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Filters</h2>
         <Button variant="ghost" size="sm" onClick={handleReset}>
@@ -115,7 +115,7 @@ export const FilterPanel = ({ onSearch, onSaveSearch }: FilterPanelProps) => {
               <Badge
                 key={cat}
                 variant={categories.includes(cat) ? "default" : "outline"}
-                className="cursor-pointer capitalize"
+                className="cursor-pointer capitalize min-h-[40px] px-4 py-2 active:scale-95 transition-transform"
                 onClick={() => handleCategoryToggle(cat)}
               >
                 {cat}
@@ -127,12 +127,15 @@ export const FilterPanel = ({ onSearch, onSaveSearch }: FilterPanelProps) => {
               {categories
                 .filter((c) => !CATEGORIES.includes(c))
                 .map((cat) => (
-                  <Badge key={cat} variant="secondary" className="capitalize">
-                    {cat}
-                    <X
-                      className="h-3 w-3 ml-1 cursor-pointer"
+                  <Badge key={cat} variant="secondary" className="capitalize min-h-[40px] px-4 py-2 pr-2">
+                    <span className="mr-2">{cat}</span>
+                    <button
                       onClick={() => handleRemoveCategory(cat)}
-                    />
+                      className="inline-flex items-center justify-center h-6 w-6 rounded hover:bg-background/50 active:scale-95 transition-all"
+                      aria-label={`Remove ${cat}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
                   </Badge>
                 ))}
             </div>
@@ -170,7 +173,7 @@ export const FilterPanel = ({ onSearch, onSaveSearch }: FilterPanelProps) => {
           <Label>Submission Method</Label>
           <div className="space-y-2">
             {SUBMISSION_METHODS.map((method) => (
-              <div key={method} className="flex items-center space-x-2">
+              <div key={method} className="flex items-center space-x-3 min-h-[40px]">
                 <Checkbox
                   id={`method-${method}`}
                   checked={submissionMethods.includes(method)}
@@ -178,7 +181,7 @@ export const FilterPanel = ({ onSearch, onSaveSearch }: FilterPanelProps) => {
                 />
                 <label
                   htmlFor={`method-${method}`}
-                  className="text-sm capitalize cursor-pointer select-none"
+                  className="text-sm capitalize cursor-pointer select-none flex-1 py-2"
                 >
                   {method}
                 </label>
