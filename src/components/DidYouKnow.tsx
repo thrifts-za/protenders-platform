@@ -4,16 +4,16 @@ import { useEffect, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 
 const facts = [
-  "R93.5B spent with suppliers yearly",
-  "Black-owned: R36.9B in 6 months",
-  "Women-owned: R14.0B captured",
-  "Top category: R17.4B (Management)",
-  "50,000+ tenders tracked",
-  "Youth-owned: R7.6B secured",
-  "Healthcare: R9.6B (3rd largest)",
-  "Only platform with 6 PPPFA categories",
-  "Growth: R5.9B→R11.5B (6 months)",
-  "Avg transaction: R523K",
+  "R93.5B flows to suppliers yearly—58% goes to private companies",
+  "Black-owned businesses won R36.9B in govt contracts (6 months)",
+  "Women entrepreneurs secured R14.0B—24% of tracked spending",
+  "Management services lead at R17.4B (20% of procurement)",
+  "Track 50,000+ tenders across 9 provinces & 50+ categories",
+  "Youth-owned firms captured R7.6B—SA leads in youth empowerment",
+  "Healthcare spending hit R9.6B—3rd largest procurement sector",
+  "ProTenders: Only platform tracking all 6 PPPFA ownership categories",
+  "Procurement doubled from R5.9B to R11.5B in just 6 months",
+  "Average govt payment: R523K—from 30,000+ tracked transactions",
 ];
 
 const colors = [
