@@ -32,46 +32,46 @@ const colors = [
 export function DidYouKnow() {
   const [factIndex, setFactIndex] = useState(0);
   const [displayedText, setDisplayedText] = useState('');
-  const [isTyping, setIsTyping] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    // Rotate through facts every 8 seconds
-    const rotateInterval = setInterval(() => {
-      setIsTyping(false);
-      setTimeout(() => {
-        setFactIndex((prev) => (prev + 1) % facts.length);
-        setDisplayedText('');
-        setIsTyping(true);
-      }, 500); // Wait for fade out
-    }, 8000);
-
-    return () => clearInterval(rotateInterval);
-  }, []);
-
-  useEffect(() => {
-    if (!isTyping) return;
-
     const currentFact = facts[factIndex];
-    let currentIndex = 0;
 
-    const typingInterval = setInterval(() => {
-      if (currentIndex <= currentFact.length) {
-        setDisplayedText(currentFact.slice(0, currentIndex));
-        currentIndex++;
+    if (!isDeleting) {
+      // Typing phase
+      if (displayedText.length < currentFact.length) {
+        const timeout = setTimeout(() => {
+          setDisplayedText(currentFact.slice(0, displayedText.length + 1));
+        }, 50); // Typing speed
+        return () => clearTimeout(timeout);
       } else {
-        clearInterval(typingInterval);
+        // Wait before starting to delete
+        const timeout = setTimeout(() => {
+          setIsDeleting(true);
+        }, 5000); // Display for 5 seconds
+        return () => clearTimeout(timeout);
       }
-    }, 50); // Typing speed
-
-    return () => clearInterval(typingInterval);
-  }, [factIndex, isTyping]);
+    } else {
+      // Deleting phase
+      if (displayedText.length > 0) {
+        const timeout = setTimeout(() => {
+          setDisplayedText(displayedText.slice(0, -1));
+        }, 30); // Faster delete speed
+        return () => clearTimeout(timeout);
+      } else {
+        // Move to next fact
+        setIsDeleting(false);
+        setFactIndex((prev) => (prev + 1) % facts.length);
+      }
+    }
+  }, [displayedText, factIndex, isDeleting]);
 
   return (
     <div className="mb-4">
-      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${colors[factIndex]} text-white text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-500`}>
+      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r ${colors[factIndex]} text-white text-xs font-medium shadow-lg hover:shadow-xl transition-all duration-300`}>
         <Sparkles className="h-3.5 w-3.5 animate-pulse" />
-        <span className="min-w-[200px]">
-          {displayedText}
+        <span className="inline-flex items-center">
+          <span>{displayedText}</span>
           <span className="inline-block w-[2px] h-3 bg-white ml-0.5 animate-pulse"></span>
         </span>
       </div>
