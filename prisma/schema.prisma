@@ -1113,3 +1113,103 @@ model ProcurementPayment {
   @@index([importBatch])
   @@map("procurement_payments")
 }
+
+// PPPFA Demographic Categories
+// Reference data for all 6 PPPFA empowerment categories
+model PPPFACategory {
+  id          String   @id @default(cuid())
+  code        String   @unique // e.g., "BLACK_OWNED", "WOMEN_OWNED"
+  name        String   @unique // e.g., "Black Owned", "Women Owned"
+  description String?
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  timeSeriesData DemographicSpendTimeSeries[]
+
+  @@index([code])
+  @@index([active])
+  @@map("pppfa_categories")
+}
+
+// Demographic Spend Time-Series
+// Monthly spend tracking by demographic category
+model DemographicSpendTimeSeries {
+  id              String   @id @default(cuid())
+  fiscalYear      String   // e.g., "2025/26"
+  month           String   // e.g., "April", "May"
+  monthNumber     Int      // 1-12 for sorting
+  categoryCode    String   // FK to PPPFACategory
+  spendAmount     Decimal  @db.Decimal(15, 2)
+
+  // Metadata
+  dataSource      String   @default("PowerBI/BAS")
+  importBatch     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  category        PPPFACategory @relation(fields: [categoryCode], references: [code], onDelete: Cascade)
+
+  @@unique([fiscalYear, month, categoryCode])
+  @@index([fiscalYear])
+  @@index([month])
+  @@index([monthNumber])
+  @@index([categoryCode])
+  @@index([createdAt])
+  @@map("demographic_spend_timeseries")
+}
+
+// Supplier Classification
+// Aggregate spend by supplier type (CIPC Company, Government Entity, etc.)
+model SupplierClassification {
+  id              String   @id @default(cuid())
+  fiscalYear      String   // e.g., "2025/26"
+  supplierType    String   // e.g., "CIPC Company", "Government Entity"
+  totalSpend      Decimal  @db.Decimal(15, 2)
+  supplierCount   Int?     // Number of suppliers in this type (if available)
+  percentOfTotal  Decimal? @db.Decimal(5, 2) // Percentage of total spend
+
+  // Metadata
+  dataSource      String   @default("PowerBI/BAS")
+  importBatch     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([fiscalYear, supplierType])
+  @@index([fiscalYear])
+  @@index([supplierType])
+  @@index([totalSpend])
+  @@index([createdAt])
+  @@map("supplier_classifications")
+}
+
+// Commodity Spend Breakdown
+// Spend analysis by UNSPSC commodity segment
+model CommoditySpendBreakdown {
+  id              String   @id @default(cuid())
+  fiscalYear      String   // e.g., "2025/26"
+  segmentTitle    String   // UNSPSC Segment (top level)
+  totalSpend      Decimal  @db.Decimal(15, 2)
+  percentOfTotal  Decimal? @db.Decimal(5, 2)
+
+  // Optional detailed classification (if available)
+  familyTitle     String?  // UNSPSC Family
+  classTitle      String?  // UNSPSC Class
+  commodityTitle  String?  // UNSPSC Commodity (most granular)
+
+  // Metadata
+  dataSource      String   @default("PowerBI/BAS")
+  importBatch     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([fiscalYear, segmentTitle])
+  @@index([fiscalYear])
+  @@index([segmentTitle])
+  @@index([totalSpend])
+  @@index([createdAt])
+  @@map("commodity_spend_breakdown")
+}
