@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { searchTenders } from "@/lib/api";
 import type { TenderSearchResponse } from "@/types/tender";
 import { TenderCard } from "@/components/TenderCard";
+import { DidYouKnow } from "@/components/DidYouKnow";
 
 export default function HomePage() {
   const provinces = [
@@ -49,6 +50,9 @@ export default function HomePage() {
       <section className="w-full bg-gradient-to-br from-primary/20 via-primary/10 to-background border-b">
         <div className="content-container py-16 md:py-24">
           <div className="max-w-4xl mx-auto text-center">
+            {/* Did You Know Daily Feature */}
+            <DidYouKnow />
+
             <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
               South Africa's Premier eTenders & Government Tender Portal
             </h1>
