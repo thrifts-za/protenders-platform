@@ -68,11 +68,6 @@ export default function MobileNavigation() {
       ],
     },
     {
-      name: "Alerts",
-      href: "/alerts",
-      icon: Bell,
-    },
-    {
       name: "About",
       href: "/about",
       icon: Info,

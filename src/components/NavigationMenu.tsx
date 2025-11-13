@@ -60,10 +60,6 @@ export default function NavigationMenu() {
       ],
     },
     {
-      name: "Alerts",
-      href: "/alerts",
-    },
-    {
       name: "About",
       href: "/about",
     },
