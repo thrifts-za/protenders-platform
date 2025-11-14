@@ -130,7 +130,7 @@ export const tenderSyncFunction = inngest.createFunction(
 
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout for health check
+          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for health check (eTenders API is slow)
 
           const res = await fetch(healthUrl, {
             headers: { Accept: 'application/json' },
@@ -157,7 +157,7 @@ export const tenderSyncFunction = inngest.createFunction(
             status: 0,
             statusText: 'Network Error',
             error: err.name === 'AbortError'
-              ? 'External API timeout - no response within 15 seconds'
+              ? 'External API timeout - no response within 60 seconds'
               : `External API network error: ${err.message}`,
           };
         }
@@ -199,7 +199,7 @@ export const tenderSyncFunction = inngest.createFunction(
         console.log(`📡 Fetching OCDS releases: ${url}`);
 
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout
+        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout (eTenders API is slow, especially for large batches)
 
         try {
           const res = await fetch(url, {
@@ -228,7 +228,7 @@ export const tenderSyncFunction = inngest.createFunction(
           // Wrap network errors to distinguish from app errors
           if (err.name === 'AbortError') {
             const timeoutError = new Error(
-              'External OCDS API timeout after 60 seconds. The eTenders API is slow or unresponsive.'
+              'External OCDS API timeout after 120 seconds. The eTenders API is slow or unresponsive.'
             );
             timeoutError.name = 'ExternalAPITimeout';
             throw timeoutError;
