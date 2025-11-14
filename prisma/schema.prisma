@@ -257,10 +257,42 @@ model ErrorLog {
   message     String
   stack       String?
   metadata    String?   // JSON: { userId, ip, etc. }
+  userAgent   String?   // Browser user agent
+  referer     String?   // Referring page
+  ipAddress   String?   // Client IP address
+  hitCount    Int       @default(1) // Number of times this 404 was hit
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([statusCode])
   @@index([createdAt])
+  @@index([path]) // For grouping 404s by path
+  @@index([hitCount]) // For finding most common 404s
+}
+
+model Redirect {
+  id            String    @id @default(uuid())
+  fromPath      String    @unique // Source path (must be unique)
+  toPath        String    // Destination path or URL
+  statusCode    Int       @default(301) // 301 (permanent) or 302 (temporary)
+  isActive      Boolean   @default(true) // Enable/disable redirect
+  preserveQuery Boolean   @default(true) // Preserve query parameters
+
+  // Analytics & Management
+  hitCount      Int       @default(0) // Number of times redirect was used
+  lastUsedAt    DateTime? // Last time redirect was triggered
+  notes         String?   @db.Text // Admin notes about why redirect was created
+
+  // Metadata
+  createdBy     String?   // User ID who created redirect
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([fromPath])
+  @@index([isActive])
+  @@index([statusCode])
+  @@index([createdAt])
+  @@index([hitCount]) // For analytics on most-used redirects
 }
 
 model MailLog {
