@@ -112,7 +112,7 @@ export const tenderSyncFunction = inngest.createFunction(
       // Step 3: Health check - Test API availability before full sync
       const apiHealth = await step.run('check-api-health', async () => {
         const base = `${(OCDS_API_BASE || 'https://ocds-api.etenders.gov.za').replace(/\/$/, '')}/api/OCDSReleases`;
-        const healthUrl = `${base}?PageNumber=1&PageSize=1`;
+        const healthUrl = `${base}?PageNumber=1&PageSize=1&dateFrom=${dateRange.fromStr}&dateTo=${dateRange.toStr}`;
 
         console.log(`🏥 Checking OCDS API health: ${healthUrl}`);
 
