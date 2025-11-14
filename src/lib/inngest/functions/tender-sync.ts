@@ -101,6 +101,18 @@ export const tenderSyncFunction = inngest.createFunction(
           : existingState?.lastSyncedDate ?? new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const to = toDate ? new Date(toDate) : now;
 
+        // Update lastRunAt to track when sync started
+        await prisma.syncState.upsert({
+          where: { id: syncStateId },
+          update: {
+            lastRunAt: now,
+          },
+          create: {
+            id: syncStateId,
+            lastRunAt: now,
+          },
+        });
+
         return {
           fromDate: from,
           toDate: to,
@@ -499,15 +511,18 @@ export const tenderSyncFunction = inngest.createFunction(
       // Step 8: Update sync state cursor
       await step.run('update-sync-state', async () => {
         const syncStateId = 'ocds_etenders_sa';
+        const now = new Date();
         await prisma.syncState.upsert({
           where: { id: syncStateId },
           update: {
             lastSyncedDate: dateRange.toDate,
-            updatedAt: new Date(),
+            lastSuccessAt: now,
+            updatedAt: now,
           },
           create: {
             id: syncStateId,
             lastSyncedDate: dateRange.toDate,
+            lastSuccessAt: now,
           },
         });
       });
