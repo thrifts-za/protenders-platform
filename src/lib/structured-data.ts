@@ -103,6 +103,71 @@ interface Article {
   keywords?: string;
 }
 
+interface FAQPage {
+  "@context": "https://schema.org";
+  "@type": "FAQPage";
+  mainEntity: Array<{
+    "@type": "Question";
+    name: string;
+    acceptedAnswer: {
+      "@type": "Answer";
+      text: string;
+    };
+  }>;
+}
+
+interface HowTo {
+  "@context": "https://schema.org";
+  "@type": "HowTo";
+  name: string;
+  description: string;
+  image?: string;
+  totalTime?: string;
+  estimatedCost?: {
+    "@type": "MonetaryAmount";
+    currency: string;
+    value: string;
+  };
+  step: Array<{
+    "@type": "HowToStep";
+    name: string;
+    text: string;
+    image?: string;
+    url?: string;
+  }>;
+}
+
+interface AggregateRating {
+  "@context": "https://schema.org";
+  "@type": "AggregateRating";
+  ratingValue: number;
+  bestRating: number;
+  worstRating: number;
+  ratingCount: number;
+  reviewCount?: number;
+}
+
+interface Product {
+  "@context": "https://schema.org";
+  "@type": "Product";
+  name: string;
+  description: string;
+  image?: string;
+  offers?: {
+    "@type": "Offer";
+    price: string;
+    priceCurrency: string;
+    availability: string;
+  };
+  aggregateRating?: {
+    "@type": "AggregateRating";
+    ratingValue: number;
+    bestRating: number;
+    worstRating: number;
+    ratingCount: number;
+  };
+}
+
 export function generateOrganizationSchema(): Organization {
   return {
     "@context": "https://schema.org",
@@ -178,6 +243,30 @@ export function generateServiceSchema(
   };
 }
 
+// Province-specific schemas with LocalBusiness
+interface LocalBusiness {
+  "@context": "https://schema.org";
+  "@type": "LocalBusiness";
+  name: string;
+  description: string;
+  address: {
+    "@type": "PostalAddress";
+    addressCountry: string;
+    addressRegion: string;
+  };
+  geo?: {
+    "@type": "GeoCoordinates";
+    latitude: number;
+    longitude: number;
+  };
+  areaServed: {
+    "@type": "State" | "City";
+    name: string;
+  };
+  url: string;
+  sameAs?: string[];
+}
+
 // Province-specific schemas
 export function generateProvinceServiceSchema(
   provinceName: string,
@@ -187,6 +276,77 @@ export function generateProvinceServiceSchema(
     `${provinceName} Government Tenders`,
     description
   );
+}
+
+// Enhanced LocalBusiness schema for provinces
+export function generateProvinceLocalBusinessSchema(
+  provinceName: string,
+  description: string,
+  options?: {
+    latitude?: number;
+    longitude?: number;
+    url?: string;
+  }
+): LocalBusiness {
+  return {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: `ProTenders ${provinceName}`,
+    description,
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "ZA",
+      addressRegion: provinceName,
+    },
+    geo: options?.latitude && options?.longitude
+      ? {
+          "@type": "GeoCoordinates",
+          latitude: options.latitude,
+          longitude: options.longitude,
+        }
+      : undefined,
+    areaServed: {
+      "@type": "State",
+      name: provinceName,
+    },
+    url: options?.url || `https://protenders.co.za/provinces/${provinceName.toLowerCase().replace(/\s+/g, "-")}`,
+  };
+}
+
+// Municipality LocalBusiness schema
+export function generateMunicipalityLocalBusinessSchema(
+  municipalityName: string,
+  province: string,
+  description: string,
+  options?: {
+    latitude?: number;
+    longitude?: number;
+    url?: string;
+  }
+): LocalBusiness {
+  return {
+    "@context": "https://schema.org",
+    "@type": "LocalBusiness",
+    name: `${municipalityName} Tenders - ProTenders`,
+    description,
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "ZA",
+      addressRegion: province,
+    },
+    geo: options?.latitude && options?.longitude
+      ? {
+          "@type": "GeoCoordinates",
+          latitude: options.latitude,
+          longitude: options.longitude,
+        }
+      : undefined,
+    areaServed: {
+      "@type": "City",
+      name: municipalityName,
+    },
+    url: options?.url || `https://protenders.co.za/municipalities/${municipalityName.toLowerCase().replace(/\s+/g, "-")}`,
+  };
 }
 
 // Category-specific schemas
@@ -199,6 +359,19 @@ export function generateCategoryServiceSchema(
     description
   );
 }
+
+// Province coordinates for geo-targeting
+export const PROVINCE_COORDINATES: Record<string, { lat: number; lng: number; capital: string }> = {
+  "Gauteng": { lat: -26.2041, lng: 28.0473, capital: "Johannesburg" },
+  "Western Cape": { lat: -33.9249, lng: 18.4241, capital: "Cape Town" },
+  "KwaZulu-Natal": { lat: -29.8587, lng: 31.0218, capital: "Durban" },
+  "Eastern Cape": { lat: -32.2968, lng: 26.4194, capital: "Port Elizabeth" },
+  "Free State": { lat: -29.1217, lng: 26.2144, capital: "Bloemfontein" },
+  "Limpopo": { lat: -23.4013, lng: 29.4179, capital: "Polokwane" },
+  "Mpumalanga": { lat: -25.4753, lng: 30.9694, capital: "Mbombela" },
+  "Northern Cape": { lat: -28.7282, lng: 24.7499, capital: "Kimberley" },
+  "North West": { lat: -25.8601, lng: 25.6433, capital: "Mahikeng" },
+};
 
 // JobPosting schema for individual tenders
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -265,7 +438,134 @@ export function generateArticleSchema(post: BlogPostData): Article {
   };
 }
 
+// FAQ schema for FAQ pages and tender details
+export interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+export function generateFAQSchema(faqItems: FAQItem[]): FAQPage {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  };
+}
+
+// HowTo schema for guide pages
+export interface HowToStepData {
+  name: string;
+  text: string;
+  image?: string;
+  url?: string;
+}
+
+export function generateHowToSchema(
+  name: string,
+  description: string,
+  steps: HowToStepData[],
+  options?: {
+    image?: string;
+    totalTime?: string;
+    estimatedCost?: {
+      currency: string;
+      value: string;
+    };
+  }
+): HowTo {
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name,
+    description,
+    image: options?.image,
+    totalTime: options?.totalTime,
+    estimatedCost: options?.estimatedCost
+      ? {
+          "@type": "MonetaryAmount",
+          currency: options.estimatedCost.currency,
+          value: options.estimatedCost.value,
+        }
+      : undefined,
+    step: steps.map((step) => ({
+      "@type": "HowToStep",
+      name: step.name,
+      text: step.text,
+      image: step.image,
+      url: step.url,
+    })),
+  };
+}
+
+// Aggregate Rating schema for tender complexity/opportunity scores
+export function generateAggregateRatingSchema(
+  ratingValue: number,
+  ratingCount: number,
+  bestRating: number = 5,
+  worstRating: number = 1,
+  reviewCount?: number
+): AggregateRating {
+  return {
+    "@context": "https://schema.org",
+    "@type": "AggregateRating",
+    ratingValue,
+    bestRating,
+    worstRating,
+    ratingCount,
+    reviewCount,
+  };
+}
+
+// Product schema for funding opportunities
+export interface FundingProductData {
+  name: string;
+  description: string;
+  image?: string;
+  maxAmount?: string;
+  currency?: string;
+  rating?: {
+    value: number;
+    count: number;
+  };
+}
+
+export function generateFundingProductSchema(funding: FundingProductData): Product {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: funding.name,
+    description: funding.description,
+    image: funding.image,
+    offers: funding.maxAmount
+      ? {
+          "@type": "Offer",
+          price: funding.maxAmount,
+          priceCurrency: funding.currency || "ZAR",
+          availability: "https://schema.org/InStock",
+        }
+      : undefined,
+    aggregateRating: funding.rating
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: funding.rating.value,
+          bestRating: 5,
+          worstRating: 1,
+          ratingCount: funding.rating.count,
+        }
+      : undefined,
+  };
+}
+
 // Helper to render schema in HTML
-export function renderStructuredData(data: Organization | WebSite | BreadcrumbList | Service | JobPosting | Article): string {
+export function renderStructuredData(
+  data: Organization | WebSite | BreadcrumbList | Service | JobPosting | Article | FAQPage | HowTo | AggregateRating | Product | LocalBusiness
+): string {
   return JSON.stringify(data);
 }
