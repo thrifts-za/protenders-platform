@@ -271,6 +271,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response, { headers });
   } catch (error) {
     // Enhanced error logging with request context
+    const searchParams = request.nextUrl.searchParams;
     const errorDetails = {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
