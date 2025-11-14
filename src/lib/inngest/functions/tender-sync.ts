@@ -35,6 +35,42 @@ interface SyncResult {
 }
 
 /**
+ * Fetch with retries - handles slow/unreliable eTenders API
+ */
+async function fetchWithRetries(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number,
+  maxRetries: number = 3
+): Promise<Response> {
+  let lastError: Error | null = null;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return response;
+    } catch (err: any) {
+      lastError = err;
+      if (attempt < maxRetries) {
+        const delay = attempt * 2000; // 2s, 4s, 6s backoff
+        console.log(`⚠️  Fetch attempt ${attempt}/${maxRetries} failed, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw lastError || new Error('Fetch failed after retries');
+}
+
+/**
  * Main tender sync function
  *
  * Triggered by: 'tender/sync.requested' event
@@ -129,16 +165,15 @@ export const tenderSyncFunction = inngest.createFunction(
         console.log(`🏥 Checking OCDS API health: ${healthUrl}`);
 
         try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 60000); // 60s timeout for health check (eTenders API is slow)
-
-          const res = await fetch(healthUrl, {
-            headers: { Accept: 'application/json' },
-            cache: 'no-store',
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
+          const res = await fetchWithRetries(
+            healthUrl,
+            {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store',
+            },
+            90000, // 90s timeout per attempt - eTenders API is very slow
+            3      // 3 retries
+          );
 
           if (!res.ok) {
             return {
@@ -157,7 +192,7 @@ export const tenderSyncFunction = inngest.createFunction(
             status: 0,
             statusText: 'Network Error',
             error: err.name === 'AbortError'
-              ? 'External API timeout - no response within 60 seconds'
+              ? 'External API timeout after 3 retries (90s each) - eTenders API is extremely slow or down'
               : `External API network error: ${err.message}`,
           };
         }
@@ -198,17 +233,16 @@ export const tenderSyncFunction = inngest.createFunction(
 
         console.log(`📡 Fetching OCDS releases: ${url}`);
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout (eTenders API is slow, especially for large batches)
-
         try {
-          const res = await fetch(url, {
-            headers: { Accept: 'application/json' },
-            cache: 'no-store',
-            signal: controller.signal,
-          });
-
-          clearTimeout(timeoutId);
+          const res = await fetchWithRetries(
+            url,
+            {
+              headers: { Accept: 'application/json' },
+              cache: 'no-store',
+            },
+            120000, // 120s timeout per attempt - eTenders API is very slow for large batches
+            3       // 3 retries
+          );
 
           if (!res.ok) {
             const error = new Error(
@@ -223,12 +257,10 @@ export const tenderSyncFunction = inngest.createFunction(
           console.log(`✅ Fetched ${releasesData.length} releases`);
           return releasesData;
         } catch (err: any) {
-          clearTimeout(timeoutId);
-
           // Wrap network errors to distinguish from app errors
           if (err.name === 'AbortError') {
             const timeoutError = new Error(
-              'External OCDS API timeout after 120 seconds. The eTenders API is slow or unresponsive.'
+              'External OCDS API timeout after 3 retries (120s each). The eTenders API is extremely slow or unresponsive.'
             );
             timeoutError.name = 'ExternalAPITimeout';
             throw timeoutError;
