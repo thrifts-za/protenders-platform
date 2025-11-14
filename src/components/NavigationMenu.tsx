@@ -75,7 +75,7 @@ export default function NavigationMenu() {
       name: user?.name || user?.email || "Account",
       items: [
         { name: "Dashboard", href: "/dashboard" },
-        { name: "Profile", href: "/profile" },
+        { name: "Profile", href: "/dashboard/profile" },
         { name: "Logout", href: "/api/auth/signout" },
       ],
     });

@@ -41,6 +41,14 @@ interface SearchResponse {
   };
 }
 
+/**
+ * Validates if a date string is a valid date
+ */
+function isValidDate(dateString: string): boolean {
+  const date = new Date(dateString);
+  return !isNaN(date.getTime());
+}
+
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
@@ -96,12 +104,30 @@ export async function GET(request: NextRequest) {
       where.province = { equals: params.province, mode: 'insensitive' };
     }
 
-    // Freshness filters
+    // Freshness filters (with validation)
     if (params.publishedSince) {
+      if (!isValidDate(params.publishedSince)) {
+        return NextResponse.json(
+          {
+            error: 'Invalid publishedSince date format',
+            message: `The date "${params.publishedSince}" is not a valid ISO date string`,
+          },
+          { status: 400 }
+        );
+      }
       where.publishedAt = { gte: new Date(params.publishedSince) };
     }
 
     if (params.updatedSince) {
+      if (!isValidDate(params.updatedSince)) {
+        return NextResponse.json(
+          {
+            error: 'Invalid updatedSince date format',
+            message: `The date "${params.updatedSince}" is not a valid ISO date string`,
+          },
+          { status: 400 }
+        );
+      }
       where.updatedAt = { gte: new Date(params.updatedSince) };
     }
 
@@ -244,7 +270,23 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response, { headers });
   } catch (error) {
-    console.error('❌ Error searching tenders:', error);
+    // Enhanced error logging with request context
+    const errorDetails = {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      requestParams: {
+        keywords: searchParams.get('keywords'),
+        page: searchParams.get('page'),
+        pageSize: searchParams.get('pageSize'),
+        sort: searchParams.get('sort'),
+        publishedSince: searchParams.get('publishedSince'),
+        updatedSince: searchParams.get('updatedSince'),
+        categories: searchParams.getAll('categories'),
+        province: searchParams.get('province'),
+      },
+    };
+
+    console.error('❌ Error searching tenders:', errorDetails);
 
     return NextResponse.json(
       {
