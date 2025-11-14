@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 import { suggestRedirectsFor404 } from "@/lib/error-logging";
 
 /**
@@ -10,17 +9,17 @@ import { suggestRedirectsFor404 } from "@/lib/error-logging";
  */
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Check if user is admin
-    if (!session || session.user.role !== "ADMIN") {
+    if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Get the 404 error
     const error = await prisma.errorLog.findUnique({

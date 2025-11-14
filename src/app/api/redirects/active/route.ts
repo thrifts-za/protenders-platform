@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET /api/redirects/active
@@ -17,11 +17,6 @@ export async function GET() {
         toPath: true,
         statusCode: true,
         preserveQuery: true,
-      },
-      // Cache results for 60 seconds
-      cacheStrategy: {
-        ttl: 60,
-        swr: 120,
       },
     });
 

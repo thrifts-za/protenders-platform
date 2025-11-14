@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/prisma";
 
 /**
  * GET /rss.xml
@@ -63,6 +63,7 @@ export async function GET() {
       description: post.excerpt,
       pubDate: new Date(post.publishedDate).toUTCString(),
       author: post.author,
+      category: "Blog",
       guid: `${baseUrl}/blog/${post.slug}`,
     })),
     // Recent tenders

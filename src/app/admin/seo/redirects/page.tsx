@@ -284,7 +284,7 @@ export default function RedirectManagerPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={redirect.isActive ? "success" : "secondary"}>
+                      <Badge variant={redirect.isActive ? "default" : "secondary"}>
                         {redirect.isActive ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { auth } from "@/auth";
 
 /**
  * GET /api/admin/404-errors
@@ -9,10 +8,10 @@ import { authOptions } from "@/lib/auth";
  */
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await auth();
 
     // Check if user is admin
-    if (!session || session.user.role !== "ADMIN") {
+    if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
