@@ -1,0 +1,492 @@
+// src/app/tenders/[department]/page.tsx
+// TARGETS: "[department] tenders" keywords
+// EXAMPLES: "eskom tenders" (4,400 searches), "transnet tenders" (8,100 searches)
+
+import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { TenderGrid } from '@/components/tenders/TenderGrid';
+import { StatCard } from '@/components/stats/StatCard';
+import { TenderHistoryChart } from '@/components/charts/TenderHistoryChart';
+import { PaymentPerformanceChart } from '@/components/charts/PaymentPerformanceChart';
+import { AlertSignupBanner } from '@/components/cta/AlertSignupBanner';
+import { RelatedDepartments } from '@/components/navigation/RelatedDepartments';
+import { DepartmentSchema } from '@/components/seo/DepartmentSchema';
+import { 
+  getDepartment, 
+  getTendersByDepartment, 
+  getDepartmentStats,
+  getDepartmentHistory,
+  getDepartmentPaymentData 
+} from '@/lib/api/departments';
+import { formatNumber, formatCurrency, formatDate } from '@/lib/utils';
+
+interface DepartmentPageProps {
+  params: {
+    department: string;
+  };
+}
+
+export async function generateMetadata({ params }: DepartmentPageProps): Promise<Metadata> {
+  const dept = await getDepartment(params.department);
+  
+  if (!dept) {
+    return {
+      title: 'Department Not Found | ProTenders',
+    };
+  }
+
+  const stats = await getDepartmentStats(params.department);
+  
+  return {
+    title: `${dept.name} Tenders | ${formatNumber(stats.activeCount)} Active Opportunities | ProTenders`,
+    description: `Current ${dept.name} tenders and procurement opportunities in South Africa. ${formatNumber(stats.activeCount)} active tenders worth ${formatCurrency(stats.totalValue)}. View tender history, payment performance, and contact details. Free alerts available.`,
+    keywords: [
+      `${dept.name.toLowerCase()} tenders`,
+      `${dept.shortName?.toLowerCase()} tenders`,
+      `${dept.name.toLowerCase()} procurement`,
+      `${dept.name.toLowerCase()} contracts`,
+      `tender opportunities ${dept.name.toLowerCase()}`,
+      'government tenders south africa',
+    ].join(', '),
+    openGraph: {
+      title: `${dept.name} Tenders | ProTenders`,
+      description: `${formatNumber(stats.activeCount)} active tender opportunities from ${dept.name}`,
+      url: `https://protenders.co.za/tenders/${params.department}`,
+      siteName: 'ProTenders',
+      type: 'website',
+      images: [{
+        url: `/og-departments/${params.department}.png`,
+        width: 1200,
+        height: 630,
+        alt: `${dept.name} Tenders`,
+      }],
+    },
+    alternates: {
+      canonical: `https://protenders.co.za/tenders/${params.department}`,
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
+  };
+}
+
+// Generate static params for top departments (ISR for others)
+export async function generateStaticParams() {
+  // Top 50 departments by tender volume
+  const topDepartments = [
+    'eskom',
+    'transnet',
+    'prasa',
+    'department-public-works',
+    'ethekwini-municipality',
+    'ekurhuleni-metro',
+    'city-of-johannesburg',
+    'city-of-cape-town',
+    'city-of-tshwane',
+    'sanral',
+    'independent-development-trust',
+    'sanparks',
+    'development-bank',
+    'gauteng-department-health',
+    'kwazulu-natal-department-health',
+    'department-of-defence',
+    'department-of-education',
+    'saps',
+    'csir',
+    'denel',
+    // ... add more
+  ];
+  
+  return topDepartments.map(dept => ({
+    department: dept,
+  }));
+}
+
+export const revalidate = 3600; // Revalidate every hour
+
+export default async function DepartmentPage({ params }: DepartmentPageProps) {
+  const dept = await getDepartment(params.department);
+  
+  if (!dept) {
+    notFound();
+  }
+
+  const [tenders, stats, history, paymentData] = await Promise.all([
+    getTendersByDepartment(params.department, { limit: 20 }),
+    getDepartmentStats(params.department),
+    getDepartmentHistory(params.department, 12), // Last 12 months
+    getDepartmentPaymentData(params.department),
+  ]);
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <nav className="mb-6 text-sm text-muted-foreground">
+        <a href="/" className="hover:text-primary">Home</a>
+        {' / '}
+        <a href="/tenders" className="hover:text-primary">Tenders</a>
+        {' / '}
+        <span>{dept.name}</span>
+      </nav>
+
+      {/* Hero Section */}
+      <header className="mb-12">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h1 className="text-4xl font-bold mb-4">
+              {dept.name} Tenders
+            </h1>
+            <p className="text-xl text-muted-foreground mb-6 max-w-3xl">
+              Browse current tender opportunities from {dept.name}. 
+              {stats.activeCount > 0 ? ` ${formatNumber(stats.activeCount)} active tenders worth ${formatCurrency(stats.totalValue)}.` : ' New tenders published regularly.'}
+              {' '}Get instant email alerts when new {dept.name} tenders are published.
+            </p>
+          </div>
+          {dept.logoUrl && (
+            <img 
+              src={dept.logoUrl} 
+              alt={`${dept.name} logo`}
+              className="w-24 h-24 object-contain ml-6"
+            />
+          )}
+        </div>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <StatCard 
+            title="Active Tenders"
+            value={formatNumber(stats.activeCount)}
+            icon="📋"
+            trend={stats.trend.active}
+          />
+          <StatCard 
+            title="Total Value"
+            value={formatCurrency(stats.totalValue)}
+            icon="💰"
+            trend={stats.trend.value}
+          />
+          <StatCard 
+            title="Average Tender Value"
+            value={formatCurrency(stats.avgValue)}
+            icon="📊"
+          />
+          <StatCard 
+            title="Published This Month"
+            value={formatNumber(stats.publishedThisMonth)}
+            icon="📅"
+            trend={stats.trend.monthly}
+          />
+        </div>
+      </header>
+
+      {/* SEO Content Block */}
+      <section className="mb-12 prose prose-lg max-w-none">
+        <h2>About {dept.name}</h2>
+        <p>{dept.description}</p>
+        
+        <h3>Tender Opportunities from {dept.name}</h3>
+        <p>
+          {dept.name} regularly publishes tender opportunities for goods, services, and works 
+          across various categories. Common tender types include:
+        </p>
+        <ul>
+          {stats.topCategories.map(cat => (
+            <li key={cat.slug}>
+              <strong>{cat.name}:</strong> {formatNumber(cat.count)} active tenders worth {formatCurrency(cat.value)}
+            </li>
+          ))}
+        </ul>
+
+        <h3>How to Bid on {dept.name} Tenders</h3>
+        <p>
+          To participate in {dept.name} tenders, you must:
+        </p>
+        <ol>
+          <li>Be registered on the Central Supplier Database (CSD)</li>
+          <li>Have a valid tax clearance certificate</li>
+          <li>Possess a BEE certificate or sworn affidavit</li>
+          {dept.specificRequirements && dept.specificRequirements.map((req, i) => (
+            <li key={i}>{req}</li>
+          ))}
+        </ol>
+      </section>
+
+      {/* UNIQUE VALUE: Payment Performance Analytics */}
+      {paymentData && (
+        <section className="mb-12 p-6 bg-muted/50 rounded-lg">
+          <h2 className="text-2xl font-semibold mb-4">
+            Payment Performance Analytics
+          </h2>
+          <p className="text-muted-foreground mb-6">
+            Based on our procurement analytics database tracking actual payments to suppliers:
+          </p>
+          <div className="grid md:grid-cols-3 gap-6 mb-6">
+            <StatCard 
+              title="Average Payment Time"
+              value={`${paymentData.avgPaymentDays} days`}
+              description={`Industry avg: 45 days`}
+              trend={paymentData.paymentTrend}
+            />
+            <StatCard 
+              title="On-Time Payment Rate"
+              value={`${paymentData.onTimeRate}%`}
+              description="Within 30 days of invoice"
+              trend={paymentData.onTimeRateTrend}
+            />
+            <StatCard 
+              title="Total Paid (Last 12 Months)"
+              value={formatCurrency(paymentData.totalPaid)}
+              description="To registered suppliers"
+            />
+          </div>
+          <PaymentPerformanceChart data={paymentData.monthlyData} />
+        </section>
+      )}
+
+      {/* Active Tenders */}
+      <section className="mb-12">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-semibold">
+            Current {dept.name} Tenders
+          </h2>
+          <a 
+            href={`/tenders?department=${params.department}`}
+            className="text-primary hover:underline"
+          >
+            View all {formatNumber(stats.activeCount)} tenders →
+          </a>
+        </div>
+        
+        {tenders.length > 0 ? (
+          <TenderGrid tenders={tenders} />
+        ) : (
+          <div className="text-center py-12 bg-muted/50 rounded-lg">
+            <p className="text-lg mb-4">No active tenders at the moment</p>
+            <p className="text-muted-foreground mb-6">
+              Set up an alert to be notified when new {dept.name} tenders are published
+            </p>
+            <AlertSignupBanner department={dept.name} />
+          </div>
+        )}
+      </section>
+
+      {/* Tender History & Trends */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Tender History & Trends (Last 12 Months)
+        </h2>
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <StatCard 
+            title="Total Tenders Published"
+            value={formatNumber(history.totalPublished)}
+            description="In the last 12 months"
+          />
+          <StatCard 
+            title="Total Tender Value"
+            value={formatCurrency(history.totalValue)}
+            description="Last 12 months"
+          />
+        </div>
+        <TenderHistoryChart data={history.monthlyData} />
+        
+        <div className="mt-6 grid md:grid-cols-3 gap-4">
+          <div className="p-4 bg-muted/50 rounded">
+            <div className="text-sm text-muted-foreground mb-1">Average Tender Duration</div>
+            <div className="text-2xl font-semibold">{history.avgDuration} days</div>
+          </div>
+          <div className="p-4 bg-muted/50 rounded">
+            <div className="text-sm text-muted-foreground mb-1">Most Active Month</div>
+            <div className="text-2xl font-semibold">{history.mostActiveMonth}</div>
+          </div>
+          <div className="p-4 bg-muted/50 rounded">
+            <div className="text-sm text-muted-foreground mb-1">Avg Tenders/Month</div>
+            <div className="text-2xl font-semibold">{formatNumber(history.avgPerMonth)}</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Popular Tender Categories */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Popular Tender Categories from {dept.name}
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {stats.topCategories.map(category => (
+            <a
+              key={category.slug}
+              href={`/tenders?department=${params.department}&category=${category.slug}`}
+              className="p-4 border rounded-lg hover:border-primary transition-colors"
+            >
+              <div className="font-semibold mb-2">{category.name}</div>
+              <div className="text-sm text-muted-foreground">
+                {formatNumber(category.count)} active tenders
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Value: {formatCurrency(category.value)}
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Contact & Information */}
+      <section className="mb-12 p-6 border rounded-lg">
+        <h2 className="text-2xl font-semibold mb-6">
+          Contact & Information
+        </h2>
+        <div className="grid md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="font-semibold mb-4">Department Details</h3>
+            <dl className="space-y-3">
+              {dept.website && (
+                <>
+                  <dt className="text-sm text-muted-foreground">Official Website</dt>
+                  <dd>
+                    <a 
+                      href={dept.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      {dept.website}
+                    </a>
+                  </dd>
+                </>
+              )}
+              {dept.scmEmail && (
+                <>
+                  <dt className="text-sm text-muted-foreground">SCM/Procurement Contact</dt>
+                  <dd>
+                    <a href={`mailto:${dept.scmEmail}`} className="text-primary hover:underline">
+                      {dept.scmEmail}
+                    </a>
+                  </dd>
+                </>
+              )}
+              {dept.phone && (
+                <>
+                  <dt className="text-sm text-muted-foreground">Contact Number</dt>
+                  <dd>{dept.phone}</dd>
+                </>
+              )}
+              {dept.address && (
+                <>
+                  <dt className="text-sm text-muted-foreground">Physical Address</dt>
+                  <dd className="whitespace-pre-line">{dept.address}</dd>
+                </>
+              )}
+            </dl>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-4">Procurement Information</h3>
+            <dl className="space-y-3">
+              <dt className="text-sm text-muted-foreground">OCID Prefix</dt>
+              <dd className="font-mono text-sm">{dept.ocidPrefix || 'N/A'}</dd>
+              
+              <dt className="text-sm text-muted-foreground">Department Type</dt>
+              <dd>{dept.type || 'Government Entity'}</dd>
+              
+              <dt className="text-sm text-muted-foreground">Tender Publication Frequency</dt>
+              <dd>{history.avgPerMonth > 10 ? 'High' : history.avgPerMonth > 5 ? 'Medium' : 'Low'} ({formatNumber(history.avgPerMonth)} per month)</dd>
+              
+              {dept.specificRequirements && (
+                <>
+                  <dt className="text-sm text-muted-foreground">Special Requirements</dt>
+                  <dd>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      {dept.specificRequirements.map((req, i) => (
+                        <li key={i}>{req}</li>
+                      ))}
+                    </ul>
+                  </dd>
+                </>
+              )}
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      {/* Alert Signup CTA */}
+      <section className="mb-12">
+        <AlertSignupBanner
+          title={`Get Alerts for New ${dept.name} Tenders`}
+          description={`Be the first to know when ${dept.name} publishes new tender opportunities. Free email notifications with full tender details.`}
+          buttonText="Set Up Free Alerts"
+          prefilledDepartment={params.department}
+        />
+      </section>
+
+      {/* Related Departments */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Related Departments & Entities
+        </h2>
+        <RelatedDepartments 
+          current={params.department}
+          type={dept.type}
+          province={dept.province}
+        />
+      </section>
+
+      {/* FAQ Section */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Frequently Asked Questions
+        </h2>
+        <div className="space-y-4">
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold mb-2">
+              How often does {dept.name} publish tenders?
+            </h3>
+            <p className="text-muted-foreground">
+              {dept.name} publishes an average of {formatNumber(history.avgPerMonth)} tenders 
+              per month. Tenders are published throughout the year, with {history.mostActiveMonth} 
+              typically being the most active month.
+            </p>
+          </div>
+          
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold mb-2">
+              What is the average value of {dept.name} tenders?
+            </h3>
+            <p className="text-muted-foreground">
+              The average tender value from {dept.name} is {formatCurrency(stats.avgValue)}. 
+              Tenders range from small quotations under R100,000 to major contracts worth 
+              millions of Rands.
+            </p>
+          </div>
+          
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold mb-2">
+              How can I get notified of new {dept.name} tenders?
+            </h3>
+            <p className="text-muted-foreground">
+              Set up a free tender alert on ProTenders. You'll receive email notifications 
+              whenever {dept.name} publishes new tenders matching your criteria. You can 
+              filter by category, value range, and keywords.
+            </p>
+          </div>
+
+          <div className="p-4 border rounded-lg">
+            <h3 className="font-semibold mb-2">
+              What are the typical closing dates for {dept.name} tenders?
+            </h3>
+            <p className="text-muted-foreground">
+              {dept.name} tenders typically remain open for {history.avgDuration} days from 
+              publication to closing date. Check individual tender documents for specific 
+              closing dates and times.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Schema.org Structured Data */}
+      <DepartmentSchema 
+        department={dept}
+        stats={stats}
+        tenders={tenders.slice(0, 5)}
+      />
+    </div>
+  );
+}

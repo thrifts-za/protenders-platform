@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getProvinceBySlug, getAllProvinceSlugs } from "@/data/provinces";
 import {
   generateBreadcrumbSchema,
-  generateProvinceServiceSchema,
+  generateProvinceLocalBusinessSchema,
   renderStructuredData,
 } from "@/lib/structured-data";
 import { LiveTenders } from "./LiveTenders";
@@ -88,9 +88,13 @@ export default async function ProvincePage({ params }: { params: Promise<{ provi
     { name: provinceData.name, url: `/province/${province}` },
   ]);
 
-  const serviceSchema = generateProvinceServiceSchema(
+  // LocalBusiness schema - more semantically correct for location-based pages
+  const localBusinessSchema = generateProvinceLocalBusinessSchema(
     provinceData.name,
-    provinceData.description
+    provinceData.description,
+    {
+      url: `https://protenders.co.za/province/${province}`,
+    }
   );
 
   // Live tenders loaded client-side to avoid slow SSR during static build
@@ -104,7 +108,7 @@ export default async function ProvincePage({ params }: { params: Promise<{ provi
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: renderStructuredData(serviceSchema) }}
+        dangerouslySetInnerHTML={{ __html: renderStructuredData(localBusinessSchema) }}
       />
 
       <div className="min-h-screen bg-background">

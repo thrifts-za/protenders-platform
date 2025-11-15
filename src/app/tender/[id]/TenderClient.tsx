@@ -27,6 +27,7 @@ import AwardHistory from "@/components/tender/AwardHistory";
 import DocumentsList from "@/components/tender/DocumentsList";
 import OverviewTab from "@/components/tender/OverviewTab";
 import { useSavedTenders } from "@/hooks/useSavedTenders";
+import RelatedTenders from "@/components/RelatedTenders";
 
 // This is the client-side interactive component for tender details
 // The server component wrapper (page.tsx) handles metadata generation
@@ -824,6 +825,9 @@ export default function TenderClient() {
                   />
                 </TabsContent>
               </Tabs>
+
+              {/* Related Tenders Section */}
+              <RelatedTenders tenderId={id} limit={6} />
             </div>
 
             {/* Right Column - Sticky Sidebar */}

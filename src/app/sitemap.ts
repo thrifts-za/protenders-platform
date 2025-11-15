@@ -86,6 +86,78 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.85,
   }))
 
+  // New high-value landing pages (Phase 3)
+  const highValueLandingPages = [
+    {
+      url: `${baseUrl}/south-africa-government-tenders`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/tender-portals-south-africa`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.85,
+    },
+  ]
+
+  // Time-based SEO pages (Phase 2)
+  const timeBasedPages = [
+    {
+      url: `${baseUrl}/tenders/closing-today`,
+      lastModified: new Date(),
+      changeFrequency: 'hourly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tenders/closing-this-week`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/tenders/closing-this-month`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/tenders/published-today`,
+      lastModified: new Date(),
+      changeFrequency: 'hourly' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/tenders/published-this-week`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    },
+  ]
+
+  // Value-based SEO pages (Phase 2)
+  const valueBasedPages = [
+    {
+      url: `${baseUrl}/tenders/sme-opportunities`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/tenders/1-5-million`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/tenders/over-10-million`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    },
+  ]
+
   // Static pages
   const staticPages = [
     {
@@ -314,9 +386,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const activeTenders = await prisma.oCDSRelease.findMany({
       where: {
-        status: 'active',
         closingAt: {
           gte: new Date(),
+        },
+        tenderTitle: {
+          not: null,
         },
       },
       select: {
@@ -350,6 +424,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   return [
     homepage,
+    ...highValueLandingPages,
+    ...timeBasedPages,
+    ...valueBasedPages,
     eTendersHub,
     ...provincialETenderPages,
     ...categoryETenderPages,

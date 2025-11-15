@@ -1,0 +1,413 @@
+// src/app/south-africa-government-tenders/page.tsx
+// TARGET: "government tenders south africa" (5,000+ searches)
+// GOAL: Become the #1 result for this primary keyword
+
+import { Metadata } from 'next';
+import { Suspense } from 'react';
+import { TenderGrid } from '@/components/tenders/TenderGrid';
+import { StatsOverview } from '@/components/stats/StatsOverview';
+import { FilterWidget } from '@/components/filters/FilterWidget';
+import { AlertSignupCTA } from '@/components/cta/AlertSignupCTA';
+import { FAQSection } from '@/components/seo/FAQSection';
+import { BreadcrumbSchema } from '@/components/seo/BreadcrumbSchema';
+import { getTenders, getGlobalStats } from '@/lib/api/tenders';
+import { formatNumber, formatCurrency } from '@/lib/utils';
+
+export const metadata: Metadata = {
+  title: 'Government Tenders in South Africa 2024 | 48,000+ Active Opportunities | ProTenders',
+  description: 'Find and bid on government tenders across South Africa. Browse 48,000+ opportunities from national departments, provinces, municipalities, and SOEs. Daily updates, instant alerts.',
+  keywords: [
+    'government tenders south africa',
+    'south african tenders',
+    'government procurement south africa',
+    'tender opportunities south africa',
+    'government contracts south africa',
+    'public sector tenders',
+    'national tender opportunities',
+  ].join(', '),
+  openGraph: {
+    title: 'Government Tenders in South Africa | ProTenders',
+    description: 'Access 48,000+ active government tenders. Free alerts for new opportunities.',
+    url: 'https://protenders.co.za/south-africa-government-tenders',
+    siteName: 'ProTenders',
+    type: 'website',
+    images: [{
+      url: '/og-government-tenders.png',
+      width: 1200,
+      height: 630,
+      alt: 'ProTenders - South Africa Government Tenders',
+    }],
+  },
+  alternates: {
+    canonical: 'https://protenders.co.za/south-africa-government-tenders',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+};
+
+export default async function GovernmentTendersPage() {
+  // Fetch latest tenders (SSR for freshness)
+  const tenders = await getTenders({ 
+    limit: 20, 
+    sort: 'publishedDate',
+    order: 'desc' 
+  });
+  
+  const stats = await getGlobalStats();
+  
+  const lastUpdated = new Date().toISOString();
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb Schema */}
+      <BreadcrumbSchema 
+        items={[
+          { name: 'Home', url: 'https://protenders.co.za' },
+          { name: 'Government Tenders South Africa' }
+        ]}
+      />
+      
+      {/* Hero Section - Optimized for SEO */}
+      <header className="mb-12">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          Government Tenders in South Africa
+        </h1>
+        <p className="text-xl text-muted-foreground mb-6">
+          Access {formatNumber(stats.totalTenders)} active government tender opportunities 
+          from national departments, provincial governments, municipalities, and state-owned 
+          enterprises across all 9 provinces. Updated daily from National Treasury OCDS data.
+        </p>
+        
+        {/* Trust Indicators */}
+        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-green-500" /* checkmark icon */>✓</svg>
+            <span>Official OCDS Data Source</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-green-500">✓</svg>
+            <span>Updated Every 24 Hours</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-green-500">✓</svg>
+            <span>Free Tender Alerts</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-green-500">✓</svg>
+            <span>Last updated: {new Date(lastUpdated).toLocaleString('en-ZA')}</span>
+          </div>
+        </div>
+      </header>
+
+      {/* Statistics Dashboard */}
+      <section className="mb-12">
+        <StatsOverview
+          activeTenders={stats.activeTenders}
+          totalValue={stats.totalValue}
+          publishedToday={stats.publishedToday}
+          closingThisWeek={stats.closingThisWeek}
+        />
+      </section>
+
+      {/* Filter Widget - Encourage engagement */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-4">
+          Find Government Tender Opportunities
+        </h2>
+        <FilterWidget 
+          provinces={stats.provinces}
+          categories={stats.categories}
+          departments={stats.topDepartments}
+        />
+      </section>
+
+      {/* SEO Content Block */}
+      <section className="mb-12 prose prose-lg max-w-none">
+        <h2>About Government Tenders in South Africa</h2>
+        <p>
+          Government tenders in South Africa represent opportunities worth billions of Rands 
+          annually. These procurement opportunities are available from:
+        </p>
+        <ul>
+          <li><strong>National Departments:</strong> Including Public Works, Health, Education, 
+          Defence, Transport, and more</li>
+          <li><strong>Provincial Governments:</strong> All 9 provinces publish regular tender 
+          opportunities for goods, services, and works</li>
+          <li><strong>Municipalities:</strong> Over 250 local, district, and metropolitan 
+          municipalities across South Africa</li>
+          <li><strong>State-Owned Enterprises:</strong> Eskom, Transnet, PRASA, SAA, Denel, 
+          and other parastatals</li>
+          <li><strong>Constitutional Institutions:</strong> SARS, SASSA, Home Affairs, and others</li>
+        </ul>
+
+        <h3>How to Access Government Tenders</h3>
+        <p>
+          ProTenders aggregates tender data from multiple official sources including National 
+          Treasury's OCDS API, eTenders Portal, provincial tender bulletins, and municipal 
+          procurement systems. This means you can find all South African government tenders 
+          in one place, rather than checking dozens of different websites.
+        </p>
+
+        <h3>Types of Government Tenders Available</h3>
+        <p>
+          Government procurement in South Africa covers four main categories under the OCDS 
+          (Open Contracting Data Standard):
+        </p>
+        <ul>
+          <li><strong>Goods:</strong> Office supplies, equipment, vehicles, furniture, 
+          medical supplies, IT hardware, and more</li>
+          <li><strong>Works:</strong> Construction projects, building maintenance, 
+          infrastructure development, road works</li>
+          <li><strong>Services:</strong> Cleaning, security, catering, transport, 
+          training, and professional services</li>
+          <li><strong>Consulting Services:</strong> Professional advisory, engineering 
+          consultancy, financial services, legal services</li>
+        </ul>
+
+        <h3>Who Can Bid on Government Tenders?</h3>
+        <p>
+          Any registered business in South Africa can participate in government tenders. 
+          Requirements typically include:
+        </p>
+        <ul>
+          <li>Valid tax clearance certificate (SARS)</li>
+          <li>CSD (Central Supplier Database) registration</li>
+          <li>BEE (Broad-Based Black Economic Empowerment) certificate</li>
+          <li>Industry-specific registration (e.g., CIDB for construction)</li>
+          <li>Professional indemnity insurance for certain services</li>
+        </ul>
+      </section>
+
+      {/* Latest Tenders */}
+      <section className="mb-12">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-semibold">
+            Latest Government Tender Opportunities
+          </h2>
+          <a 
+            href="/tenders" 
+            className="text-primary hover:underline"
+          >
+            View all tenders →
+          </a>
+        </div>
+        <Suspense fallback={<TenderGridSkeleton />}>
+          <TenderGrid tenders={tenders} />
+        </Suspense>
+      </section>
+
+      {/* Browse by Category - Internal Linking */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Browse Tenders by Category
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { name: 'Security Services', slug: 'security-services', count: stats.categories.security },
+            { name: 'Cleaning Services', slug: 'cleaning-services', count: stats.categories.cleaning },
+            { name: 'Construction', slug: 'construction', count: stats.categories.construction },
+            { name: 'IT Services', slug: 'it-services', count: stats.categories.it },
+            { name: 'Catering', slug: 'catering', count: stats.categories.catering },
+            { name: 'Transport', slug: 'transport', count: stats.categories.transport },
+            { name: 'Medical Equipment', slug: 'medical-equipment', count: stats.categories.medical },
+            { name: 'Consulting', slug: 'consulting', count: stats.categories.consulting },
+          ].map(category => (
+            <a
+              key={category.slug}
+              href={`/tenders/category/${category.slug}`}
+              className="p-4 border rounded-lg hover:border-primary transition-colors"
+            >
+              <div className="font-semibold">{category.name}</div>
+              <div className="text-sm text-muted-foreground">
+                {formatNumber(category.count)} active tenders
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Browse by Province - Internal Linking */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Browse Tenders by Province
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            { name: 'Gauteng', slug: 'gauteng', count: stats.provinces.gauteng },
+            { name: 'KwaZulu-Natal', slug: 'kwazulu-natal', count: stats.provinces.kzn },
+            { name: 'Western Cape', slug: 'western-cape', count: stats.provinces.westernCape },
+            { name: 'Eastern Cape', slug: 'eastern-cape', count: stats.provinces.easternCape },
+            { name: 'Limpopo', slug: 'limpopo', count: stats.provinces.limpopo },
+            { name: 'Mpumalanga', slug: 'mpumalanga', count: stats.provinces.mpumalanga },
+            { name: 'Free State', slug: 'free-state', count: stats.provinces.freeState },
+            { name: 'North West', slug: 'north-west', count: stats.provinces.northWest },
+            { name: 'Northern Cape', slug: 'northern-cape', count: stats.provinces.northernCape },
+          ].map(province => (
+            <a
+              key={province.slug}
+              href={`/tenders/${province.slug}`}
+              className="p-4 border rounded-lg hover:border-primary transition-colors"
+            >
+              <div className="font-semibold">{province.name}</div>
+              <div className="text-sm text-muted-foreground">
+                {formatNumber(province.count)} active tenders
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Top Departments - Internal Linking */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Popular Government Departments & Entities
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {stats.topDepartments.map(dept => (
+            <a
+              key={dept.slug}
+              href={`/tenders/${dept.slug}`}
+              className="px-4 py-3 border rounded hover:border-primary transition-colors"
+            >
+              <div className="font-medium text-sm">{dept.name}</div>
+              <div className="text-xs text-muted-foreground">
+                {formatNumber(dept.tenderCount)} tenders
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Alert Signup CTA */}
+      <section className="mb-12">
+        <AlertSignupCTA
+          title="Never Miss a Government Tender Opportunity"
+          description="Get instant email alerts when new tenders matching your criteria are published. Filter by province, category, department, and value range."
+          buttonText="Set Up Free Tender Alerts"
+        />
+      </section>
+
+      {/* FAQ Section with Schema */}
+      <section className="mb-12">
+        <FAQSection
+          questions={[
+            {
+              question: 'How do I find government tenders in South Africa?',
+              answer: 'You can find government tenders through ProTenders, which aggregates tender data from National Treasury, eTenders Portal, and other official sources. Browse by province, category, or department, or set up alerts to get notified of new opportunities matching your criteria.',
+            },
+            {
+              question: 'What documents do I need to bid on government tenders?',
+              answer: 'To bid on government tenders in South Africa, you typically need: (1) Tax clearance certificate from SARS, (2) CSD (Central Supplier Database) registration, (3) BEE certificate or sworn affidavit, (4) Company registration documents, (5) Valid bank account details, and (6) Industry-specific certifications (e.g., CIDB for construction).',
+            },
+            {
+              question: 'How often are new government tenders published?',
+              answer: 'New government tenders are published daily in South Africa. National departments, provinces, and municipalities continuously issue tenders throughout the year. ProTenders updates its database every 24 hours with the latest tenders from official sources.',
+            },
+            {
+              question: 'What is the OCDS tender system?',
+              answer: 'OCDS (Open Contracting Data Standard) is an open data standard for publishing government procurement information. National Treasury publishes all South African government tenders in OCDS format, making them accessible and searchable through platforms like ProTenders.',
+            },
+            {
+              question: 'Can small businesses bid on government tenders?',
+              answer: 'Yes, small businesses (SMEs) can bid on government tenders in South Africa. Many tenders are specifically set aside for SMEs, and the government has preferential procurement policies for small businesses, especially those that are BEE-compliant. ProTenders allows you to filter tenders by value range to find opportunities suitable for your business size.',
+            },
+            {
+              question: 'How do I register on the Central Supplier Database (CSD)?',
+              answer: 'To register on CSD: (1) Visit the National Treasury CSD portal, (2) Complete the online registration form with your company details, (3) Upload required documents (tax clearance, BEE certificate, bank confirmation), (4) Submit for validation, (5) Wait for approval (typically 2-5 business days). Once registered, you can bid on any government tender.',
+            },
+            {
+              question: 'What is the difference between RFQ, RFP, and RFB?',
+              answer: 'RFQ (Request for Quotation) is for simple, low-value purchases. RFP (Request for Proposal) requires detailed proposals for complex services. RFB (Request for Bid) is for construction or works projects. Government tenders will specify which type applies.',
+            },
+            {
+              question: 'How long does the tender process take?',
+              answer: 'The tender process timeline varies, but typically: (1) Tender advertisement: 21-30 days open period, (2) Tender evaluation: 30-60 days, (3) Award notification: 7-14 days after evaluation, (4) Contract signing: 14-30 days after award. The entire process usually takes 3-5 months from publication to contract signature.',
+            },
+          ]}
+        />
+      </section>
+
+      {/* Related Resources */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold mb-6">
+          Government Tender Resources
+        </h2>
+        <div className="grid md:grid-cols-3 gap-6">
+          <a 
+            href="/guides/how-to-bid-government-tenders-south-africa"
+            className="p-6 border rounded-lg hover:border-primary transition-colors"
+          >
+            <h3 className="font-semibold mb-2">How to Bid on Government Tenders</h3>
+            <p className="text-sm text-muted-foreground">
+              Complete step-by-step guide to bidding on government tenders in South Africa
+            </p>
+          </a>
+          <a 
+            href="/guides/csd-registration-guide"
+            className="p-6 border rounded-lg hover:border-primary transition-colors"
+          >
+            <h3 className="font-semibold mb-2">CSD Registration Guide</h3>
+            <p className="text-sm text-muted-foreground">
+              Learn how to register on the Central Supplier Database
+            </p>
+          </a>
+          <a 
+            href="/guides/bee-certificate-requirements"
+            className="p-6 border rounded-lg hover:border-primary transition-colors"
+          >
+            <h3 className="font-semibold mb-2">BEE Certificate Requirements</h3>
+            <p className="text-sm text-muted-foreground">
+              Understand BEE requirements for government tenders
+            </p>
+          </a>
+        </div>
+      </section>
+
+      {/* Schema.org structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: 'Government Tenders in South Africa',
+            description: 'Find and bid on 48,000+ government tender opportunities across South Africa',
+            url: 'https://protenders.co.za/south-africa-government-tenders',
+            mainEntity: {
+              '@type': 'ItemList',
+              name: 'Government Tender Opportunities',
+              numberOfItems: stats.totalTenders,
+              itemListElement: tenders.slice(0, 10).map((tender, index) => ({
+                '@type': 'ListItem',
+                position: index + 1,
+                item: {
+                  '@type': 'Service',
+                  name: tender.title,
+                  provider: {
+                    '@type': 'GovernmentOrganization',
+                    name: tender.buyerName,
+                  },
+                  offers: {
+                    '@type': 'Offer',
+                    priceCurrency: 'ZAR',
+                    price: tender.value?.amount || 0,
+                    validThrough: tender.tenderPeriod.endDate,
+                  },
+                },
+              })),
+            },
+          }),
+        }}
+      />
+    </div>
+  );
+}
