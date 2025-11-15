@@ -1,7 +1,7 @@
 import { blogPosts } from '@/data/blogPosts'
 
 export async function GET() {
-  const baseUrl = 'https://protenders.co.za'
+  const baseUrl = 'https://www.protenders.co.za'
 
   const blogPostUrls = blogPosts.map((post) => {
     const lastmod = post.updatedDate ? new Date(post.updatedDate).toISOString() : new Date(post.publishedDate).toISOString()

@@ -9,7 +9,7 @@ import { fundingGuides } from '@/data/fundingGuides'
 import { blogPosts } from '@/data/blogPosts'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://protenders.co.za'
+  const baseUrl = 'https://www.protenders.co.za'
 
   // Homepage
   const homepage = {

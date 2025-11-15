@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma'
 
 export async function GET() {
-  const baseUrl = 'https://protenders.co.za'
+  const baseUrl = 'https://www.protenders.co.za'
 
   try {
     const activeTenders = await prisma.oCDSRelease.findMany({

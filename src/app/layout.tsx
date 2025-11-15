@@ -33,7 +33,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://protenders.co.za"),
+  metadataBase: new URL("https://www.protenders.co.za"),
   title: {
     default: "Government Tenders South Africa | 48,000+ Opportunities | ProTenders",
     template: "%s | ProTenders",
@@ -73,14 +73,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_ZA",
-    url: "https://protenders.co.za",
+    url: "https://www.protenders.co.za",
     title: "ProTenders - South Africa Government Tenders",
     description:
       "Access 48,000+ government tender opportunities across South Africa",
     siteName: "ProTenders",
     images: [
       {
-        url: "https://protenders.co.za/images/og-image.png",
+        url: "https://www.protenders.co.za/images/og-image.png",
         width: 1200,
         height: 630,
         alt: "ProTenders - South Africa's Premier Government Tender Portal",
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
     description:
       "Find 48,000+ government tender opportunities. Free alerts and daily updates.",
     creator: "@protenders",
-    images: ["https://protenders.co.za/images/og-image.png"],
+    images: ["https://www.protenders.co.za/images/og-image.png"],
   },
   icons: {
     icon: [
@@ -112,7 +112,7 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   alternates: {
-    canonical: "https://protenders.co.za",
+    canonical: "https://www.protenders.co.za",
   },
   robots: {
     index: true,

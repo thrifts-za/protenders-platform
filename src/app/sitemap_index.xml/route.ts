@@ -1,5 +1,5 @@
 export async function GET() {
-  const baseUrl = 'https://protenders.co.za'
+  const baseUrl = 'https://www.protenders.co.za'
 
   // List all your sitemaps
   const sitemaps = [

@@ -31,7 +31,7 @@ const blogPosts = [
 ];
 
 export async function GET() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://protenders.co.za";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.protenders.co.za";
 
   // Filter posts from last 2 days (Google News requirement)
   const twoDaysAgo = new Date();

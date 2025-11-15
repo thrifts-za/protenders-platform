@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { fundingGuides } from '@/data/fundingGuides'
 
 export async function GET() {
-  const baseUrl = 'https://protenders.co.za'
+  const baseUrl = 'https://www.protenders.co.za'
 
   try {
     // Funding opportunity pages

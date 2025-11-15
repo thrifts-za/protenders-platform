@@ -139,7 +139,7 @@ export default function robots(): MetadataRoute.Robots {
         crawlDelay: 1,
       },
     ],
-    sitemap: 'https://protenders.co.za/sitemap_index.xml',
-    host: 'https://protenders.co.za',
+    sitemap: 'https://www.protenders.co.za/sitemap_index.xml',
+    host: 'https://www.protenders.co.za',
   }
 }
