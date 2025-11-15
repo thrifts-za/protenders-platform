@@ -35,12 +35,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL("https://protenders.co.za"),
   title: {
-    default: "ProTenders | South Africa's Premier Government Tender Portal",
+    default: "Government Tenders South Africa | 48,000+ Opportunities | ProTenders",
     template: "%s | ProTenders",
   },
   description:
-    "Search 10,000+ government tenders, RFQs & RFPs across South Africa. AI-powered tender alerts, BEE opportunities & real-time procurement intelligence.",
+    "Find government tenders from National Treasury, provincial departments, municipalities and SOEs. 48,000+ active opportunities updated daily. Free tender alerts, advanced search, and procurement analytics.",
   keywords: [
+    "government tenders south africa",
+    "south african tenders",
+    "tender opportunities",
+    "OCDS tenders",
     "etenders",
     "etenders south africa",
     "etender portal",
@@ -54,6 +58,7 @@ export const metadata: Metadata = {
     "RFP",
     "procurement opportunities",
     "BEE tenders",
+    "BEE opportunities",
     "government contracts",
     "tender alerts",
     "South African tenders",
@@ -69,13 +74,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_ZA",
     url: "https://protenders.co.za",
-    title: "ProTenders | Find Government Tenders in South Africa",
+    title: "ProTenders - South Africa Government Tenders",
     description:
-      "Access 10,000+ government tenders, RFQs & RFPs. AI-powered alerts for procurement opportunities across all provinces.",
+      "Access 48,000+ government tender opportunities across South Africa",
     siteName: "ProTenders",
     images: [
       {
-        url: "/images/og-image.png",
+        url: "https://protenders.co.za/images/og-image.png",
         width: 1200,
         height: 630,
         alt: "ProTenders - South Africa's Premier Government Tender Portal",
@@ -84,18 +89,20 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ProTenders | Find Government Tenders in South Africa",
+    title: "Government Tenders South Africa | ProTenders",
     description:
-      "Access 10,000+ government tenders, RFQs & RFPs. AI-powered alerts for procurement opportunities.",
+      "Find 48,000+ government tender opportunities. Free alerts and daily updates.",
     creator: "@protenders",
-    images: ["/images/og-image.png"],
+    images: ["https://protenders.co.za/images/og-image.png"],
   },
   icons: {
     icon: [
       { url: "/icons/favicon.ico", sizes: "any" },
+      { url: "/icons/icon.svg", type: "image/svg+xml" },
       { url: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
     ],
+    shortcut: [{ url: "/icons/favicon.ico" }],
     apple: [
       { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
