@@ -229,9 +229,9 @@ export const tenderSyncFunction = inngest.createFunction(
       // Step 4: Fetch OCDS releases (with retry)
       const releases = await step.run('fetch-ocds-releases', async () => {
         const base = `${(OCDS_API_BASE || 'https://ocds-api.etenders.gov.za').replace(/\/$/, '')}/api/OCDSReleases`;
-        // Reduced from 2000 to 50 - eTenders API crashes with PageSize > 50
-        // Testing showed: PageSize=5 works, PageSize=100 fails (empty reply)
-        const url = `${base}?PageNumber=1&PageSize=50&dateFrom=${dateRange.fromStr}&dateTo=${dateRange.toStr}`;
+        // Reduced to PageSize=5 - eTenders API extremely unstable with larger values
+        // Testing showed even PageSize=50 returns 500 errors; PageSize=5 works reliably
+        const url = `${base}?PageNumber=1&PageSize=5&dateFrom=${dateRange.fromStr}&dateTo=${dateRange.toStr}`;
 
         console.log(`📡 Fetching OCDS releases: ${url}`);
 
