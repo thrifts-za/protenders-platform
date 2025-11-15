@@ -1,45 +1,24 @@
 import { NextResponse } from "next/server";
+import { blogPosts } from "@/data/blogPosts";
 
 /**
  * GET /news-sitemap.xml
- * Generate a Google News-compatible sitemap for blog posts and funding guides
+ * Generate a Google News-compatible sitemap for blog posts
  *
  * Google News Sitemap spec:
  * https://support.google.com/news/publisher-center/answer/9606710
  */
 
-// Sample blog post data - replace with actual data from your CMS/database
-const blogPosts = [
-  {
-    slug: "how-to-win-government-tenders-2025",
-    title: "How to Win Government Tenders in South Africa: 2025 Complete Guide",
-    publishedDate: "2025-01-15",
-    tags: ["Government Tenders", "BEE", "Procurement"],
-  },
-  {
-    slug: "understanding-bee-certificates",
-    title: "Understanding BEE Certificates for Tender Applications",
-    publishedDate: "2025-01-10",
-    tags: ["BEE", "Compliance"],
-  },
-  {
-    slug: "etenders-portal-guide",
-    title: "eTenders Portal: Step-by-Step Registration Guide",
-    publishedDate: "2025-01-05",
-    tags: ["eTenders", "Guide"],
-  },
-];
-
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.protenders.co.za";
 
-  // Filter posts from last 2 days (Google News requirement)
-  const twoDaysAgo = new Date();
-  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+  // Filter posts from last 7 days (Google News prefers recent content)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
   const recentPosts = blogPosts.filter((post) => {
     const publishDate = new Date(post.publishedDate);
-    return publishDate >= twoDaysAgo;
+    return publishDate >= sevenDaysAgo;
   });
 
   // Generate news sitemap XML
